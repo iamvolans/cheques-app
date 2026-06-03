@@ -9,12 +9,25 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protección de ruta: sin sesión válida → al login (una sola vez, sin bucles)
+  // Sin sesión → al login
   if (!user) {
     redirect("/login");
   }
 
-  // Trae el perfil (nombre y rol) desde la tabla que creamos en Supabase
+  // Política de seguridad: MFA obligatorio para operar.
+  const { data: aal } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aal?.nextLevel === "aal1") {
+    // No tiene ningún factor enrolado → forzar configuración
+    redirect("/mfa-setup");
+  }
+
+  if (aal?.currentLevel !== "aal2") {
+    // Tiene factor pero esta sesión no lo verificó → pedir código
+    redirect("/mfa-verify");
+  }
+
   const { data: perfil } = await supabase
     .from("perfiles")
     .select("nombre, email, rol")
@@ -31,6 +44,9 @@ export default async function DashboardPage() {
               {perfil?.email ?? user.email} ·{" "}
               <span className="rounded bg-emerald-950 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-emerald-400">
                 {perfil?.rol ?? "sin perfil"}
+              </span>
+              <span className="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 text-xs font-medium text-zinc-400">
+                MFA ✓
               </span>
             </p>
           </div>

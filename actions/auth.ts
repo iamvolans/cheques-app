@@ -20,9 +20,18 @@ export async function login(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: "ERROR REAL: " + error.message };
+    return { error: "No se pudo iniciar sesión: " + error.message };
   }
 
+  // ¿El usuario tiene MFA enrolado? Si sí, falta el segundo paso.
+  const { data: aal } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    redirect("/mfa-verify");
+  }
+
+  // Sin MFA enrolado: el dashboard lo va a mandar a /mfa-setup
   redirect("/dashboard");
 }
 
