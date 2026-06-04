@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import FormConfig from "@/components/admin/form-config";
 import BotonConfig from "@/components/admin/boton-config";
+import MultaCuenta from "@/components/admin/multa-cuenta";
 import {
   agregarListaNegra, quitarListaNegra,
   agregarConvenio, toggleConvenio,
@@ -106,6 +107,7 @@ export default async function ConfiguracionPage() {
               { name: "alias", placeholder: "Alias" },
               { name: "cbu", placeholder: "CBU" },
               { name: "descripcion", placeholder: "Descripción" },
+              { name: "multa_rechazo_banco", placeholder: "Multa por rechazo ARS", type: "number" },
             ]}
           />
           {(cuentas ?? []).map((c) => (
@@ -114,6 +116,7 @@ export default async function ConfiguracionPage() {
                 {c.banco}{c.alias && <span className="text-zinc-400"> · {c.alias}</span>}
                 {c.descripcion && <span className="text-zinc-500"> — {c.descripcion}</span>}
               </span>
+              <MultaCuenta id={c.id} multa={Number(c.multa_rechazo_banco ?? 0)} />
               <BotonConfig
                 accion={toggleCuenta}
                 payload={{ id: c.id, activa: !c.activa }}

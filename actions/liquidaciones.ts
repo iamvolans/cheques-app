@@ -4,17 +4,36 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const esquemaLiq = z.object({
-  cliente_id: z.string().uuid(),
-  coelsa_id: z.string().min(3, "Falta el Coelsa ID"),
-  fecha_transferencia: z.string().min(10, "Falta la fecha de transferencia"),
-  cvu_cbu_destino: z
-    .string()
-    .transform((v) => v.replace(/\D/g, ""))
-    .refine((v) => v.length === 22, "El CBU/CVU debe tener 22 dígitos"),
-  beneficiario: z.string().min(2, "Falta el beneficiario"),
-  monto_liquidado: z.coerce.number().positive("El monto debe ser mayor a 0"),
-});
+const vacioANull = (v: unknown) => (v === "" || v === null ? null : v);
+
+const esquemaLiq = z
+  .object({
+    cliente_id: z.string().uuid(),
+    coelsa_id: z.string().min(3, "Falta el Coelsa ID"),
+    fecha_transferencia: z.string().min(10, "Falta la fecha de transferencia"),
+    cvu_cbu_destino: z.preprocess(
+      vacioANull,
+      z
+        .string()
+        .transform((v) => v.replace(/\D/g, ""))
+        .refine((v) => v.length === 22, "El CBU/CVU debe tener 22 dígitos")
+        .nullable()
+    ),
+    alias_destino: z.preprocess(
+      vacioANull,
+      z.string().min(6, "Alias muy corto (mínimo 6)").max(30, "Alias muy largo").nullable()
+    ),
+    cuit_beneficiario: z.preprocess(
+      vacioANull,
+      z.string().regex(/^\d{2}-?\d{8}-?\d$/, "CUIT del beneficiario inválido").nullable()
+    ),
+    beneficiario: z.string().min(2, "Falta el beneficiario"),
+    monto_liquidado: z.coerce.number().positive("El monto debe ser mayor a 0"),
+  })
+  .refine((d) => d.cvu_cbu_destino || d.alias_destino, {
+    message: "Cargá el CBU/CVU o el Alias (al menos uno de los dos)",
+    path: ["cvu_cbu_destino"],
+  });
 
 export type EstadoLiq = { error: string | null; ok?: boolean };
 

@@ -51,7 +51,7 @@ export default async function LiquidacionesPage() {
                   <td className="px-4 py-3 font-mono text-zinc-400">{l.fecha_transferencia}</td>
                   <td className="px-4 py-3 text-zinc-100">{l.clientes?.razon_social}</td>
                   <td className="px-4 py-3 font-mono text-zinc-300">{l.coelsa_id}</td>
-                  <td className="px-4 py-3 font-mono text-zinc-400">{l.cvu_cbu_destino}</td>
+                  <td className="px-4 py-3 font-mono text-zinc-400">{l.cvu_cbu_destino ?? l.alias_destino}</td>
                   <td className="px-4 py-3 text-zinc-400">{l.beneficiario}</td>
                   <td className="px-4 py-3 text-right font-mono text-emerald-400">
                     {fmtARS.format(Number(l.monto_liquidado))}

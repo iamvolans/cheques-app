@@ -87,6 +87,7 @@ export async function agregarCuenta(_p: EstadoConfig, fd: FormData): Promise<Est
     alias: String(fd.get("alias") ?? "") || null,
     cbu: String(fd.get("cbu") ?? "") || null,
     descripcion: String(fd.get("descripcion") ?? "") || null,
+    multa_rechazo_banco: Number(fd.get("multa_rechazo_banco")) || 0,
   });
   if (error) return { error: error.message };
   refrescar();
@@ -144,6 +145,23 @@ export async function sincronizarFeriados(
   } catch (e) {
     return { error: "No se pudo sincronizar: " + (e as Error).message };
   }
+  refrescar();
+  return { error: null };
+}
+
+export async function actualizarMultaCuenta(p: {
+  id: string;
+  multa: number;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdmin();
+  if (err) return { error: err };
+  if (!(p.multa >= 0)) return { error: "Multa inválida" };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("cuentas_bancarias_empresa")
+    .update({ multa_rechazo_banco: p.multa })
+    .eq("id", p.id);
+  if (error) return { error: error.message };
   refrescar();
   return { error: null };
 }
