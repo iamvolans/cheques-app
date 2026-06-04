@@ -85,6 +85,15 @@ export default async function ChequesPage() {
                     {ch.tipo === "echeq" && (
                       <span className="ml-1 rounded bg-violet-950 px-1 text-xs text-violet-300">E</span>
                     )}
+                    {ch.foto_frente_url && (
+                      <a href={ch.foto_frente_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">F</a>
+                    )}
+                    {ch.foto_dorso_url && (
+                      <a href={ch.foto_dorso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">D</a>
+                    )}
+                    {ch.pdf_endoso_url && (
+                      <a href={ch.pdf_endoso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">PDF</a>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-zinc-100">
                     {ch.alerta_lista_negra && <span title="Librador en lista negra">⚠ </span>}

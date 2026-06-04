@@ -82,6 +82,26 @@ export default function NuevoCheque({
         ))}
       </select>
 
+
+      {tipo === "fisico" ? (
+        <>
+          <label className="text-xs text-zinc-400">Foto FRENTE
+            <input name="foto_frente" type="file" accept="image/*" className="mt-1 block w-full text-xs text-zinc-400 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100" />
+          </label>
+          <label className="text-xs text-zinc-400">Foto DORSO
+            <input name="foto_dorso" type="file" accept="image/*" className="mt-1 block w-full text-xs text-zinc-400 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100" />
+          </label>
+          <span />
+        </>
+      ) : (
+        <>
+          <label className="text-xs text-zinc-400">PDF de endoso
+            <input name="pdf_endoso" type="file" accept="application/pdf" className="mt-1 block w-full text-xs text-zinc-400 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100" />
+          </label>
+          <span /><span />
+        </>
+      )}
+
       {estado.error && (
         <p className="rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300 sm:col-span-3">
           {estado.error}

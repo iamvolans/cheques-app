@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { carpetaDelDia, subirArchivo, borrarArchivo } from "@/lib/google-drive/drive";
 
 const esquemaCheque = z.object({
   tipo: z.enum(["fisico", "echeq"]),
@@ -24,6 +25,14 @@ const esquemaCheque = z.object({
 
 export type EstadoCheque = { error: string | null; ok?: boolean; alerta?: string | null };
 
+const MAX_ARCHIVO = 8 * 1024 * 1024; // 8 MB
+
+async function archivoABuffer(f: FormDataEntryValue | null): Promise<{ buffer: Buffer; tipo: string; nombre: string } | null> {
+  if (!f || typeof f === "string" || f.size === 0) return null;
+  if (f.size > MAX_ARCHIVO) throw new Error(`El archivo ${f.name} supera los 8 MB.`);
+  return { buffer: Buffer.from(await f.arrayBuffer()), tipo: f.type, nombre: f.name };
+}
+
 export async function crearCheque(
   _prev: EstadoCheque,
   formData: FormData
@@ -42,6 +51,54 @@ export async function crearCheque(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión vencida. Recargá la página." };
 
+  // Archivos adjuntos (opcionales)
+  let frente, dorso, pdf;
+  try {
+    frente = await archivoABuffer(formData.get("foto_frente"));
+    dorso = await archivoABuffer(formData.get("foto_dorso"));
+    pdf = await archivoABuffer(formData.get("pdf_endoso"));
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+
+  // Subida a Drive: [Raíz]/[Cliente]/[Mes]/[dd-MM]
+  const subidos: string[] = [];
+  let foto_frente_url: string | null = null;
+  let foto_dorso_url: string | null = null;
+  let pdf_endoso_url: string | null = null;
+
+  if (frente || dorso || pdf) {
+    const { data: cliente } = await supabase
+      .from("clientes")
+      .select("razon_social")
+      .eq("id", d.cliente_id)
+      .single();
+    if (!cliente) return { error: "Cliente inexistente." };
+
+    try {
+      const carpeta = await carpetaDelDia(cliente.razon_social);
+      const pref = `cheque_${d.numero_cheque}`;
+      if (frente) {
+        const r = await subirArchivo(frente.buffer, `${pref}_frente_${frente.nombre}`, frente.tipo, carpeta);
+        subidos.push(r.id);
+        foto_frente_url = r.url;
+      }
+      if (dorso) {
+        const r = await subirArchivo(dorso.buffer, `${pref}_dorso_${dorso.nombre}`, dorso.tipo, carpeta);
+        subidos.push(r.id);
+        foto_dorso_url = r.url;
+      }
+      if (pdf) {
+        const r = await subirArchivo(pdf.buffer, `${pref}_endoso_${pdf.nombre}`, pdf.tipo, carpeta);
+        subidos.push(r.id);
+        pdf_endoso_url = r.url;
+      }
+    } catch (e) {
+      await Promise.all(subidos.map(borrarArchivo));
+      return { error: "Error subiendo a Google Drive: " + (e as Error).message };
+    }
+  }
+
   const { data: insertado, error } = await supabase
     .from("cheques")
     .insert({
@@ -58,13 +115,18 @@ export async function crearCheque(
       fecha_cobro: d.fecha_cobro,
       echeq_id: d.tipo === "echeq" ? d.echeq_id : null,
       portador_banco: d.portador_banco || null,
-      fee_aplicado_pct: 0, // lo pisa el trigger con el fee real del cliente
+      foto_frente_url,
+      foto_dorso_url,
+      pdf_endoso_url,
+      fee_aplicado_pct: 0,
       fee_calculado: 0,
     })
     .select("alerta_lista_negra")
     .single();
 
   if (error) {
+    // Rollback: si la base rechazó el cheque, borramos lo subido a Drive
+    await Promise.all(subidos.map(borrarArchivo));
     if (error.code === "23505") {
       return { error: "DUPLICADO: ya existe un cheque con ese N° y ese CUIT de librador." };
     }
