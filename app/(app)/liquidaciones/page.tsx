@@ -28,8 +28,8 @@ export default async function LiquidacionesPage() {
         <header className="mb-6 border-b border-zinc-800 pb-4">
           <h1 className="text-xl font-semibold text-zinc-50">Liquidaciones</h1>
           <div className="flex gap-3 text-sm">
-            <Link href="/dashboard" className="text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
-            <Link href="/clientes" className="text-zinc-400 hover:text-zinc-200">Clientes</Link>
+            
+            
           </div>
         </header>
 

@@ -44,7 +44,7 @@ export default async function ConfiguracionPage() {
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="border-b border-zinc-800 pb-4">
           <h1 className="text-xl font-semibold text-zinc-50">Configuración</h1>
-          <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
+          
         </header>
 
         <section className={seccion}>

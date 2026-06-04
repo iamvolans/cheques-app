@@ -44,7 +44,7 @@ export default async function AuditoriaPage({
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 border-b border-zinc-800 pb-4">
           <h1 className="text-xl font-semibold text-zinc-50">Auditoría</h1>
-          <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
+          
         </header>
 
         <div className="mb-4 flex flex-wrap gap-2">

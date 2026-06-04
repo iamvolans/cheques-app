@@ -50,9 +50,7 @@ export default async function ChequesPage() {
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
             <h1 className="text-xl font-semibold text-zinc-50">Cheques</h1>
-            <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">
-              ← Volver al dashboard
-            </Link>
+            
           </div>
           <NuevoCheque
             clientes={(clientes ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}

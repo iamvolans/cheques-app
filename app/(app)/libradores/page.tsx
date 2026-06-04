@@ -26,7 +26,7 @@ export default async function LibradoresPage() {
       <div className="mx-auto max-w-7xl space-y-10">
         <header className="border-b border-zinc-800 pb-4">
           <h1 className="text-xl font-semibold text-zinc-50">Libradores · Riesgo</h1>
-          <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
+          
         </header>
 
         <section>

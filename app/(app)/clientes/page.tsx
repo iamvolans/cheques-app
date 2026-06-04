@@ -35,9 +35,9 @@ export default async function ClientesPage() {
           <div>
             <h1 className="text-xl font-semibold text-zinc-50">Clientes</h1>
             <div className="flex gap-3 text-sm">
-              <Link href="/dashboard" className="text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
-              <Link href="/cheques" className="text-zinc-400 hover:text-zinc-200">Cheques</Link>
-              <Link href="/liquidaciones" className="text-zinc-400 hover:text-zinc-200">Liquidaciones</Link>
+              
+              
+              
             </div>
           </div>
           <NuevoCliente />
