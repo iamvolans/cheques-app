@@ -39,8 +39,14 @@ export default function NuevoCliente() {
     >
       <input name="razon_social" placeholder="Razón Social *" required className={inputCls} />
       <input name="cuit" placeholder="CUIT * (30-12345678-9)" required className={inputCls} />
-      <input name="email" type="email" placeholder="Email de notificaciones *" required className={inputCls} />
-      <input name="fee_porcentaje" type="number" step="0.01" min="0" max="100" placeholder="Fee % * (ej: 1.25)" required className={inputCls} />
+      <input name="email" type="email" placeholder="Email de notificaciones *" required className={`${inputCls} sm:col-span-2`} />
+      <input name="fee_porcentaje" type="number" step="0.01" min="0" max="100" placeholder="Fee Cámara % * (ej: 1.25)" required className={inputCls} />
+      <input name="fee_interior_porcentaje" type="number" step="0.01" min="0" max="100" placeholder="Fee Interior % (opcional)" className={inputCls} />
+
+      <p className="text-xs text-zinc-500 sm:col-span-2">
+        El fee Cámara aplica a cheques con CP ≤ 2000 (Buenos Aires). Si configurás un fee
+        Interior, aplica a CP 2001+; si lo dejás vacío, se usa el fee Cámara para todo.
+      </p>
 
       {estado.error && (
         <p className="rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300 sm:col-span-2">

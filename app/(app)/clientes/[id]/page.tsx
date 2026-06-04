@@ -78,7 +78,7 @@ export default async function PerfilClientePage({
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{cliente.razon_social}</h1>
             <p className="font-mono text-sm text-zinc-400">
-              {cliente.cuit} · {cliente.email} · Fee {Number(cliente.fee_porcentaje).toFixed(2)}%
+              {cliente.cuit} · {cliente.email} · Fee Cámara {Number(cliente.fee_porcentaje).toFixed(2)}%{cliente.fee_interior_porcentaje != null && ` · Interior ${Number(cliente.fee_interior_porcentaje).toFixed(2)}%`}
             </p>
             <Link href="/clientes" className="text-sm text-zinc-400 hover:text-zinc-200">
               ← Volver a clientes
@@ -97,6 +97,7 @@ export default async function PerfilClientePage({
                 clienteId={cliente.id}
                 email={cliente.email}
                 fee={Number(cliente.fee_porcentaje)}
+                feeInterior={cliente.fee_interior_porcentaje != null ? Number(cliente.fee_interior_porcentaje) : null}
               />
             )}
             {esAdmin && <Liquidar clienteId={cliente.id} saldo={saldo} />}

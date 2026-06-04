@@ -14,6 +14,10 @@ const esquemaCliente = z.object({
     .number()
     .min(0, "El fee no puede ser negativo")
     .max(100, "El fee no puede superar 100%"),
+  fee_interior_porcentaje: z.preprocess(
+    (v) => (v === "" || v === null ? null : v),
+    z.coerce.number().min(0).max(100, "Fee interior fuera de rango").nullable()
+  ),
 });
 
 export type EstadoCliente = { error: string | null; ok?: boolean };
@@ -27,6 +31,7 @@ export async function crearCliente(
     cuit: formData.get("cuit"),
     email: formData.get("email"),
     fee_porcentaje: formData.get("fee_porcentaje"),
+    fee_interior_porcentaje: formData.get("fee_interior_porcentaje"),
   });
 
   if (!datos.success) {
@@ -59,6 +64,10 @@ const esquemaEdicion = z.object({
   cliente_id: z.string().uuid(),
   email: z.string().email("Email inválido"),
   fee_porcentaje: z.coerce.number().min(0).max(100, "Fee fuera de rango"),
+  fee_interior_porcentaje: z.preprocess(
+    (v) => (v === "" || v === null ? null : v),
+    z.coerce.number().min(0).max(100, "Fee interior fuera de rango").nullable()
+  ),
 });
 
 export async function editarCliente(
@@ -79,6 +88,7 @@ export async function editarCliente(
     .update({
       email: datos.data.email,
       fee_porcentaje: datos.data.fee_porcentaje,
+      fee_interior_porcentaje: datos.data.fee_interior_porcentaje,
     })
     .eq("id", datos.data.cliente_id);
 
