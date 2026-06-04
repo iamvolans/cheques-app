@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { TrendingUp, Wallet, Layers, AlertOctagon, CircleDollarSign } from "lucide-react";
+import Graficos from "@/components/dashboard/graficos";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -23,6 +24,26 @@ export default async function DashboardPage() {
         .order("created_at", { ascending: false })
         .limit(6),
     ]);
+
+  const { data: resueltos } = await supabase
+    .from("cheques")
+    .select("monto, fee_calculado, estado, fecha_resolucion")
+    .not("fecha_resolucion", "is", null)
+    .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString());
+
+  const porMes = new Map<string, { mes: string; ganancia: number; volumen: number; rechazos: number; total: number }>();
+  for (const c of resueltos ?? []) {
+    const mes = String(c.fecha_resolucion).slice(0, 7);
+    const g = porMes.get(mes) ?? { mes, ganancia: 0, volumen: 0, rechazos: 0, total: 0 };
+    g.ganancia += Number(c.fee_calculado);
+    g.total++;
+    if (c.estado === "procesado") g.volumen += Number(c.monto);
+    if (c.estado === "rechazado") g.rechazos++;
+    porMes.set(mes, g);
+  }
+  const serie = [...porMes.values()]
+    .sort((a, b) => a.mes.localeCompare(b.mes))
+    .map((g) => ({ ...g, pctRechazo: g.total ? +((100 * g.rechazos) / g.total).toFixed(1) : 0 }));
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const gananciaTotal = (ganancias ?? []).reduce((a, g) => a + Number(g.ganancia_total ?? 0), 0);
@@ -73,6 +94,8 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        <Graficos datos={serie} />
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 shadow-lg shadow-black/20">
           <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
