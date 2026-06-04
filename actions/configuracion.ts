@@ -128,3 +128,22 @@ export async function quitarFeriado(p: { fecha: string }): Promise<{ error: stri
   refrescar();
   return { error: null };
 }
+
+import { sincronizarFeriadosAnio } from "@/lib/feriados";
+
+export async function sincronizarFeriados(
+  _p: Record<string, never>
+): Promise<{ error: string | null }> {
+  const err = await exigirAdmin();
+  if (err) return { error: err };
+
+  const anio = new Date().getFullYear();
+  try {
+    await sincronizarFeriadosAnio(anio);
+    await sincronizarFeriadosAnio(anio + 1);
+  } catch (e) {
+    return { error: "No se pudo sincronizar: " + (e as Error).message };
+  }
+  refrescar();
+  return { error: null };
+}

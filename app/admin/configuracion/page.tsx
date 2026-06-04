@@ -7,7 +7,7 @@ import {
   agregarListaNegra, quitarListaNegra,
   agregarConvenio, toggleConvenio,
   agregarCuenta, toggleCuenta,
-  agregarFeriado, quitarFeriado,
+  agregarFeriado, quitarFeriado, sincronizarFeriados,
 } from "@/actions/configuracion";
 
 export default async function ConfiguracionPage() {
@@ -133,6 +133,11 @@ export default async function ConfiguracionPage() {
               { name: "fecha", placeholder: "Fecha *", type: "date" },
               { name: "descripcion", placeholder: "Descripción" },
             ]}
+          />
+          <BotonConfig
+            accion={sincronizarFeriados}
+            payload={{}}
+            label="🔄 Sincronizar desde API (año actual + próximo)"
           />
           {(feriados ?? []).map((f) => (
             <div key={f.fecha} className={fila}>
