@@ -80,3 +80,47 @@ export async function crearCheque(
       : null,
   };
 }
+
+const transicionesValidas: Record<string, string[]> = {
+  aceptado: ["depositado"],
+  depositado: ["procesado", "rechazado"],
+  procesado: ["rechazado"],
+};
+
+export async function cambiarEstado(input: {
+  chequeId: string;
+  estadoActual: string;
+  nuevoEstado: string;
+  multa?: number;
+  motivo?: string;
+}): Promise<{ error: string | null }> {
+  const { chequeId, estadoActual, nuevoEstado, multa, motivo } = input;
+
+  if (!transicionesValidas[estadoActual]?.includes(nuevoEstado)) {
+    return { error: `Transición inválida: ${estadoActual} → ${nuevoEstado}` };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  const cambios: Record<string, unknown> = { estado: nuevoEstado };
+  if (nuevoEstado === "rechazado") {
+    cambios.multa = multa ?? 0;
+    cambios.motivo_rechazo = motivo || "Falta de fondos";
+  }
+
+  const { error } = await supabase
+    .from("cheques")
+    .update(cambios)
+    .eq("id", chequeId)
+    .eq("estado", estadoActual);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/cheques");
+  revalidatePath("/clientes");
+  return { error: null };
+}

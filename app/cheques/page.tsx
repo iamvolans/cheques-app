@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import NuevoCheque from "@/components/cheques/nuevo-cheque";
+import AccionesCheque from "@/components/cheques/acciones-cheque";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -22,18 +23,25 @@ export default async function ChequesPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: cheques }, { data: clientes }, { data: convenios }, { data: cuentas }] =
-    await Promise.all([
-      supabase
-        .from("cheques")
-        .select("*, clientes(razon_social)")
-        .order("created_at", { ascending: false })
-        .limit(100),
-      supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
-      supabase.from("convenios").select("id, razon_social").eq("activo", true),
-      supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
-    ]);
+  const [
+    { data: perfil },
+    { data: cheques },
+    { data: clientes },
+    { data: convenios },
+    { data: cuentas },
+  ] = await Promise.all([
+    supabase.from("perfiles").select("rol").eq("id", user.id).single(),
+    supabase
+      .from("cheques")
+      .select("*, clientes(razon_social)")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
+    supabase.from("convenios").select("id, razon_social").eq("activo", true),
+    supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
+  ]);
 
+  const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   return (
@@ -64,7 +72,9 @@ export default async function ChequesPage() {
                 <th className="px-3 py-3 text-right font-medium">Monto</th>
                 <th className="px-3 py-3 text-right font-medium">Fee</th>
                 <th className="px-3 py-3 font-medium">Cobro</th>
+                <th className="px-3 py-3 font-medium">Acred. est.</th>
                 <th className="px-3 py-3 font-medium">Estado</th>
+                <th className="px-3 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
@@ -89,16 +99,22 @@ export default async function ChequesPage() {
                     {fmtARS.format(Number(ch.fee_calculado))}
                   </td>
                   <td className="px-3 py-3 font-mono text-zinc-400">{ch.fecha_cobro}</td>
+                  <td className="px-3 py-3 font-mono text-zinc-400">
+                    {ch.fecha_estimada_acred ?? "—"}
+                  </td>
                   <td className="px-3 py-3">
                     <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
                       {ch.estado}
                     </span>
                   </td>
+                  <td className="px-3 py-3">
+                    <AccionesCheque id={ch.id} estado={ch.estado} esAdmin={esAdmin} />
+                  </td>
                 </tr>
               ))}
               {(cheques ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={10} className="px-4 py-10 text-center text-zinc-500">
                     No hay cheques cargados todavía.
                   </td>
                 </tr>
