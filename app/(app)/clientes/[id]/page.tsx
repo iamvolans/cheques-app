@@ -85,6 +85,13 @@ export default async function PerfilClientePage({
             </Link>
           </div>
           <div className="flex flex-wrap items-start gap-2">
+            <a
+              href={`/resumen-cliente?id=${cliente.id}`}
+              target="_blank"
+              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-zinc-800"
+            >
+              🧾 Resumen de cuenta
+            </a>
             {esAdmin && (
               <EditarCliente
                 clienteId={cliente.id}
