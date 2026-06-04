@@ -213,8 +213,8 @@ export default async function ChequesPage({
                     {ch.fecha_estimada_acred ?? "—"}
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${colorEstado[ch.estado] ?? ""}`}>
-                      {String(ch.estado).replace("_", " ")}
+                    <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorEstado[ch.estado] ?? ""}`}>
+                      {ch.estado === "en_custodia" ? "custodia" : ch.estado}
                     </span>
                   </td>
                   <td className="px-3 py-3">

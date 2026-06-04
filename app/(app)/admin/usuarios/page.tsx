@@ -58,7 +58,7 @@ export default async function UsuariosPage() {
                   <td className="px-4 py-3 text-zinc-400">{u.email}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                      className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
                         u.activo
                           ? "bg-emerald-950 text-emerald-300"
                           : "bg-red-950 text-red-300"

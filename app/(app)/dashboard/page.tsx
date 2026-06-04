@@ -134,11 +134,11 @@ export default async function DashboardPage() {
             </span>
             <span className="min-w-0">
               <span className={`block font-semibold ${urgentes.length > 0 ? "text-red-200" : "text-amber-200"}`}>
-                🏦 {enOficina.length} cheque{enOficina.length === 1 ? "" : "s"} en oficina por {fmtARS.format(suma(enOficina))} — hay que llevarlos al banco
+                {enOficina.length} cheque{enOficina.length === 1 ? "" : "s"} en oficina por {fmtARS.format(suma(enOficina))} — hay que llevarlos al banco
               </span>
               <span className="block text-sm text-zinc-400">
                 {urgentes.length > 0
-                  ? `🚨 ${urgentes.length} esperan desde ayer o antes (incluye diferidos ya vencidos). Tocá para verlos.`
+                  ? `${urgentes.length} esperan desde ayer o antes (incluye diferidos ya vencidos). Tocá para verlos.`
                   : "Cargados hoy o diferidos que ya vencieron. Tocá para ver el detalle."}
               </span>
             </span>
@@ -183,7 +183,7 @@ export default async function DashboardPage() {
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="font-mono text-zinc-100">{fmtARS.format(Number(ch.monto))}</span>
                   <span className={`rounded-md px-2 py-0.5 text-[11px] font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-                    {String(ch.estado).replace("_", " ")}
+                    {ch.estado === "en_custodia" ? "custodia" : ch.estado}
                   </span>
                 </div>
               </Link>

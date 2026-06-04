@@ -49,7 +49,7 @@ export default async function ConfiguracionPage() {
         </header>
 
         <section className={seccion}>
-          <h2 className={titulo}>🚫 Lista negra de libradores</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-red-500/80 align-middle" />Lista negra de libradores</h2>
           <FormConfig
             accion={agregarListaNegra}
             etiqueta="Bloquear librador"
@@ -73,7 +73,7 @@ export default async function ConfiguracionPage() {
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}>📋 Convenios (a quién se factura la comisión)</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-blue-500/80 align-middle" />Convenios (a quién se factura la comisión)</h2>
           <FormConfig
             accion={agregarConvenio}
             etiqueta="Agregar convenio"
@@ -98,7 +98,7 @@ export default async function ConfiguracionPage() {
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}>🏦 Cuentas bancarias propias</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-emerald-500/80 align-middle" />Cuentas bancarias propias</h2>
           <FormConfig
             accion={agregarCuenta}
             etiqueta="Agregar cuenta"
@@ -128,7 +128,7 @@ export default async function ConfiguracionPage() {
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}>📅 Feriados (para el cálculo de 48hs hábiles)</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-violet-500/80 align-middle" />Feriados (para el cálculo de 48hs hábiles)</h2>
           <FormConfig
             accion={agregarFeriado}
             etiqueta="Agregar feriado"
@@ -140,7 +140,7 @@ export default async function ConfiguracionPage() {
           <BotonConfig
             accion={sincronizarFeriados}
             payload={{}}
-            label="🔄 Sincronizar desde API (año actual + próximo)"
+            label="Sincronizar desde API · año actual y próximo"
           />
           {(feriados ?? []).map((f) => (
             <div key={f.fecha} className={fila}>

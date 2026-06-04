@@ -43,7 +43,10 @@ export default async function AppLayout({
         </div>
         <SidebarNav esAdmin={esAdmin} />
         <div className="border-t border-zinc-800/70 px-5 py-3">
-          <p className="text-[11px] text-zinc-600">v1.0 · GOAT</p>
+          <p className="flex items-center gap-2 text-[11px] text-zinc-600">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+            v1.2 · GOAT
+          </p>
         </div>
       </aside>
 

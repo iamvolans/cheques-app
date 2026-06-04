@@ -100,7 +100,10 @@ export default function AccionesCheque({
   return (
     <div className="flex flex-wrap items-center gap-1">
       {estado === "en_custodia" && !disponible && (
-        <span className="text-[11px] text-amber-400" title="Diferido: aún no llegó su fecha de cobro">⏳ custodia</span>
+        <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-400/90" title="Diferido: aún no llegó su fecha de cobro">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+          custodia
+        </span>
       )}
       {(estado === "aceptado" || (estado === "en_custodia" && disponible)) && (
         <button

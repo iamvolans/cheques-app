@@ -7,6 +7,7 @@ const colorEstado: Record<string, string> = {
   depositado: "bg-blue-950 text-blue-300",
   procesado: "bg-emerald-950 text-emerald-300",
   rechazado: "bg-red-950 text-red-300",
+  en_custodia: "bg-amber-950 text-amber-300",
 };
 
 function Doc({ titulo, url }: { titulo: string; url: string | null }) {
@@ -100,7 +101,7 @@ export default async function DetalleChequePage({
             <Link href="/cheques" className="text-sm text-zinc-400 hover:text-zinc-200">← Volver a cheques</Link>
           </div>
           <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-            {ch.estado}
+            {ch.estado === "en_custodia" ? "custodia" : ch.estado}
           </span>
         </header>
 

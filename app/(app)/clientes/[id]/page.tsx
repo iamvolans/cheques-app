@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import Liquidar from "@/components/clientes/liquidar";
+import { FileText } from "lucide-react";
 import EditarCliente from "@/components/clientes/editar-cliente";
 
 const colorMov: Record<string, string> = {
@@ -90,7 +91,7 @@ export default async function PerfilClientePage({
               target="_blank"
               className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-zinc-800"
             >
-              🧾 Resumen de cuenta
+              <FileText size={13} className="-mt-0.5 mr-1.5 inline" />Resumen de cuenta
             </a>
             {esAdmin && (
               <EditarCliente
@@ -134,7 +135,7 @@ export default async function PerfilClientePage({
                       {new Date(m.created_at).toLocaleString("es-AR")}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${colorMov[m.tipo] ?? ""}`}>
+                      <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorMov[m.tipo] ?? ""}`}>
                         {m.tipo.replace("_", " ")}
                       </span>
                     </td>
