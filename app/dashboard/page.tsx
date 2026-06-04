@@ -51,6 +51,7 @@ export default async function DashboardPage() {
       ? [
           { href: "/admin/usuarios", label: "Usuarios" },
           { href: "/admin/configuracion", label: "Configuración" },
+          { href: "/admin/auditoria", label: "Auditoría" },
         ]
       : []),
   ];

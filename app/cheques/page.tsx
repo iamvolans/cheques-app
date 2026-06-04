@@ -81,7 +81,7 @@ export default async function ChequesPage() {
               {(cheques ?? []).map((ch) => (
                 <tr key={ch.id} className="transition hover:bg-zinc-900">
                   <td className="px-3 py-3 font-mono text-zinc-300">
-                    {ch.numero_cheque}
+                    <Link href={`/cheques/${ch.id}`} className="hover:text-emerald-400 hover:underline">{ch.numero_cheque}</Link>
                     {ch.tipo === "echeq" && (
                       <span className="ml-1 rounded bg-violet-950 px-1 text-xs text-violet-300">E</span>
                     )}
