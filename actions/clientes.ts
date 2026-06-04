@@ -54,3 +54,37 @@ export async function crearCliente(
   revalidatePath("/clientes");
   return { error: null, ok: true };
 }
+
+const esquemaEdicion = z.object({
+  cliente_id: z.string().uuid(),
+  email: z.string().email("Email inválido"),
+  fee_porcentaje: z.coerce.number().min(0).max(100, "Fee fuera de rango"),
+});
+
+export async function editarCliente(
+  _prev: EstadoCliente,
+  formData: FormData
+): Promise<EstadoCliente> {
+  const datos = esquemaEdicion.safeParse(Object.fromEntries(formData));
+  if (!datos.success) return { error: datos.error.issues[0].message };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  const { error } = await supabase
+    .from("clientes")
+    .update({
+      email: datos.data.email,
+      fee_porcentaje: datos.data.fee_porcentaje,
+    })
+    .eq("id", datos.data.cliente_id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/clientes");
+  revalidatePath(`/clientes/${datos.data.cliente_id}`);
+  return { error: null, ok: true };
+}
