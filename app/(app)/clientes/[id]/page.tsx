@@ -76,7 +76,7 @@ export default async function PerfilClientePage({
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-50">{cliente.razon_social}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{cliente.razon_social}</h1>
             <p className="font-mono text-sm text-zinc-400">
               {cliente.cuit} · {cliente.email} · Fee {Number(cliente.fee_porcentaje).toFixed(2)}%
             </p>
@@ -98,7 +98,7 @@ export default async function PerfilClientePage({
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (
-            <div key={c.titulo} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div key={c.titulo} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
               <p className="text-xs uppercase tracking-wide text-zinc-500">{c.titulo}</p>
               <p className={`mt-2 font-mono text-2xl font-semibold ${c.color}`}>{c.valor}</p>
             </div>
@@ -109,9 +109,9 @@ export default async function PerfilClientePage({
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
             Movimientos de cuenta
           </h2>
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
+          <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900 text-left text-zinc-400">
+              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Fecha</th>
                   <th className="px-4 py-3 font-medium">Tipo</th>
@@ -121,12 +121,12 @@ export default async function PerfilClientePage({
               </thead>
               <tbody className="divide-y divide-zinc-800 bg-zinc-950">
                 {(movimientos ?? []).map((m) => (
-                  <tr key={m.id} className="transition hover:bg-zinc-900">
+                  <tr key={m.id} className="transition hover:bg-zinc-800/40">
                     <td className="px-4 py-3 font-mono text-zinc-400">
                       {new Date(m.created_at).toLocaleString("es-AR")}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${colorMov[m.tipo] ?? ""}`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${colorMov[m.tipo] ?? ""}`}>
                         {m.tipo.replace("_", " ")}
                       </span>
                     </td>
@@ -152,9 +152,9 @@ export default async function PerfilClientePage({
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
             Cheques del cliente
           </h2>
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
+          <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900 text-left text-zinc-400">
+              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">N°</th>
                   <th className="px-4 py-3 font-medium">Librador</th>
@@ -166,7 +166,7 @@ export default async function PerfilClientePage({
               </thead>
               <tbody className="divide-y divide-zinc-800 bg-zinc-950">
                 {(cheques ?? []).map((ch) => (
-                  <tr key={ch.id} className="transition hover:bg-zinc-900">
+                  <tr key={ch.id} className="transition hover:bg-zinc-800/40">
                     <td className="px-4 py-3 font-mono text-zinc-300">{ch.numero_cheque}</td>
                     <td className="px-4 py-3 text-zinc-100">{ch.librador}</td>
                     <td className="px-4 py-3 text-right font-mono text-zinc-100">{fmtARS.format(Number(ch.monto))}</td>

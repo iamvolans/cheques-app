@@ -35,15 +35,15 @@ export default async function UsuariosPage() {
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-50">Usuarios</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Usuarios</h1>
             
           </div>
           <NuevoUsuario />
         </header>
 
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
+        <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-left text-zinc-400">
+            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Email</th>
@@ -53,12 +53,12 @@ export default async function UsuariosPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
               {(usuarios ?? []).map((u) => (
-                <tr key={u.id} className="transition hover:bg-zinc-900">
+                <tr key={u.id} className="transition hover:bg-zinc-800/40">
                   <td className="px-4 py-3 text-zinc-100">{u.nombre}</td>
                   <td className="px-4 py-3 text-zinc-400">{u.email}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
                         u.activo
                           ? "bg-emerald-950 text-emerald-300"
                           : "bg-red-950 text-red-300"

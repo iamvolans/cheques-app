@@ -49,7 +49,7 @@ export default async function ChequesPage() {
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-50">Cheques</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
             
           </div>
           <NuevoCheque
@@ -61,7 +61,7 @@ export default async function ChequesPage() {
 
         <div className="overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-left text-zinc-400">
+            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-3 py-3 font-medium">N°</th>
                 <th className="px-3 py-3 font-medium">Librador</th>
@@ -77,7 +77,7 @@ export default async function ChequesPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
               {(cheques ?? []).map((ch) => (
-                <tr key={ch.id} className="transition hover:bg-zinc-900">
+                <tr key={ch.id} className="transition hover:bg-zinc-800/40">
                   <td className="px-3 py-3 font-mono text-zinc-300">
                     <Link href={`/cheques/${ch.id}`} className="hover:text-emerald-400 hover:underline">{ch.numero_cheque}</Link>
                     {ch.tipo === "echeq" && (
@@ -110,7 +110,7 @@ export default async function ChequesPage() {
                     {ch.fecha_estimada_acred ?? "—"}
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${colorEstado[ch.estado] ?? ""}`}>
                       {ch.estado}
                     </span>
                   </td>

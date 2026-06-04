@@ -30,7 +30,7 @@ export default function FormConfig({
           name={c.name}
           type={c.type ?? "text"}
           placeholder={c.placeholder}
-          className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500"
+          className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
         />
       ))}
       <button

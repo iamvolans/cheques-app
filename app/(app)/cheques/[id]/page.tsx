@@ -83,7 +83,7 @@ export default async function DetalleChequePage({
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="font-mono text-xl font-semibold text-zinc-50">
+            <h1 className="font-mono text-2xl font-semibold tracking-tight text-zinc-50">
               Cheque N° {ch.numero_cheque}
               {ch.alerta_lista_negra && (
                 <span className="ml-2 rounded bg-red-950 px-2 py-0.5 text-xs font-semibold text-red-300">LISTA NEGRA</span>
@@ -102,7 +102,7 @@ export default async function DetalleChequePage({
           </span>
         </header>
 
-        <section className="grid gap-x-8 gap-y-3 rounded-xl border border-zinc-800 bg-zinc-900 p-6 sm:grid-cols-2">
+        <section className="grid gap-x-8 gap-y-3 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 shadow-lg shadow-black/20 sm:grid-cols-2">
           {campos.map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4 border-b border-zinc-800/50 pb-2 text-sm">
               <span className="text-zinc-500">{k}</span>
@@ -123,7 +123,7 @@ export default async function DetalleChequePage({
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
             Historial del cheque
           </h2>
-          <div className="space-y-0 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <div className="space-y-0 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
             {(logs ?? []).map((l) => (
               <div key={l.id} className="flex gap-4 border-l-2 border-zinc-700 py-2 pl-4 text-sm">
                 <span className="w-44 shrink-0 font-mono text-xs text-zinc-500">

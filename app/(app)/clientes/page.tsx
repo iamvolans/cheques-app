@@ -33,7 +33,7 @@ export default async function ClientesPage() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-50">Clientes</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Clientes</h1>
             <div className="flex gap-3 text-sm">
               
               
@@ -43,9 +43,9 @@ export default async function ClientesPage() {
           <NuevoCliente />
         </header>
 
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
+        <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-left text-zinc-400">
+            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Razón Social</th>
                 <th className="px-4 py-3 font-medium">CUIT</th>
@@ -57,7 +57,7 @@ export default async function ClientesPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
               {(clientes ?? []).map((c) => (
-                <tr key={c.cliente_id} className="transition hover:bg-zinc-900">
+                <tr key={c.cliente_id} className="transition hover:bg-zinc-800/40">
                   <td className="px-4 py-3">
                     <Link href={`/clientes/${c.cliente_id}`} className="text-zinc-100 hover:text-emerald-400 hover:underline">
                       {c.razon_social}

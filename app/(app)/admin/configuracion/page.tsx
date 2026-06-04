@@ -35,7 +35,7 @@ export default async function ConfiguracionPage() {
       supabase.from("feriados").select("*").gte("fecha", hoy).order("fecha"),
     ]);
 
-  const seccion = "rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4";
+  const seccion = "rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20 space-y-4";
   const titulo = "text-sm font-medium uppercase tracking-wide text-zinc-400";
   const fila = "flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 py-2 text-sm last:border-0";
 
@@ -43,7 +43,7 @@ export default async function ConfiguracionPage() {
     <main className="min-h-screen bg-zinc-950 p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="border-b border-zinc-800 pb-4">
-          <h1 className="text-xl font-semibold text-zinc-50">Configuración</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Configuración</h1>
           
         </header>
 

@@ -43,7 +43,7 @@ export default async function AuditoriaPage({
     <main className="min-h-screen bg-zinc-950 p-8">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 border-b border-zinc-800 pb-4">
-          <h1 className="text-xl font-semibold text-zinc-50">Auditoría</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Auditoría</h1>
           
         </header>
 
@@ -63,9 +63,9 @@ export default async function AuditoriaPage({
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
+        <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-left text-zinc-400">
+            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-3 py-3 font-medium">Cuándo</th>
                 <th className="px-3 py-3 font-medium">Quién</th>
@@ -77,7 +77,7 @@ export default async function AuditoriaPage({
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
               {(logs ?? []).map((l) => (
-                <tr key={l.id} className="align-top transition hover:bg-zinc-900">
+                <tr key={l.id} className="align-top transition hover:bg-zinc-800/40">
                   <td className="px-3 py-3 font-mono text-xs text-zinc-400">
                     {new Date(l.created_at).toLocaleString("es-AR")}
                   </td>

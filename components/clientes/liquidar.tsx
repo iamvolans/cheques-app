@@ -33,7 +33,7 @@ export default function Liquidar({
   }
 
   const inputCls =
-    "w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500";
+    "w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
 
   return (
     <form action={accion} className="grid w-72 gap-2 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-left">

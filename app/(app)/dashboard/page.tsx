@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { TrendingUp, Wallet, Layers, AlertOctagon } from "lucide-react";
+import { TrendingUp, Wallet, Layers, AlertOctagon, CircleDollarSign } from "lucide-react";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -30,9 +30,12 @@ export default async function DashboardPage() {
   const enCartera = (estados ?? []).filter((c) => ["aceptado", "depositado"].includes(c.estado));
   const montoCartera = enCartera.reduce((a, c) => a + Number(c.monto), 0);
   const rechazados = (estados ?? []).filter((c) => c.estado === "rechazado").length;
+  const procesados = (estados ?? []).filter((c) => c.estado === "procesado");
+  const volumenProcesado = procesados.reduce((a, c) => a + Number(c.monto), 0);
 
   const cards = [
     { titulo: "Ganancia total (fees)", valor: fmtARS.format(gananciaTotal), Icon: TrendingUp, tono: "emerald" },
+    { titulo: `Volumen procesado · ${procesados.length} ok`, valor: fmtARS.format(volumenProcesado), Icon: CircleDollarSign, tono: "violet" },
     { titulo: "Pendiente a liquidar", valor: fmtARS.format(pendiente), Icon: Wallet, tono: "blue" },
     { titulo: `En cartera · ${enCartera.length} cheques`, valor: fmtARS.format(montoCartera), Icon: Layers, tono: "zinc" },
     { titulo: "Rechazos / gestionados", valor: `${rechazados} / ${(estados ?? []).length}`, Icon: AlertOctagon, tono: rechazados > 0 ? "red" : "zinc" },
@@ -41,6 +44,7 @@ export default async function DashboardPage() {
   const tonos: Record<string, { chip: string; valor: string; halo: string }> = {
     emerald: { chip: "bg-emerald-500/10 text-emerald-400", valor: "text-emerald-300", halo: "hover:border-emerald-700/60 hover:shadow-emerald-900/20" },
     blue: { chip: "bg-blue-500/10 text-blue-400", valor: "text-blue-300", halo: "hover:border-blue-700/60 hover:shadow-blue-900/20" },
+    violet: { chip: "bg-violet-500/10 text-violet-400", valor: "text-violet-300", halo: "hover:border-violet-700/60 hover:shadow-violet-900/20" },
     red: { chip: "bg-red-500/10 text-red-400", valor: "text-red-300", halo: "hover:border-red-700/60 hover:shadow-red-900/20" },
     zinc: { chip: "bg-zinc-500/10 text-zinc-300", valor: "text-zinc-100", halo: "hover:border-zinc-600" },
   };
@@ -53,7 +57,7 @@ export default async function DashboardPage() {
           <p className="text-sm text-zinc-500">El pulso de la operación en tiempo real.</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {cards.map(({ titulo, valor, Icon, tono }) => (
             <div
               key={titulo}

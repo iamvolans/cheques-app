@@ -25,13 +25,13 @@ export default function NuevoCheque({
   }, [estado]);
 
   const inputCls =
-    "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500";
+    "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
 
   if (!abierto) {
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500"
+        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-emerald-500"
       >
         + Cargar cheque
       </button>
@@ -42,7 +42,7 @@ export default function NuevoCheque({
     <form
       ref={formRef}
       action={accion}
-      className="grid w-full gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:grid-cols-3"
+      className="grid w-full gap-3 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20 sm:grid-cols-3"
     >
       <select name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value as "fisico" | "echeq")} className={inputCls}>
         <option value="fisico">Cheque físico</option>
@@ -119,7 +119,7 @@ export default function NuevoCheque({
         <button
           type="submit"
           disabled={pendiente}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-emerald-500 disabled:opacity-50"
         >
           {pendiente ? "Guardando…" : "Guardar cheque"}
         </button>
