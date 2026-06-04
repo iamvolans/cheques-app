@@ -47,6 +47,9 @@ export default async function DashboardPage() {
     { href: "/clientes", label: "Clientes" },
     { href: "/liquidaciones", label: "Liquidaciones" },
     { href: "/libradores", label: "Libradores" },
+    ...(perfil?.rol === "administrador"
+      ? [{ href: "/admin/usuarios", label: "Usuarios" }]
+      : []),
   ];
 
   return (
