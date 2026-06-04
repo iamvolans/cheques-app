@@ -11,7 +11,20 @@ const colorEstado: Record<string, string> = {
   rechazado: "bg-red-950 text-red-300",
 };
 
-export default async function ChequesPage() {
+type Filtros = {
+  desde?: string;
+  hasta?: string;
+  cliente?: string;
+  estado?: string;
+  q?: string;
+};
+
+export default async function ChequesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Filtros>;
+}) {
+  const f = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -23,6 +36,24 @@ export default async function ChequesPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
+  // Consulta de cheques con filtros server-side
+  let qCheques = supabase
+    .from("cheques")
+    .select("*, clientes(razon_social)")
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  if (f.desde) qCheques = qCheques.gte("fecha_cobro", f.desde);
+  if (f.hasta) qCheques = qCheques.lte("fecha_cobro", f.hasta);
+  if (f.cliente) qCheques = qCheques.eq("cliente_id", f.cliente);
+  if (f.estado) qCheques = qCheques.eq("estado", f.estado);
+  if (f.q) {
+    const q = f.q.trim().replace(/[,()%]/g, "");
+    if (q) qCheques = qCheques.or(`numero_cheque.ilike.%${q}%,cuit_librador.ilike.%${q}%`);
+  }
+
+  const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q);
+
   const [
     { data: perfil },
     { data: cheques },
@@ -31,11 +62,7 @@ export default async function ChequesPage() {
     { data: cuentas },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
-    supabase
-      .from("cheques")
-      .select("*, clientes(razon_social)")
-      .order("created_at", { ascending: false })
-      .limit(100),
+    qCheques,
     supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
     supabase.from("convenios").select("id, razon_social").eq("activo", true),
     supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
@@ -44,13 +71,16 @@ export default async function ChequesPage() {
   const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
+  const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500";
+  const inputCls =
+    "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm normal-case tracking-normal text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
+
   return (
     <main className="min-h-screen bg-zinc-950 p-8">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
-            
           </div>
           <NuevoCheque
             clientes={(clientes ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
@@ -58,6 +88,70 @@ export default async function ChequesPage() {
             cuentas={(cuentas ?? []).map((c) => ({ id: c.id, nombre: `${c.banco}${c.alias ? " · " + c.alias : ""}` }))}
           />
         </header>
+
+        {/* Barra de filtros */}
+        <form
+          method="get"
+          className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-4 shadow-lg shadow-black/20"
+        >
+          <label className={`${lblCls} min-w-52 flex-1`}>
+            Buscar
+            <input
+              name="q"
+              defaultValue={f.q ?? ""}
+              placeholder="N° de cheque o CUIT del librador…"
+              className={inputCls}
+            />
+          </label>
+          <label className={lblCls}>
+            Cobro desde
+            <input name="desde" type="date" defaultValue={f.desde ?? ""} className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Cobro hasta
+            <input name="hasta" type="date" defaultValue={f.hasta ?? ""} className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Cliente
+            <select name="cliente" defaultValue={f.cliente ?? ""} className={inputCls}>
+              <option value="">Todos</option>
+              {(clientes ?? []).map((c) => (
+                <option key={c.id} value={c.id}>{c.razon_social}</option>
+              ))}
+            </select>
+          </label>
+          <label className={lblCls}>
+            Estado
+            <select name="estado" defaultValue={f.estado ?? ""} className={inputCls}>
+              <option value="">Todos</option>
+              <option value="aceptado">Aceptado</option>
+              <option value="depositado">Depositado</option>
+              <option value="procesado">Procesado</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+          </label>
+          <button
+            type="submit"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-emerald-500"
+          >
+            Filtrar
+          </button>
+          {hayFiltros && (
+            <Link
+              href="/cheques"
+              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+            >
+              Limpiar
+            </Link>
+          )}
+        </form>
+
+        {hayFiltros && (
+          <p className="mb-3 text-xs text-zinc-500">
+            {(cheques ?? []).length} resultado{(cheques ?? []).length === 1 ? "" : "s"} con los filtros aplicados
+            {(cheques ?? []).length === 300 && " (mostrando los primeros 300 — refiná la búsqueda)"}
+          </p>
+        )}
 
         <div className="overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full text-sm">
@@ -122,7 +216,7 @@ export default async function ChequesPage() {
               {(cheques ?? []).length === 0 && (
                 <tr>
                   <td colSpan={10} className="px-4 py-10 text-center text-zinc-500">
-                    No hay cheques cargados todavía.
+                    {hayFiltros ? "Sin resultados para esos filtros." : "No hay cheques cargados todavía."}
                   </td>
                 </tr>
               )}
