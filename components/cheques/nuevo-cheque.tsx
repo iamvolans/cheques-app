@@ -6,6 +6,15 @@ import { crearCheque, type EstadoCheque } from "@/actions/cheques";
 type Opcion = { id: string; nombre: string };
 const inicial: EstadoCheque = { error: null };
 
+function hoyISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+function maxDiferidoISO() {
+  const d = new Date();
+  d.setDate(d.getDate() + 90);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function NuevoCheque({
   clientes,
   convenios,
@@ -17,11 +26,17 @@ export default function NuevoCheque({
 }) {
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState<"fisico" | "echeq">("fisico");
+  const [cp, setCp] = useState("");
+  const [fecha, setFecha] = useState("");
   const [estado, accion, pendiente] = useActionState(crearCheque, inicial);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (estado.ok) formRef.current?.reset();
+    if (estado.ok) {
+      formRef.current?.reset();
+      setCp("");
+      setFecha("");
+    }
   }, [estado]);
 
   const inputCls =
@@ -38,6 +53,10 @@ export default function NuevoCheque({
     );
   }
 
+  const cpNum = Number(cp);
+  const plaza = cp && cpNum >= 1 && cpNum <= 9999 ? (cpNum <= 2000 ? "camara" : "interior") : null;
+  const esDiferido = fecha !== "" && fecha > hoyISO();
+
   return (
     <form
       ref={formRef}
@@ -49,14 +68,43 @@ export default function NuevoCheque({
         <option value="echeq">E-Cheq</option>
       </select>
       <input name="numero_cheque" placeholder="N° de cheque *" required className={inputCls} />
-      <input name="fecha_cobro" type="date" required className={inputCls} title="Fecha de cobro" />
+      <label className="text-xs text-zinc-400">
+        Fecha de cobro * (futura = diferido)
+        <input
+          name="fecha_cobro"
+          type="date"
+          required
+          max={maxDiferidoISO()}
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+          className={`mt-1 ${inputCls}`}
+        />
+      </label>
 
       <input name="librador" placeholder="Librador *" required className={inputCls} />
       <input name="cuit_librador" placeholder="CUIT librador *" required className={inputCls} />
       <input name="monto" type="number" step="0.01" min="0.01" placeholder="Monto ARS *" required className={inputCls} />
 
       <input name="banco_emisor" placeholder="Banco emisor *" required className={inputCls} />
+      <label className="text-xs text-zinc-400">
+        CP del librador
+        <span className="ml-2">
+          {plaza === "camara" && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">Cámara</span>}
+          {plaza === "interior" && <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-300">Interior</span>}
+        </span>
+        <input
+          name="codigo_postal"
+          type="number"
+          min="1"
+          max="9999"
+          placeholder="ej: 1426 ó 5000"
+          value={cp}
+          onChange={(e) => setCp(e.target.value)}
+          className={`mt-1 ${inputCls}`}
+        />
+      </label>
       <input name="endosos" type="number" min="0" defaultValue={0} placeholder="Endosos" className={inputCls} />
+
       {tipo === "echeq" ? (
         <input name="echeq_id" placeholder="ID único de E-Cheq *" required className={inputCls} />
       ) : (
@@ -82,7 +130,6 @@ export default function NuevoCheque({
         ))}
       </select>
 
-
       {tipo === "fisico" ? (
         <>
           <label className="text-xs text-zinc-400">Foto FRENTE
@@ -100,6 +147,12 @@ export default function NuevoCheque({
           </label>
           <span /><span />
         </>
+      )}
+
+      {esDiferido && (
+        <p className="rounded-lg border border-amber-900 bg-amber-950/60 px-3 py-2 text-sm text-amber-300 sm:col-span-3">
+          ⏳ Cheque diferido: quedará <strong>EN CUSTODIA</strong> y recién se podrá depositar el {fecha}.
+        </p>
       )}
 
       {estado.error && (

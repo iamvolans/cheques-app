@@ -19,6 +19,10 @@ const esquemaCheque = z.object({
   convenio_id: z.string().uuid("Elegí un convenio"),
   cuenta_bancaria_id: z.string().uuid("Elegí la cuenta propia"),
   fecha_cobro: z.string().min(10, "Falta la fecha de cobro"),
+  codigo_postal: z.preprocess(
+    (v) => (v === "" || v === null ? null : v),
+    z.coerce.number().int().min(1, "CP inválido").max(9999, "CP inválido").nullable()
+  ),
   echeq_id: z.string().optional(),
   portador_banco: z.string().optional(),
 });
@@ -113,6 +117,7 @@ export async function crearCheque(
       convenio_id: d.convenio_id,
       cuenta_bancaria_id: d.cuenta_bancaria_id,
       fecha_cobro: d.fecha_cobro,
+      codigo_postal: d.codigo_postal,
       echeq_id: d.tipo === "echeq" ? d.echeq_id : null,
       portador_banco: d.portador_banco || null,
       foto_frente_url,
@@ -121,7 +126,7 @@ export async function crearCheque(
       fee_aplicado_pct: 0,
       fee_calculado: 0,
     })
-    .select("alerta_lista_negra")
+    .select("alerta_lista_negra, estado, fecha_cobro, plaza, fee_aplicado_pct")
     .single();
 
   if (error) {
@@ -133,17 +138,23 @@ export async function crearCheque(
     return { error: error.message };
   }
 
+  const avisos: string[] = [];
+  if (insertado?.alerta_lista_negra) {
+    avisos.push("⚠ ATENCIÓN: este librador está en la LISTA NEGRA.");
+  }
+  if (insertado?.estado === "en_custodia") {
+    avisos.push(`⏳ Diferido: quedó EN CUSTODIA hasta el ${insertado.fecha_cobro}.`);
+  }
+  if (insertado?.plaza === "interior") {
+    avisos.push(`Plaza Interior: fee aplicado ${Number(insertado.fee_aplicado_pct).toFixed(2)}%.`);
+  }
+
   revalidatePath("/cheques");
-  return {
-    error: null,
-    ok: true,
-    alerta: insertado?.alerta_lista_negra
-      ? "⚠ ATENCIÓN: este librador está en la LISTA NEGRA."
-      : null,
-  };
+  return { error: null, ok: true, alerta: avisos.length ? avisos.join(" ") : null };
 }
 
 const transicionesValidas: Record<string, string[]> = {
+  en_custodia: ["depositado"],
   aceptado: ["depositado"],
   depositado: ["procesado", "rechazado"],
   procesado: ["rechazado"],
@@ -155,8 +166,9 @@ export async function cambiarEstado(input: {
   nuevoEstado: string;
   multa?: number;
   motivo?: string;
+  gasto?: number;
 }): Promise<{ error: string | null }> {
-  const { chequeId, estadoActual, nuevoEstado, multa, motivo } = input;
+  const { chequeId, estadoActual, nuevoEstado, multa, motivo, gasto } = input;
 
   if (!transicionesValidas[estadoActual]?.includes(nuevoEstado)) {
     return { error: `Transición inválida: ${estadoActual} → ${nuevoEstado}` };
@@ -172,6 +184,7 @@ export async function cambiarEstado(input: {
   if (nuevoEstado === "rechazado") {
     cambios.multa = multa ?? 0;
     cambios.motivo_rechazo = motivo || "Falta de fondos";
+    cambios.gasto_bancario = gasto ?? 0;
   }
 
   const { error } = await supabase

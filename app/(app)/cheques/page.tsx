@@ -9,6 +9,7 @@ const colorEstado: Record<string, string> = {
   depositado: "bg-blue-950 text-blue-300",
   procesado: "bg-emerald-950 text-emerald-300",
   rechazado: "bg-red-950 text-red-300",
+  en_custodia: "bg-amber-950 text-amber-300",
 };
 
 type Filtros = {
@@ -39,7 +40,7 @@ export default async function ChequesPage({
   // Consulta de cheques con filtros server-side
   let qCheques = supabase
     .from("cheques")
-    .select("*, clientes(razon_social)")
+    .select("*, clientes(razon_social), cuentas_bancarias_empresa(multa_rechazo_banco)")
     .order("created_at", { ascending: false })
     .limit(300);
 
@@ -69,6 +70,7 @@ export default async function ChequesPage({
   ]);
 
   const esAdmin = perfil?.rol === "administrador";
+  const hoy = new Date().toISOString().slice(0, 10);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500";
@@ -124,6 +126,7 @@ export default async function ChequesPage({
             Estado
             <select name="estado" defaultValue={f.estado ?? ""} className={inputCls}>
               <option value="">Todos</option>
+              <option value="en_custodia">En custodia (diferidos)</option>
               <option value="aceptado">Aceptado</option>
               <option value="depositado">Depositado</option>
               <option value="procesado">Procesado</option>
@@ -160,6 +163,7 @@ export default async function ChequesPage({
                 <th className="px-3 py-3 font-medium">N°</th>
                 <th className="px-3 py-3 font-medium">Librador</th>
                 <th className="px-3 py-3 font-medium">CUIT</th>
+                <th className="px-3 py-3 font-medium">Plaza</th>
                 <th className="px-3 py-3 font-medium">Cliente</th>
                 <th className="px-3 py-3 text-right font-medium">Monto</th>
                 <th className="px-3 py-3 text-right font-medium">Fee</th>
@@ -192,6 +196,11 @@ export default async function ChequesPage({
                     {ch.librador}
                   </td>
                   <td className="px-3 py-3 font-mono text-zinc-400">{ch.cuit_librador}</td>
+                  <td className="px-3 py-3">
+                    {ch.plaza === "camara" && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">Cámara</span>}
+                    {ch.plaza === "interior" && <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-300">Interior</span>}
+                    {!ch.plaza && <span className="text-zinc-600">—</span>}
+                  </td>
                   <td className="px-3 py-3 text-zinc-400">{ch.clientes?.razon_social}</td>
                   <td className="px-3 py-3 text-right font-mono text-zinc-100">
                     {fmtARS.format(Number(ch.monto))}
@@ -205,17 +214,23 @@ export default async function ChequesPage({
                   </td>
                   <td className="px-3 py-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${colorEstado[ch.estado] ?? ""}`}>
-                      {ch.estado}
+                      {String(ch.estado).replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-3 py-3">
-                    <AccionesCheque id={ch.id} estado={ch.estado} esAdmin={esAdmin} />
+                    <AccionesCheque
+                      id={ch.id}
+                      estado={ch.estado}
+                      esAdmin={esAdmin}
+                      disponible={ch.fecha_cobro <= hoy}
+                      multaBanco={Number((ch.cuentas_bancarias_empresa as unknown as { multa_rechazo_banco?: number } | null)?.multa_rechazo_banco ?? 0)}
+                    />
                   </td>
                 </tr>
               ))}
               {(cheques ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={11} className="px-4 py-10 text-center text-zinc-500">
                     {hayFiltros ? "Sin resultados para esos filtros." : "No hay cheques cargados todavía."}
                   </td>
                 </tr>

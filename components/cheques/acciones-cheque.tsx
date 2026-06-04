@@ -7,18 +7,23 @@ export default function AccionesCheque({
   id,
   estado,
   esAdmin,
+  disponible = true,
+  multaBanco = 0,
 }: {
   id: string;
   estado: string;
   esAdmin: boolean;
+  disponible?: boolean;
+  multaBanco?: number;
 }) {
   const [pendiente, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [rechazando, setRechazando] = useState(false);
   const [multa, setMulta] = useState("");
   const [motivo, setMotivo] = useState("");
+  const [gasto, setGasto] = useState(String(multaBanco || ""));
 
-  function ejecutar(nuevoEstado: string, extras?: { multa?: number; motivo?: string }) {
+  function ejecutar(nuevoEstado: string, extras?: { multa?: number; motivo?: string; gasto?: number }) {
     setError(null);
     startTransition(async () => {
       const r = await cambiarEstado({
@@ -34,6 +39,8 @@ export default function AccionesCheque({
 
   const btn =
     "rounded px-2 py-1 text-xs font-medium transition disabled:opacity-50";
+  const inp =
+    "w-32 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-100";
 
   if (rechazando) {
     return (
@@ -42,22 +49,37 @@ export default function AccionesCheque({
           type="number"
           step="0.01"
           min="0"
-          placeholder="Multa ARS"
+          placeholder="Multa al cliente ARS"
+          title="Multa que se le traslada al cliente"
           value={multa}
           onChange={(e) => setMulta(e.target.value)}
-          className="w-28 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-100"
+          className={inp}
+        />
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Gasto banco ARS"
+          title="Lo que el banco nos cobra a nosotros (gasto interno)"
+          value={gasto}
+          onChange={(e) => setGasto(e.target.value)}
+          className={inp}
         />
         <input
           placeholder="Motivo"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          className="w-28 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-100"
+          className={inp}
         />
         <div className="flex gap-1">
           <button
             disabled={pendiente}
             onClick={() =>
-              ejecutar("rechazado", { multa: Number(multa) || 0, motivo })
+              ejecutar("rechazado", {
+                multa: Number(multa) || 0,
+                motivo,
+                gasto: Number(gasto) || 0,
+              })
             }
             className={`${btn} bg-red-700 text-white hover:bg-red-600`}
           >
@@ -77,7 +99,10 @@ export default function AccionesCheque({
 
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {estado === "aceptado" && (
+      {estado === "en_custodia" && !disponible && (
+        <span className="text-[11px] text-amber-400" title="Diferido: aún no llegó su fecha de cobro">⏳ custodia</span>
+      )}
+      {(estado === "aceptado" || (estado === "en_custodia" && disponible)) && (
         <button
           disabled={pendiente}
           onClick={() => ejecutar("depositado")}
