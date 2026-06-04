@@ -66,7 +66,7 @@ export default async function PerfilClientePage({
 
   const cards = [
     { titulo: "Saldo disponible", valor: fmtARS.format(saldo), color: "text-emerald-400" },
-    { titulo: "Ganancia generada (fees)", valor: fmtARS.format(gananciaTotal), color: "text-blue-400" },
+    { titulo: "Ganancia neta generada", valor: fmtARS.format(gananciaTotal), color: "text-blue-400" },
     { titulo: `Total gestionado (${kpi?.total_cheques ?? 0} cheques)`, valor: fmtARS.format(Number(kpi?.monto_total ?? 0)), color: "text-zinc-100" },
     { titulo: "% de rechazo", valor: `${Number(kpi?.pct_rechazo ?? 0).toFixed(1)}%`, color: Number(kpi?.pct_rechazo ?? 0) > 0 ? "text-amber-400" : "text-emerald-400" },
   ];
