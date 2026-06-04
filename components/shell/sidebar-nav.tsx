@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ReceiptText, Building2, Banknote,
-  ShieldAlert, UserCog, Settings2, ScrollText,
+  ShieldAlert, UserCog, Settings2, ScrollText, FileSpreadsheet,
 } from "lucide-react";
 
 const operacion = [
@@ -17,6 +17,7 @@ const operacion = [
 
 const administracion = [
   { href: "/admin/usuarios", label: "Usuarios", Icon: UserCog },
+  { href: "/admin/reportes", label: "Reportes", Icon: FileSpreadsheet },
   { href: "/admin/configuracion", label: "Configuración", Icon: Settings2 },
   { href: "/admin/auditoria", label: "Auditoría", Icon: ScrollText },
 ];
