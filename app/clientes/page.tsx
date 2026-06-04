@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import NuevoCliente from "@/components/clientes/nuevo-cliente";
+import Liquidar from "@/components/clientes/liquidar";
 
 export default async function ClientesPage() {
   const supabase = await createClient();
@@ -16,11 +17,12 @@ export default async function ClientesPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const { data: clientes } = await supabase
-    .from("vw_saldos_clientes")
-    .select("*")
-    .order("razon_social");
+  const [{ data: perfil }, { data: clientes }] = await Promise.all([
+    supabase.from("perfiles").select("rol").eq("id", user.id).single(),
+    supabase.from("vw_saldos_clientes").select("*").order("razon_social"),
+  ]);
 
+  const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: "ARS",
@@ -28,13 +30,15 @@ export default async function ClientesPage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 p-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
             <h1 className="text-xl font-semibold text-zinc-50">Clientes</h1>
-            <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">
-              ← Volver al dashboard
-            </Link>
+            <div className="flex gap-3 text-sm">
+              <Link href="/dashboard" className="text-zinc-400 hover:text-zinc-200">← Dashboard</Link>
+              <Link href="/cheques" className="text-zinc-400 hover:text-zinc-200">Cheques</Link>
+              <Link href="/liquidaciones" className="text-zinc-400 hover:text-zinc-200">Liquidaciones</Link>
+            </div>
           </div>
           <NuevoCliente />
         </header>
@@ -48,6 +52,7 @@ export default async function ClientesPage() {
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 text-right font-medium">Fee</th>
                 <th className="px-4 py-3 text-right font-medium">Saldo disponible</th>
+                {esAdmin && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
@@ -62,12 +67,20 @@ export default async function ClientesPage() {
                   <td className="px-4 py-3 text-right font-mono text-emerald-400">
                     {fmtARS.format(Number(c.saldo_disponible))}
                   </td>
+                  {esAdmin && (
+                    <td className="px-4 py-3">
+                      <Liquidar
+                        clienteId={c.cliente_id}
+                        saldo={Number(c.saldo_disponible)}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
               {(clientes ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-zinc-500">
-                    Todavía no hay clientes cargados. Creá el primero con el botón de arriba.
+                  <td colSpan={esAdmin ? 6 : 5} className="px-4 py-10 text-center text-zinc-500">
+                    Todavía no hay clientes cargados.
                   </td>
                 </tr>
               )}
