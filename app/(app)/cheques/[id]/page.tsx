@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import EliminarCheque from "@/components/admin/eliminar-cheque";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -43,7 +44,7 @@ export default async function DetalleChequePage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: ch }, { data: logs }] = await Promise.all([
+  const [{ data: ch }, { data: logs }, { data: miPerfil }] = await Promise.all([
     supabase
       .from("cheques")
       .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias)")
@@ -55,9 +56,12 @@ export default async function DetalleChequePage({
       .eq("tabla", "cheques")
       .eq("registro_id", id)
       .order("created_at"),
+    supabase.from("perfiles").select("rol").eq("id", user.id).single(),
   ]);
 
   if (!ch) notFound();
+
+  const esAdmin = miPerfil?.rol === "administrador";
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const campos: [string, string][] = [
@@ -141,6 +145,10 @@ export default async function DetalleChequePage({
             {(logs ?? []).length === 0 && <p className="text-sm text-zinc-500">Sin historial.</p>}
           </div>
         </section>
+
+        {esAdmin && ["aceptado", "en_custodia"].includes(ch.estado) && (
+          <EliminarCheque chequeId={ch.id} numero={ch.numero_cheque} />
+        )}
       </div>
     </main>
   );
