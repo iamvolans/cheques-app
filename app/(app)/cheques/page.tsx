@@ -4,6 +4,8 @@ import Link from "next/link";
 import NuevoCheque from "@/components/cheques/nuevo-cheque";
 import AccionesCheque from "@/components/cheques/acciones-cheque";
 
+export const maxDuration = 60; // las subidas a Drive pueden tardar
+
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
   depositado: "bg-blue-950 text-blue-300",

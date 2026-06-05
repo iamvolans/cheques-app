@@ -15,6 +15,37 @@ function maxDiferidoISO() {
   return d.toISOString().slice(0, 10);
 }
 
+// Comprime imágenes pesadas en el navegador antes de subirlas (límite de Vercel: ~4,5 MB por request)
+async function comprimirImagen(file: File): Promise<File> {
+  if (!file.type.startsWith("image/") || file.size <= 700 * 1024) return file;
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const escala = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * escala);
+    canvas.height = Math.round(bmp.height * escala);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.82));
+    if (!blob) return file;
+    return new File([blob.size < file.size ? blob : file], file.name.replace(/\.\w+$/, "") + ".jpg", {
+      type: "image/jpeg",
+    });
+  } catch {
+    return file;
+  }
+}
+
+async function alElegirImagen(e: React.ChangeEvent<HTMLInputElement>) {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  const comprimida = await comprimirImagen(f);
+  if (comprimida !== f) {
+    const dt = new DataTransfer();
+    dt.items.add(comprimida);
+    e.target.files = dt.files;
+  }
+}
+
 const lbl = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500";
 const inputCls =
   "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm normal-case tracking-normal text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
@@ -168,10 +199,10 @@ export default function NuevoCheque({
       {tipo === "fisico" ? (
         <>
           <Campo etiqueta="Foto frente">
-            <input name="foto_frente" type="file" accept="image/*" className="mt-0.5 block w-full text-xs text-zinc-400 file:mr-2 file:rounded-lg file:border-0 file:bg-zinc-700 file:px-3 file:py-2 file:text-xs file:text-zinc-100" />
+            <input name="foto_frente" type="file" accept="image/*" onChange={alElegirImagen} className="mt-0.5 block w-full text-xs text-zinc-400 file:mr-2 file:rounded-lg file:border-0 file:bg-zinc-700 file:px-3 file:py-2 file:text-xs file:text-zinc-100" />
           </Campo>
           <Campo etiqueta="Foto dorso">
-            <input name="foto_dorso" type="file" accept="image/*" className="mt-0.5 block w-full text-xs text-zinc-400 file:mr-2 file:rounded-lg file:border-0 file:bg-zinc-700 file:px-3 file:py-2 file:text-xs file:text-zinc-100" />
+            <input name="foto_dorso" type="file" accept="image/*" onChange={alElegirImagen} className="mt-0.5 block w-full text-xs text-zinc-400 file:mr-2 file:rounded-lg file:border-0 file:bg-zinc-700 file:px-3 file:py-2 file:text-xs file:text-zinc-100" />
           </Campo>
         </>
       ) : (
