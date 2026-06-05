@@ -113,7 +113,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Dashboard</h1>

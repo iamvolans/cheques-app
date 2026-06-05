@@ -29,7 +29,7 @@ export default async function ClientesPage() {
   });
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
@@ -43,7 +43,7 @@ export default async function ClientesPage() {
           <NuevoCliente />
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
           <table className="w-full text-sm">
             <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>

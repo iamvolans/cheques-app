@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { logout } from "@/actions/auth";
 import SidebarNav from "@/components/shell/sidebar-nav";
+import MobileNav from "@/components/shell/mobile-nav";
 import { LogOut, ShieldCheck } from "lucide-react";
 
 export default async function AppLayout({
@@ -74,6 +75,7 @@ export default async function AppLayout({
             </form>
           </div>
         </header>
+        <MobileNav esAdmin={esAdmin} />
         <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>

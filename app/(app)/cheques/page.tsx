@@ -78,18 +78,19 @@ export default async function ChequesPage({
     "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm normal-case tracking-normal text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
-          </div>
+        <header className="mb-6 border-b border-zinc-800 pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
+        </header>
+
+        <div className="mb-5 flex justify-end">
           <NuevoCheque
             clientes={(clientes ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
             convenios={(convenios ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
             cuentas={(cuentas ?? []).map((c) => ({ id: c.id, nombre: `${c.banco}${c.alias ? " · " + c.alias : ""}` }))}
           />
-        </header>
+        </div>
 
         {/* Barra de filtros */}
         <form
@@ -157,7 +158,7 @@ export default async function ChequesPage({
         )}
 
         <div className="overflow-x-auto rounded-xl border border-zinc-800">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[1000px] text-sm">
             <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-3 py-3 font-medium">N°</th>

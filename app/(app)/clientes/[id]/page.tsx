@@ -74,7 +74,7 @@ export default async function PerfilClientePage({
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-4">
           <div>
@@ -119,7 +119,7 @@ export default async function PerfilClientePage({
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
             Movimientos de cuenta
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+          <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
             <table className="w-full text-sm">
               <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
                 <tr>
@@ -162,7 +162,7 @@ export default async function PerfilClientePage({
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
             Cheques del cliente
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+          <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
             <table className="w-full text-sm">
               <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
                 <tr>

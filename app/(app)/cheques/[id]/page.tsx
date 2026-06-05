@@ -86,7 +86,7 @@ export default async function DetalleChequePage({
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
           <div>

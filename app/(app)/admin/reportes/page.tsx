@@ -41,7 +41,7 @@ export default async function ReportesPage({
   const tdNum = "px-4 py-3 text-right font-mono";
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="border-b border-zinc-800 pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Reportes de facturación</h1>

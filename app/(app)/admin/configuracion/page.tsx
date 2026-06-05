@@ -41,7 +41,7 @@ export default async function ConfiguracionPage() {
   const fila = "flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 py-2 text-sm last:border-0";
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8">
+    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="border-b border-zinc-800 pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Configuración</h1>
