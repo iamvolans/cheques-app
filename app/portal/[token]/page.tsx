@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import SolicitarLiquidacion from "@/components/portal/solicitar-liquidacion";
 
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -7,6 +8,12 @@ const colorEstado: Record<string, { etiqueta: string; clase: string }> = {
   en_custodia: { etiqueta: "En custodia", clase: "bg-amber-500/10 text-amber-300" },
   aceptado: { etiqueta: "Recibido", clase: "bg-zinc-800 text-zinc-300" },
   depositado: { etiqueta: "Depositado", clase: "bg-blue-500/10 text-blue-300" },
+};
+
+const pillSol: Record<string, string> = {
+  pendiente: "bg-amber-500/10 text-amber-300",
+  procesada: "bg-emerald-500/10 text-emerald-300",
+  rechazada: "bg-red-500/10 text-red-300",
 };
 
 export default async function PortalClientePage({
@@ -20,12 +27,12 @@ export default async function PortalClientePage({
   const admin = createAdminClient();
   const { data: cliente } = await admin
     .from("clientes")
-    .select("id, razon_social, cuit, fee_porcentaje")
+    .select("id, razon_social, cuit")
     .eq("portal_token", token)
     .single();
   if (!cliente) notFound();
 
-  const [{ data: saldoRow }, { data: enGestion }, { data: movimientos }, { data: liquidaciones }] =
+  const [{ data: saldoRow }, { data: enGestion }, { data: movimientos }, { data: solicitudes }] =
     await Promise.all([
       admin.from("vw_saldos_clientes").select("saldo_disponible").eq("cliente_id", cliente.id).single(),
       admin
@@ -41,16 +48,20 @@ export default async function PortalClientePage({
         .order("created_at", { ascending: false })
         .limit(20),
       admin
-        .from("liquidaciones")
-        .select("created_at, coelsa_id, monto_liquidado, monto")
+        .from("solicitudes_liquidacion")
+        .select("created_at, monto, beneficiario, cvu_cbu_destino, alias_destino, estado, motivo_rechazo")
         .eq("cliente_id", cliente.id)
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(15),
     ]);
 
   const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const saldo = Number(saldoRow?.saldo_disponible ?? 0);
   const montoGestion = (enGestion ?? []).reduce((a, c) => a + Number(c.monto), 0);
+  const pendienteSolicitado = (solicitudes ?? [])
+    .filter((s) => s.estado === "pendiente")
+    .reduce((a, s) => a + Number(s.monto), 0);
+  const disponible = Math.max(0, saldo - pendienteSolicitado);
 
   return (
     <main className="min-h-screen bg-zinc-950 p-4 text-zinc-100 sm:p-8">
@@ -81,6 +92,48 @@ export default async function PortalClientePage({
         </div>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50">
+          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Retiros / Transferencias
+            </p>
+            <p className="text-[11px] text-zinc-500">
+              Disponible para solicitar:{" "}
+              <span className="font-mono text-emerald-300">{fmt.format(disponible)}</span>
+            </p>
+          </div>
+          <div className="space-y-3 p-4">
+            <SolicitarLiquidacion token={token} disponible={disponible} />
+            {(solicitudes ?? []).map((s, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800/70 bg-zinc-950/60 px-3 py-2.5 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-zinc-100">
+                    <span className="font-mono">{fmt.format(Number(s.monto))}</span> → {s.beneficiario}
+                  </p>
+                  <p className="truncate text-xs text-zinc-500">
+                    {s.cvu_cbu_destino ?? s.alias_destino} ·{" "}
+                    {new Date(s.created_at).toLocaleDateString("es-AR")}
+                    {s.estado === "rechazada" && s.motivo_rechazo && ` — ${s.motivo_rechazo}`}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${pillSol[s.estado] ?? ""}`}
+                >
+                  {s.estado}
+                </span>
+              </div>
+            ))}
+            {(solicitudes ?? []).length === 0 && disponible <= 0 && (
+              <p className="py-2 text-center text-xs text-zinc-600">
+                Sin saldo disponible para retirar por el momento.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50">
           <p className="border-b border-zinc-800 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-400">
             Valores en proceso
           </p>
@@ -101,7 +154,9 @@ export default async function PortalClientePage({
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className="font-mono text-zinc-100">{fmt.format(Number(c.monto))}</span>
-                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${colorEstado[c.estado]?.clase ?? ""}`}>
+                  <span
+                    className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${colorEstado[c.estado]?.clase ?? ""}`}
+                  >
                     {colorEstado[c.estado]?.etiqueta ?? c.estado}
                   </span>
                 </div>
@@ -136,8 +191,8 @@ export default async function PortalClientePage({
         </section>
 
         <p className="pb-4 text-center text-[11px] text-zinc-600">
-          Información al momento de la consulta. Las fechas de acreditación son estimadas en días hábiles
-          bancarios. Ante cualquier consulta, escribinos a cobranzas@goat.ar
+          Información al momento de la consulta. Las fechas de acreditación son estimadas en días
+          hábiles bancarios. Ante cualquier consulta, escribinos a cobranzas@goat.ar
         </p>
       </div>
     </main>

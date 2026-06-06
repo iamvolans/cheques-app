@@ -63,3 +63,80 @@ export async function liquidar(
   revalidatePath("/liquidaciones");
   return { error: null, ok: true };
 }
+
+async function exigirAdminLiq(): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return "Sesión vencida. Recargá la página.";
+  const { data: perfil } = await supabase
+    .from("perfiles").select("rol").eq("id", user.id).single();
+  if (perfil?.rol !== "administrador") return "Solo administradores.";
+  return null;
+}
+
+export async function liquidarDesdeSolicitud(p: {
+  solicitudId: string;
+  coelsaId: string;
+  fecha: string;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdminLiq();
+  if (err) return { error: err };
+  if (!p.coelsaId || p.coelsaId.length < 3) return { error: "Falta el Coelsa ID" };
+  if (!p.fecha || p.fecha.length < 10) return { error: "Falta la fecha de transferencia" };
+
+  const supabase = await createClient();
+  const { data: sol } = await supabase
+    .from("solicitudes_liquidacion").select("*").eq("id", p.solicitudId).single();
+  if (!sol || sol.estado !== "pendiente") return { error: "La solicitud no está pendiente." };
+
+  const { data: liq, error } = await supabase
+    .from("liquidaciones")
+    .insert({
+      cliente_id: sol.cliente_id,
+      coelsa_id: p.coelsaId,
+      fecha_transferencia: p.fecha,
+      cvu_cbu_destino: sol.cvu_cbu_destino,
+      alias_destino: sol.alias_destino,
+      cuit_beneficiario: sol.cuit_beneficiario,
+      beneficiario: sol.beneficiario,
+      monto_liquidado: sol.monto,
+    })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+
+  const { error: e2 } = await supabase
+    .from("solicitudes_liquidacion")
+    .update({ estado: "procesada", liquidacion_id: liq.id, updated_at: new Date().toISOString() })
+    .eq("id", sol.id);
+  if (e2) return { error: e2.message };
+
+  revalidatePath("/liquidaciones");
+  revalidatePath("/clientes");
+  return { error: null };
+}
+
+export async function rechazarSolicitud(p: {
+  solicitudId: string;
+  motivo: string;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdminLiq();
+  if (err) return { error: err };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("solicitudes_liquidacion")
+    .update({
+      estado: "rechazada",
+      motivo_rechazo: p.motivo || "Sin especificar",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", p.solicitudId)
+    .eq("estado", "pendiente");
+  if (error) return { error: error.message };
+
+  revalidatePath("/liquidaciones");
+  return { error: null };
+}

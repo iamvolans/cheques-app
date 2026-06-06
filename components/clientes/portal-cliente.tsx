@@ -17,7 +17,9 @@ export default function PortalCliente({
   const [error, setError] = useState<string | null>(null);
   const [pendiente, startTransition] = useTransition();
 
-  const url = tokenLocal ? `${typeof window !== "undefined" ? window.location.origin : ""}/portal/${tokenLocal}` : null;
+  const url = tokenLocal
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/portal/${tokenLocal}`
+    : null;
 
   function generar() {
     setError(null);
@@ -52,7 +54,7 @@ export default function PortalCliente({
 
   return (
     <div className="grid w-80 gap-2 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-left">
-      <p className="text-xs font-medium text-zinc-300">Portal de autoconsulta</p>
+      <p className="text-xs font-medium text-zinc-300">Portal de autoconsulta y retiros</p>
       {tokenLocal ? (
         <>
           <p className="truncate rounded border border-zinc-800 bg-zinc-950 px-2 py-1.5 font-mono text-[10px] text-zinc-400">
@@ -86,8 +88,8 @@ export default function PortalCliente({
             </button>
           </div>
           <p className="text-[10px] text-zinc-500">
-            Mandale el link al cliente (WhatsApp/email). Ve su saldo y valores en tiempo real, solo lectura.
-            Regenerar o revocar mata el link anterior al instante.
+            Mandale el link al cliente (WhatsApp/email). Ve su saldo, valores en tiempo real y puede
+            solicitar transferencias. Regenerar o revocar mata el link anterior al instante.
           </p>
         </>
       ) : (

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import SolicitudesPendientes from "@/components/liquidaciones/solicitudes-pendientes";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -32,6 +33,8 @@ export default async function LiquidacionesPage() {
             
           </div>
         </header>
+
+        <SolicitudesPendientes />
 
         <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
           <table className="w-full text-sm">
