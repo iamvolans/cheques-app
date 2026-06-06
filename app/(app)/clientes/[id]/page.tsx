@@ -4,6 +4,7 @@ import Link from "next/link";
 import Liquidar from "@/components/clientes/liquidar";
 import { FileText } from "lucide-react";
 import EliminarCliente from "@/components/admin/eliminar-cliente";
+import PortalCliente from "@/components/clientes/portal-cliente";
 import EditarCliente from "@/components/clientes/editar-cliente";
 
 const colorMov: Record<string, string> = {
@@ -94,6 +95,9 @@ export default async function PerfilClientePage({
             >
               <FileText size={13} className="-mt-0.5 mr-1.5 inline" />Resumen de cuenta
             </a>
+            {esAdmin && (
+              <PortalCliente clienteId={cliente.id} token={cliente.portal_token ?? null} />
+            )}
             {esAdmin && (
               <EditarCliente
                 clienteId={cliente.id}
