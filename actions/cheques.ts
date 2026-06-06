@@ -180,6 +180,14 @@ export async function cambiarEstado(input: {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión vencida. Recargá la página." };
 
+  if (nuevoEstado === "rechazado") {
+    const { data: perfil } = await supabase
+      .from("perfiles").select("rol").eq("id", user.id).single();
+    if (perfil?.rol !== "administrador") {
+      return { error: "Solo un Administrador puede rechazar cheques." };
+    }
+  }
+
   const cambios: Record<string, unknown> = { estado: nuevoEstado };
   if (nuevoEstado === "rechazado") {
     cambios.multa = multa ?? 0;
