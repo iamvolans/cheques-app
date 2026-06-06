@@ -140,3 +140,117 @@ export async function rechazarSolicitud(p: {
   revalidatePath("/liquidaciones");
   return { error: null };
 }
+
+// ---------- Liquidar solicitud con comprobante adjunto ----------
+
+export type EstadoProc = { error: string | null; ok?: boolean };
+
+export async function procesarSolicitud(
+  _prev: EstadoProc,
+  formData: FormData
+): Promise<EstadoProc> {
+  const err = await exigirAdminLiq();
+  if (err) return { error: err };
+
+  const solicitudId = String(formData.get("solicitud_id") ?? "");
+  const coelsaId = String(formData.get("coelsa_id") ?? "");
+  const fecha = String(formData.get("fecha") ?? "");
+  if (!solicitudId) return { error: "Solicitud inválida" };
+  if (coelsaId.length < 3) return { error: "Falta el Coelsa ID" };
+  if (fecha.length < 10) return { error: "Falta la fecha de transferencia" };
+
+  const supabase = await createClient();
+  const { data: sol } = await supabase
+    .from("solicitudes_liquidacion").select("*").eq("id", solicitudId).single();
+  if (!sol || sol.estado !== "pendiente") return { error: "La solicitud no está pendiente." };
+
+  // Comprobante opcional → Drive (_Comprobantes/[Mes]/[día])
+  let compId: string | null = null;
+  let compNombre: string | null = null;
+  const archivo = formData.get("comprobante");
+  if (archivo && typeof archivo !== "string" && archivo.size > 0) {
+    if (archivo.size > 8 * 1024 * 1024) return { error: "El comprobante supera los 8 MB." };
+    try {
+      const { carpetaDelDia, subirArchivo } = await import("@/lib/google-drive/drive");
+      const carpeta = await carpetaDelDia("_Comprobantes");
+      const buffer = Buffer.from(await archivo.arrayBuffer());
+      const subido = await subirArchivo(
+        buffer,
+        `comprobante_${coelsaId}_${archivo.name}`,
+        archivo.type || "application/octet-stream",
+        carpeta
+      );
+      compId = subido.id;
+      compNombre = archivo.name;
+    } catch (e) {
+      return { error: "Error subiendo el comprobante a Drive: " + (e as Error).message };
+    }
+  }
+
+  const { data: liq, error } = await supabase
+    .from("liquidaciones")
+    .insert({
+      cliente_id: sol.cliente_id,
+      coelsa_id: coelsaId,
+      fecha_transferencia: fecha,
+      cvu_cbu_destino: sol.cvu_cbu_destino,
+      alias_destino: sol.alias_destino,
+      cuit_beneficiario: sol.cuit_beneficiario,
+      beneficiario: sol.beneficiario,
+      monto_liquidado: sol.monto,
+    })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+
+  const { error: e2 } = await supabase
+    .from("solicitudes_liquidacion")
+    .update({
+      estado: "procesada",
+      liquidacion_id: liq.id,
+      comprobante_drive_id: compId,
+      comprobante_nombre: compNombre,
+      comprobante_subido_at: compId ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", sol.id);
+  if (e2) return { error: e2.message };
+
+  revalidatePath("/liquidaciones");
+  revalidatePath("/clientes");
+  return { error: null, ok: true };
+}
+
+// ---------- Bloqueo manual de destinos (concentración) ----------
+
+export async function bloquearDestino(p: {
+  cuit: string;
+  motivo?: string;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdminLiq();
+  if (err) return { error: err };
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("cuits_destino_bloqueados")
+    .upsert({ cuit: p.cuit, motivo: p.motivo || "Concentración de transferencias" });
+  if (error) return { error: error.message };
+  revalidatePath("/liquidaciones");
+  return { error: null };
+}
+
+export async function desbloquearDestino(p: {
+  cuit: string;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdminLiq();
+  if (err) return { error: err };
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("cuits_destino_bloqueados")
+    .delete()
+    .eq("cuit", p.cuit);
+  if (error) return { error: error.message };
+  revalidatePath("/liquidaciones");
+  return { error: null };
+}

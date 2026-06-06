@@ -49,7 +49,7 @@ export default async function PortalClientePage({
         .limit(20),
       admin
         .from("solicitudes_liquidacion")
-        .select("created_at, monto, beneficiario, cvu_cbu_destino, alias_destino, estado, motivo_rechazo")
+        .select("id, created_at, monto, beneficiario, cvu_cbu_destino, alias_destino, estado, motivo_rechazo, comprobante_drive_id")
         .eq("cliente_id", cliente.id)
         .order("created_at", { ascending: false })
         .limit(15),
@@ -118,11 +118,14 @@ export default async function PortalClientePage({
                     {s.estado === "rechazada" && s.motivo_rechazo && ` — ${s.motivo_rechazo}`}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${pillSol[s.estado] ?? ""}`}
-                >
-                  {s.estado}
-                </span>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${pillSol[s.estado] ?? ""}`}>
+                    {s.estado}
+                  </span>
+                  {s.estado === "procesada" && s.comprobante_drive_id && (
+                    <a href={`/api/comprobante?token=${token}&solicitud=${s.id}`} className="text-[10px] font-medium text-emerald-400 underline underline-offset-2">⬇ Comprobante (un solo uso)</a>
+                  )}
+                </div>
               </div>
             ))}
             {(solicitudes ?? []).length === 0 && disponible <= 0 && (
