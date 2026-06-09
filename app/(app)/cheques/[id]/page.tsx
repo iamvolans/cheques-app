@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import EliminarCheque from "@/components/admin/eliminar-cheque";
+import CorregirCheque from "@/components/admin/corregir-cheque";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -146,6 +147,9 @@ export default async function DetalleChequePage({
           </div>
         </section>
 
+        {esAdmin && ch.estado !== "rechazado" && (
+          <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />
+        )}
         {esAdmin && ["aceptado", "en_custodia"].includes(ch.estado) && (
           <EliminarCheque chequeId={ch.id} numero={ch.numero_cheque} />
         )}

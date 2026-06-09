@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import SolicitudesPendientes from "@/components/liquidaciones/solicitudes-pendientes";
 import ConcentracionDestinos from "@/components/liquidaciones/concentracion-destinos";
 import Paginador from "@/components/ui/paginador";
+import AccionesLiquidacion from "@/components/liquidaciones/acciones-liquidacion";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -25,7 +26,8 @@ export default async function LiquidacionesPage({
   const pagina = Math.max(1, Number(sp.page) || 1);
   const inicio = (pagina - 1) * 25;
 
-  const [{ data: liqs, count }, { data: montos }] = await Promise.all([
+  const [{ data: perfil }, { data: liqs, count }, { data: montos }] = await Promise.all([
+    supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     supabase
       .from("liquidaciones")
       .select("*, clientes(razon_social)", { count: "exact" })
@@ -33,6 +35,7 @@ export default async function LiquidacionesPage({
       .range(inicio, inicio + 24),
     supabase.from("liquidaciones").select("monto_liquidado"),
   ]);
+  const esAdmin = perfil?.rol === "administrador";
 
   const total = count ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
@@ -64,6 +67,7 @@ export default async function LiquidacionesPage({
                 <th className="px-4 py-3 font-medium">CBU/CVU destino</th>
                 <th className="px-4 py-3 font-medium">Beneficiario</th>
                 <th className="px-4 py-3 text-right font-medium">Monto</th>
+                {esAdmin && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800 bg-zinc-950">
@@ -77,11 +81,16 @@ export default async function LiquidacionesPage({
                   <td className="px-4 py-3 text-right font-mono text-emerald-400">
                     {fmtARS.format(Number(l.monto_liquidado))}
                   </td>
+                  {esAdmin && (
+                    <td className="px-4 py-3">
+                      <AccionesLiquidacion id={l.id} monto={Number(l.monto_liquidado)} />
+                    </td>
+                  )}
                 </tr>
               ))}
               {(liqs ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={esAdmin ? 7 : 6} className="px-4 py-10 text-center text-zinc-500">
                     No hay liquidaciones registradas.
                   </td>
                 </tr>
