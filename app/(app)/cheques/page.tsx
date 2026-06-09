@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import NuevoCheque from "@/components/cheques/nuevo-cheque";
 import AccionesCheque from "@/components/cheques/acciones-cheque";
+import Paginador from "@/components/ui/paginador";
 
 export const maxDuration = 60; // las subidas a Drive pueden tardar
 
@@ -20,6 +21,7 @@ type Filtros = {
   cliente?: string;
   estado?: string;
   q?: string;
+  page?: string;
 };
 
 export default async function ChequesPage({
@@ -39,37 +41,50 @@ export default async function ChequesPage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  // Consulta de cheques con filtros server-side
+  // Paginación
+  const pagina = Math.max(1, Number(f.page) || 1);
+  const inicio = (pagina - 1) * 25;
+  const qTexto = (f.q ?? "").trim().replace(/[,()%]/g, "");
+
+  // Página de cheques (con conteo total) + suma de montos sobre TODO el filtro
   let qCheques = supabase
     .from("cheques")
-    .select("*, clientes(razon_social), cuentas_bancarias_empresa(multa_rechazo_banco)")
+    .select("*, clientes(razon_social), cuentas_bancarias_empresa(multa_rechazo_banco)", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(300);
+    .range(inicio, inicio + 24);
+  let qMonto = supabase.from("cheques").select("monto");
 
-  if (f.desde) qCheques = qCheques.gte("fecha_cobro", f.desde);
-  if (f.hasta) qCheques = qCheques.lte("fecha_cobro", f.hasta);
-  if (f.cliente) qCheques = qCheques.eq("cliente_id", f.cliente);
-  if (f.estado) qCheques = qCheques.eq("estado", f.estado);
-  if (f.q) {
-    const q = f.q.trim().replace(/[,()%]/g, "");
-    if (q) qCheques = qCheques.or(`numero_cheque.ilike.%${q}%,cuit_librador.ilike.%${q}%`);
+  if (f.desde) { qCheques = qCheques.gte("fecha_cobro", f.desde); qMonto = qMonto.gte("fecha_cobro", f.desde); }
+  if (f.hasta) { qCheques = qCheques.lte("fecha_cobro", f.hasta); qMonto = qMonto.lte("fecha_cobro", f.hasta); }
+  if (f.cliente) { qCheques = qCheques.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
+  if (f.estado) { qCheques = qCheques.eq("estado", f.estado); qMonto = qMonto.eq("estado", f.estado); }
+  if (qTexto) {
+    const filtro = `numero_cheque.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%`;
+    qCheques = qCheques.or(filtro);
+    qMonto = qMonto.or(filtro);
   }
 
   const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q);
 
   const [
     { data: perfil },
-    { data: cheques },
+    { data: cheques, count: totalCheques },
+    { data: montos },
     { data: clientes },
     { data: convenios },
     { data: cuentas },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qCheques,
+    qMonto,
     supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
     supabase.from("convenios").select("id, razon_social").eq("activo", true),
     supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
   ]);
+
+  const total = totalCheques ?? 0;
+  const totalPaginas = Math.max(1, Math.ceil(total / 25));
+  const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto), 0);
 
   const esAdmin = perfil?.rol === "administrador";
   const hoy = new Date().toISOString().slice(0, 10);
@@ -151,13 +166,6 @@ export default async function ChequesPage({
             </Link>
           )}
         </form>
-
-        {hayFiltros && (
-          <p className="mb-3 text-xs text-zinc-500">
-            {(cheques ?? []).length} resultado{(cheques ?? []).length === 1 ? "" : "s"} con los filtros aplicados
-            {(cheques ?? []).length === 300 && " (mostrando los primeros 300 — refiná la búsqueda)"}
-          </p>
-        )}
 
         <div className="overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full min-w-[1000px] text-sm">
@@ -241,6 +249,8 @@ export default async function ChequesPage({
             </tbody>
           </table>
         </div>
+
+        <Paginador pagina={pagina} totalPaginas={totalPaginas} total={total} totalMonto={fmtARS.format(sumaMonto)} />
       </div>
     </main>
   );

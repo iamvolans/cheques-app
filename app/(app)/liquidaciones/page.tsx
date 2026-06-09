@@ -1,10 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import SolicitudesPendientes from "@/components/liquidaciones/solicitudes-pendientes";
 import ConcentracionDestinos from "@/components/liquidaciones/concentracion-destinos";
+import Paginador from "@/components/ui/paginador";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default async function LiquidacionesPage() {
+export default async function LiquidacionesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -16,12 +22,21 @@ export default async function LiquidacionesPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const { data: liqs } = await supabase
-    .from("liquidaciones")
-    .select("*, clientes(razon_social)")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const pagina = Math.max(1, Number(sp.page) || 1);
+  const inicio = (pagina - 1) * 25;
 
+  const [{ data: liqs, count }, { data: montos }] = await Promise.all([
+    supabase
+      .from("liquidaciones")
+      .select("*, clientes(razon_social)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(inicio, inicio + 24),
+    supabase.from("liquidaciones").select("monto_liquidado"),
+  ]);
+
+  const total = count ?? 0;
+  const totalPaginas = Math.max(1, Math.ceil(total / 25));
+  const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto_liquidado), 0);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   return (
@@ -74,6 +89,8 @@ export default async function LiquidacionesPage() {
             </tbody>
           </table>
         </div>
+
+        <Paginador pagina={pagina} totalPaginas={totalPaginas} total={total} totalMonto={fmtARS.format(sumaMonto)} />
       </div>
     </main>
   );

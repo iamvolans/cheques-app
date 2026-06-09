@@ -3,8 +3,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import NuevoCliente from "@/components/clientes/nuevo-cliente";
 import Liquidar from "@/components/clientes/liquidar";
+import Paginador from "@/components/ui/paginador";
 
-export default async function ClientesPage() {
+export default async function ClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -17,10 +23,16 @@ export default async function ClientesPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: perfil }, { data: clientes }] = await Promise.all([
+  const pagina = Math.max(1, Number(sp.page) || 1);
+  const inicio = (pagina - 1) * 25;
+
+  const [{ data: perfil }, { data: clientes, count }] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
-    supabase.from("vw_saldos_clientes").select("*").order("razon_social"),
+    supabase.from("vw_saldos_clientes").select("*", { count: "exact" }).order("razon_social").range(inicio, inicio + 24),
   ]);
+
+  const total = count ?? 0;
+  const totalPaginas = Math.max(1, Math.ceil(total / 25));
 
   const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", {
@@ -91,6 +103,8 @@ export default async function ClientesPage() {
             </tbody>
           </table>
         </div>
+
+        <Paginador pagina={pagina} totalPaginas={totalPaginas} total={total} />
       </div>
     </main>
   );

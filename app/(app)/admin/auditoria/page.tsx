@@ -1,15 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Paginador from "@/components/ui/paginador";
 
 const TABLAS = ["todas", "cheques", "clientes", "liquidaciones", "movimientos_clientes"];
 
 export default async function AuditoriaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tabla?: string }>;
+  searchParams: Promise<{ tabla?: string; page?: string }>;
 }) {
-  const { tabla } = await searchParams;
+  const { tabla, page } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -25,13 +26,19 @@ export default async function AuditoriaPage({
     .from("perfiles").select("rol").eq("id", user.id).single();
   if (miPerfil?.rol !== "administrador") redirect("/dashboard");
 
+  const pagina = Math.max(1, Number(page) || 1);
+  const inicio = (pagina - 1) * 25;
+
   let query = supabase
     .from("logs_auditoria")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(200);
+    .range(inicio, inicio + 24);
   if (tabla && tabla !== "todas") query = query.eq("tabla", tabla);
-  const { data: logs } = await query;
+  const { data: logs, count } = await query;
+
+  const total = count ?? 0;
+  const totalPaginas = Math.max(1, Math.ceil(total / 25));
 
   const colorAccion: Record<string, string> = {
     INSERT: "bg-emerald-950 text-emerald-300",
@@ -107,6 +114,8 @@ export default async function AuditoriaPage({
             </tbody>
           </table>
         </div>
+
+        <Paginador pagina={pagina} totalPaginas={totalPaginas} total={total} />
       </div>
     </main>
   );
