@@ -23,10 +23,9 @@ const esquemaLiq = z
       vacioANull,
       z.string().min(6, "Alias muy corto (mínimo 6)").max(30, "Alias muy largo").nullable()
     ),
-    cuit_beneficiario: z.preprocess(
-      vacioANull,
-      z.string().regex(/^\d{2}-?\d{8}-?\d$/, "CUIT del beneficiario inválido").nullable()
-    ),
+    cuit_beneficiario: z
+      .string()
+      .regex(/^\d{2}-?\d{8}-?\d$/, "El CUIT del beneficiario es obligatorio (11 dígitos)"),
     beneficiario: z.string().min(2, "Falta el beneficiario"),
     monto_liquidado: z.coerce.number().positive("El monto debe ser mayor a 0"),
   })

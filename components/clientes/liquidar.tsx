@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { liquidar, type EstadoLiq } from "@/actions/liquidaciones";
+import InputCuit from "@/components/ui/input-cuit";
 
 const inicial: EstadoLiq = { error: null };
 
@@ -44,17 +45,17 @@ export default function Liquidar({
       <input name="alias_destino" placeholder="Alias destino" className={inputCls} />
       <p className="text-[10px] text-zinc-500">CBU/CVU o Alias: cargá al menos uno (pueden ser los dos).</p>
       <input name="beneficiario" placeholder="Razón Social / Beneficiario *" required className={inputCls} />
-      <input name="cuit_beneficiario" placeholder="CUIT del beneficiario" className={inputCls} />
+      <InputCuit name="cuit_beneficiario" placeholder="CUIT del beneficiario *" required className={inputCls} />
       <input
         name="monto_liquidado"
         type="number"
         step="0.01"
         min="0.01"
         max={saldo}
-        defaultValue={saldo.toFixed(2)}
         required
         className={inputCls}
-        title="Monto a liquidar"
+        placeholder={`Monto a liquidar (hasta $${saldo.toLocaleString("es-AR")})`}
+        title="Monto a liquidar — no puede superar el disponible"
       />
 
       {estado.error && (

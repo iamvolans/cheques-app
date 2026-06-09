@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearSolicitudLiquidacion, type EstadoSolicitud } from "@/actions/portal";
+import InputCuit from "@/components/ui/input-cuit";
 
 const inicial: EstadoSolicitud = { error: null };
 const inputCls =
@@ -69,7 +70,7 @@ export default function SolicitarLiquidacion({
       <input name="beneficiario" placeholder="Beneficiario (razón social) *" required className={inputCls} />
       <input name="cvu_cbu_destino" placeholder="CBU/CVU destino (22 dígitos)" className={inputCls} />
       <input name="alias_destino" placeholder="Alias destino" className={inputCls} />
-      <input name="cuit_beneficiario" placeholder="CUIT/CUIL del beneficiario *" required className={inputCls} />
+      <InputCuit name="cuit_beneficiario" placeholder="CUIT/CUIL del beneficiario *" required className={inputCls} />
       <input name="nota" placeholder="Nota (opcional)" className={inputCls} />
       <p className="text-[10px] text-zinc-500">
         CBU/CVU o Alias: al menos uno. Mínimo $500.000 por transferencia · personas físicas hasta
