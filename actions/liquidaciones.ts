@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -216,14 +217,15 @@ export async function procesarSolicitud(
   if (e2) return { error: e2.message };
 
   // Encolar el aviso por email al cliente (lo despacha el cron de notificaciones)
-  const { data: cli } = await supabase
+  const adminCli = createAdminClient();
+  const { data: cli } = await adminCli
     .from("clientes")
     .select("email, portal_token")
     .eq("id", sol.cliente_id)
     .single();
   if (cli?.email) {
     const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://cheques-app-black.vercel.app";
-    await supabase.from("notificaciones_pendientes").insert({
+    await adminCli.from("notificaciones_pendientes").insert({
       cliente_id: sol.cliente_id,
       tipo: "transferencia_realizada",
       payload: {
