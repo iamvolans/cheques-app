@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarRechazo } from "@/lib/email/rechazo";
+import { enviarTransferenciaRealizada } from "@/lib/email/transferencia";
 
 export async function GET(req: Request) {
   const auth = req.headers.get("authorization");
@@ -25,6 +26,8 @@ export async function GET(req: Request) {
     try {
       if (n.tipo === "cheque_rechazado" && n.clientes?.email) {
         await enviarRechazo(n.clientes.email, n.clientes.razon_social, n.payload);
+      } else if (n.tipo === "transferencia_realizada" && n.clientes?.email) {
+        await enviarTransferenciaRealizada(n.clientes.email, n.clientes.razon_social, n.payload);
       }
       await supabase
         .from("notificaciones_pendientes")

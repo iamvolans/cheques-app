@@ -215,6 +215,28 @@ export async function procesarSolicitud(
     .eq("id", sol.id);
   if (e2) return { error: e2.message };
 
+  // Encolar el aviso por email al cliente (lo despacha el cron de notificaciones)
+  const { data: cli } = await supabase
+    .from("clientes")
+    .select("email, portal_token")
+    .eq("id", sol.cliente_id)
+    .single();
+  if (cli?.email) {
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://cheques-app-black.vercel.app";
+    await supabase.from("notificaciones_pendientes").insert({
+      cliente_id: sol.cliente_id,
+      tipo: "transferencia_realizada",
+      payload: {
+        monto: sol.monto,
+        beneficiario: sol.beneficiario,
+        coelsa_id: coelsaId,
+        fecha: fecha,
+        tiene_comprobante: Boolean(compId),
+        portal_url: cli.portal_token ? `${base}/portal/${cli.portal_token}` : null,
+      },
+    });
+  }
+
   revalidatePath("/liquidaciones");
   revalidatePath("/clientes");
   return { error: null, ok: true };
