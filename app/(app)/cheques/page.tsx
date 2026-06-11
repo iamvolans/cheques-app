@@ -4,6 +4,7 @@ import Link from "next/link";
 import NuevoCheque from "@/components/cheques/nuevo-cheque";
 import AccionesCheque from "@/components/cheques/acciones-cheque";
 import Paginador from "@/components/ui/paginador";
+import ExportarXls from "@/components/ui/exportar-xls";
 
 export const maxDuration = 60; // las subidas a Drive pueden tardar
 
@@ -100,6 +101,10 @@ export default async function ChequesPage({
         <header className="mb-6 border-b border-zinc-800 pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
         </header>
+
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <ExportarXls endpoint="/api/export/cheques" />
+        </div>
 
         <div className="mb-5 flex justify-end">
           <NuevoCheque

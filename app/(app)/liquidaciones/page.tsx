@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import SolicitudesPendientes from "@/components/liquidaciones/solicitudes-pendientes";
 import ConcentracionDestinos from "@/components/liquidaciones/concentracion-destinos";
 import Paginador from "@/components/ui/paginador";
+import ExportarXls from "@/components/ui/exportar-xls";
 import AccionesLiquidacion from "@/components/liquidaciones/acciones-liquidacion";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -52,6 +53,10 @@ export default async function LiquidacionesPage({
             
           </div>
         </header>
+
+        <div className="mb-4 flex justify-end">
+          <ExportarXls endpoint="/api/export/liquidaciones" />
+        </div>
 
         <SolicitudesPendientes />
 
