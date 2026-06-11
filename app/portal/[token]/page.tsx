@@ -62,6 +62,7 @@ export default async function PortalClientePage({
     .filter((s) => s.estado === "pendiente")
     .reduce((a, s) => a + Number(s.monto), 0);
   const disponible = Math.max(0, saldo - pendienteSolicitado);
+  const realizadas = (solicitudes ?? []).filter((s) => s.estado === "procesada");
 
   return (
     <main className="min-h-screen bg-zinc-950 p-4 text-zinc-100 sm:p-8">
@@ -90,6 +91,12 @@ export default async function PortalClientePage({
             <p className="mt-1 font-mono text-xl font-semibold text-blue-300">{fmt.format(montoGestion)}</p>
           </div>
         </div>
+
+        {realizadas.length > 0 && (
+          <div className="rounded-2xl border border-emerald-800/60 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">
+            ✅ Tenés {realizadas.length} transferencia{realizadas.length === 1 ? "" : "s"} realizada{realizadas.length === 1 ? "" : "s"}. El comprobante está disponible para descargar abajo.
+          </div>
+        )}
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50">
           <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">

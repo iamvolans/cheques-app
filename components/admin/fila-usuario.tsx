@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { cambiarRol, cambiarActivo } from "@/actions/usuarios";
+import ResetPassword from "@/components/admin/reset-password";
 
 export default function FilaUsuario({
   id,
@@ -55,6 +56,8 @@ export default function FilaUsuario({
       >
         {activo ? "Desactivar" : "Reactivar"}
       </button>
+
+      {!esYoMismo && <ResetPassword userId={id} />}
 
       {esYoMismo && <span className="text-xs text-zinc-500">(vos)</span>}
       {error && <p className="text-xs text-red-400">{error}</p>}
