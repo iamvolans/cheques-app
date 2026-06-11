@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { descargarArchivoDrive, borrarArchivoDrive } from "@/lib/google-drive/descargar";
+import { descargarArchivoDrive } from "@/lib/google-drive/descargar";
 
 export const maxDuration = 60;
 
@@ -22,9 +22,10 @@ export async function GET(req: NextRequest) {
     .eq("id", solicitudId)
     .eq("cliente_id", cliente.id)
     .single();
+
   if (!sol?.comprobante_drive_id) {
     return NextResponse.json(
-      { error: "El comprobante ya fue descargado o no está disponible" },
+      { error: "El comprobante ya no está disponible (se elimina automáticamente a las 48 hs de la transferencia)." },
       { status: 404 }
     );
   }
@@ -33,25 +34,15 @@ export async function GET(req: NextRequest) {
   try {
     archivo = await descargarArchivoDrive(sol.comprobante_drive_id);
   } catch {
-    // Si Drive ya no lo tiene, limpiamos la referencia
+    // El archivo ya no existe en Drive: limpiamos la referencia para que no muestre el botón
     await admin
       .from("solicitudes_liquidacion")
       .update({ comprobante_drive_id: null, comprobante_nombre: null, comprobante_subido_at: null })
       .eq("id", sol.id);
-    return NextResponse.json({ error: "El comprobante ya no está disponible" }, { status: 404 });
+    return NextResponse.json({ error: "El comprobante ya no está disponible." }, { status: 404 });
   }
 
-  // Un solo uso: limpiamos la referencia y borramos de Drive ANTES de entregar
-  await admin
-    .from("solicitudes_liquidacion")
-    .update({ comprobante_drive_id: null, comprobante_nombre: null, comprobante_subido_at: null })
-    .eq("id", sol.id);
-  try {
-    await borrarArchivoDrive(sol.comprobante_drive_id);
-  } catch {
-    /* si falla, la limpieza de 48hs no lo verá (referencia ya limpia); aceptable */
-  }
-
+  // Re-descargable: NO se borra acá. La limpieza la hace el cron a las 48 hs.
   const nombre = sol.comprobante_nombre ?? "comprobante.pdf";
   return new NextResponse(new Uint8Array(archivo.buffer), {
     headers: {

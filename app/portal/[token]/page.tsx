@@ -123,7 +123,7 @@ export default async function PortalClientePage({
                     {s.estado}
                   </span>
                   {s.estado === "procesada" && s.comprobante_drive_id && (
-                    <a href={`/api/comprobante?token=${token}&solicitud=${s.id}`} className="text-[10px] font-medium text-emerald-400 underline underline-offset-2">⬇ Comprobante (un solo uso)</a>
+                    <a href={`/api/comprobante?token=${token}&solicitud=${s.id}`} className="text-[10px] font-medium text-emerald-400 underline underline-offset-2">⬇ Descargar comprobante</a>
                   )}
                 </div>
               </div>
