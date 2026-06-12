@@ -12,7 +12,8 @@ export default function ExportarXls({ endpoint }: { endpoint: string }) {
     if (desde) q.set("desde", desde);
     if (hasta) q.set("hasta", hasta);
     const qs = q.toString();
-    window.location.href = qs ? `${endpoint}?${qs}` : endpoint;
+    const sep = endpoint.includes("?") ? "&" : "?";
+    window.location.href = qs ? `${endpoint}${sep}${qs}` : endpoint;
   }
 
   const inp = "rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none focus:border-emerald-500";

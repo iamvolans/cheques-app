@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Paginador from "@/components/ui/paginador";
+import ExportarXls from "@/components/ui/exportar-xls";
 
 const TABLAS = ["todas", "cheques", "clientes", "liquidaciones", "movimientos_clientes"];
 
@@ -53,6 +54,10 @@ export default async function AuditoriaPage({
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Auditoría</h1>
           
         </header>
+
+        <div className="mb-4 flex justify-end">
+          <ExportarXls endpoint={tabla && tabla !== "todas" ? `/api/export/auditoria?tabla=${tabla}` : "/api/export/auditoria"} />
+        </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
           {TABLAS.map((t) => (

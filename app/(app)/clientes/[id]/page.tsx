@@ -6,6 +6,7 @@ import { FileText } from "lucide-react";
 import EliminarCliente from "@/components/admin/eliminar-cliente";
 import PortalCliente from "@/components/clientes/portal-cliente";
 import ReaplicarTarifa from "@/components/admin/reaplicar-tarifa";
+import ExportarXls from "@/components/ui/exportar-xls";
 import EditarCliente from "@/components/clientes/editar-cliente";
 
 const colorMov: Record<string, string> = {
@@ -101,6 +102,9 @@ export default async function PerfilClientePage({
             )}
             {esAdmin && (
               <ReaplicarTarifa clienteId={cliente.id} feeCamara={Number(cliente.fee_porcentaje)} feeInterior={cliente.fee_interior_porcentaje != null ? Number(cliente.fee_interior_porcentaje) : null} />
+            )}
+            {esAdmin && (
+              <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
             )}
             {esAdmin && (
               <EditarCliente
