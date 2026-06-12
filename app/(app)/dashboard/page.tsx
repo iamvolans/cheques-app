@@ -5,6 +5,7 @@ import {
   Inbox, Landmark, Clock4, Siren,
 } from "lucide-react";
 import Graficos from "@/components/dashboard/graficos";
+import AcreditacionesVencidas from "@/components/dashboard/acreditaciones-vencidas";
 
 const colorEstado: Record<string, string> = {
   en_custodia: "bg-amber-500/10 text-amber-300",
@@ -119,6 +120,8 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Dashboard</h1>
           <p className="text-sm text-zinc-500">El pulso de la operación en tiempo real.</p>
         </div>
+
+        <AcreditacionesVencidas />
 
         {enOficina.length > 0 && (
           <Link

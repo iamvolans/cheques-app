@@ -8,6 +8,7 @@ const operacion = [
   { href: "/cheques", label: "Cheques" },
   { href: "/clientes", label: "Clientes" },
   { href: "/liquidaciones", label: "Liquidaciones" },
+  { href: "/custodias", label: "Custodias" },
   { href: "/libradores", label: "Riesgo" },
 ];
 const administracion = [
