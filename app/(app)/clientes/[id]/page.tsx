@@ -104,9 +104,6 @@ export default async function PerfilClientePage({
               <ReaplicarTarifa clienteId={cliente.id} feeCamara={Number(cliente.fee_porcentaje)} feeInterior={cliente.fee_interior_porcentaje != null ? Number(cliente.fee_interior_porcentaje) : null} />
             )}
             {esAdmin && (
-              <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
-            )}
-            {esAdmin && (
               <EditarCliente
                 clienteId={cliente.id}
                 email={cliente.email}
@@ -117,6 +114,13 @@ export default async function PerfilClientePage({
             {esAdmin && <Liquidar clienteId={cliente.id} saldo={saldo} />}
           </div>
         </header>
+
+        {esAdmin && (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Exportar extracto de cuenta</span>
+            <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (
