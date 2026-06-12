@@ -77,3 +77,12 @@ export async function borrarArchivo(id: string): Promise<void> {
     // best effort: si falla el rollback no rompemos el flujo
   }
 }
+
+// Carpeta [Raíz]/_Backups/AAAA-MM para los respaldos mensuales automáticos
+export async function carpetaBackupMensual(): Promise<string> {
+  const raiz = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID!;
+  const hoy = new Date();
+  const aaaaMM = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+  const idBackups = await asegurarCarpeta(raiz, "_Backups");
+  return asegurarCarpeta(idBackups, aaaaMM);
+}
