@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearSolicitudLiquidacion, type EstadoSolicitud } from "@/actions/portal";
 import InputCuit from "@/components/ui/input-cuit";
+import InputMonto from "@/components/ui/input-monto";
 
 const inicial: EstadoSolicitud = { error: null };
 const inputCls =
@@ -57,15 +58,11 @@ export default function SolicitarLiquidacion({
           la procesamos a primera hora.
         </p>
       )}
-      <input
+      <InputMonto
         name="monto"
-        type="number"
-        step="0.01"
-        min="500000"
-        max={disponible}
-        placeholder={`Monto (mín. $500.000 — hasta $${disponible.toLocaleString("es-AR")})`}
         required
         className={inputCls}
+        placeholder={`Monto (mín. $500.000 — hasta $${disponible.toLocaleString("es-AR")})`}
       />
       <input name="beneficiario" placeholder="Beneficiario (razón social) *" required className={inputCls} />
       <input name="cvu_cbu_destino" placeholder="CBU/CVU destino (22 dígitos)" className={inputCls} />

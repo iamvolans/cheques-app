@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearCheque, type EstadoCheque } from "@/actions/cheques";
 import InputCuit from "@/components/ui/input-cuit";
+import InputMonto from "@/components/ui/input-monto";
 
 type Opcion = { id: string; nombre: string };
 const inicial: EstadoCheque = { error: null };
@@ -74,6 +75,7 @@ export default function NuevoCheque({
   const [cp, setCp] = useState("");
   const [fecha, setFecha] = useState("");
   const [estado, accion, pendiente] = useActionState(crearCheque, inicial);
+  const [resetTick, setResetTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -81,6 +83,7 @@ export default function NuevoCheque({
       formRef.current?.reset();
       setCp("");
       setFecha("");
+      setResetTick((t) => t + 1);
     }
   }, [estado]);
 
@@ -130,10 +133,10 @@ export default function NuevoCheque({
         <input name="librador" placeholder="Razón social del emisor" required className={inputCls} />
       </Campo>
       <Campo etiqueta="CUIT del librador *">
-        <InputCuit name="cuit_librador" placeholder="30-12345678-9" required className={inputCls} />
+        <InputCuit key={`cuit-${resetTick}`} name="cuit_librador" placeholder="30-12345678-9" required className={inputCls} />
       </Campo>
       <Campo etiqueta="Monto ARS *">
-        <input name="monto" type="number" step="0.01" min="0.01" placeholder="0,00" required className={inputCls} />
+        <InputMonto key={`monto-${resetTick}`} name="monto" placeholder="0,00" required className={inputCls} />
       </Campo>
 
       <Campo etiqueta="Banco emisor *">
