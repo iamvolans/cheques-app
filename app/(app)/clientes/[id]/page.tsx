@@ -5,6 +5,7 @@ import Liquidar from "@/components/clientes/liquidar";
 import { FileText } from "lucide-react";
 import EliminarCliente from "@/components/admin/eliminar-cliente";
 import PortalCliente from "@/components/clientes/portal-cliente";
+import ReaplicarTarifa from "@/components/admin/reaplicar-tarifa";
 import EditarCliente from "@/components/clientes/editar-cliente";
 
 const colorMov: Record<string, string> = {
@@ -97,6 +98,9 @@ export default async function PerfilClientePage({
             </a>
             {esAdmin && (
               <PortalCliente clienteId={cliente.id} token={cliente.portal_token ?? null} />
+            )}
+            {esAdmin && (
+              <ReaplicarTarifa clienteId={cliente.id} feeCamara={Number(cliente.fee_porcentaje)} feeInterior={cliente.fee_interior_porcentaje != null ? Number(cliente.fee_interior_porcentaje) : null} />
             )}
             {esAdmin && (
               <EditarCliente

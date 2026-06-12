@@ -147,7 +147,7 @@ export default async function DetalleChequePage({
           </div>
         </section>
 
-        {esAdmin && ch.estado !== "rechazado" && (
+        {esAdmin && (
           <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />
         )}
         {esAdmin && ["aceptado", "en_custodia"].includes(ch.estado) && (

@@ -117,20 +117,21 @@ export async function corregirCheque(p: {
   const admin = createAdminClient();
   const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
   if (!ch) return { error: "El cheque no existe." };
-  if (ch.estado === "rechazado") {
-    return { error: "No se puede corregir un cheque rechazado desde aquí (tiene débitos asociados). Consultá soporte." };
-  }
-
   const pct = Number(ch.fee_aplicado_pct);
   const nuevoFee = Math.round(p.nuevoMonto * pct) / 100;
+  const multa = Number(ch.multa ?? 0);
 
-  if (ch.estado === "procesado") {
+  if (ch.estado === "procesado" || ch.estado === "rechazado") {
     const { data: movs } = await admin
       .from("movimientos_clientes").select("monto").eq("cliente_id", ch.cliente_id);
     const saldoActual = (movs ?? []).reduce((a, m) => a + Number(m.monto), 0);
-    const acredVieja = Number(ch.monto) - Number(ch.fee_calculado);
-    const acredNueva = p.nuevoMonto - nuevoFee;
-    if (saldoActual - acredVieja + acredNueva < 0) {
+    const impactoViejo = ch.estado === "procesado"
+      ? Number(ch.monto) - Number(ch.fee_calculado)
+      : -(Number(ch.fee_calculado) + multa);
+    const impactoNuevo = ch.estado === "procesado"
+      ? p.nuevoMonto - nuevoFee
+      : -(nuevoFee + multa);
+    if (saldoActual - impactoViejo + impactoNuevo < 0) {
       return { error: "La corrección dejaría el saldo del cliente en negativo (ya liquidó parte de este valor)." };
     }
   }
@@ -144,6 +145,10 @@ export async function corregirCheque(p: {
         descripcion: `Acreditación cheque N° ${ch.numero_cheque} (monto ${p.nuevoMonto} - fee ${nuevoFee})`,
       })
       .eq("cheque_id", ch.id).eq("tipo", "acreditacion");
+  } else if (ch.estado === "rechazado") {
+    await admin.from("movimientos_clientes")
+      .update({ monto: -(nuevoFee + multa) })
+      .eq("cheque_id", ch.id).eq("tipo", "debito_rechazo");
   }
 
   await admin.from("logs_auditoria").insert({
@@ -156,6 +161,70 @@ export async function corregirCheque(p: {
   revalidatePath("/cheques");
   revalidatePath(`/cheques/${ch.id}`);
   revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
+
+// ---------- Reaplicar la tarifa vigente del cliente a todos sus cheques ----------
+
+export async function reaplicarTarifaCliente(p: {
+  clienteId: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: cli } = await admin
+    .from("clientes")
+    .select("id, razon_social, fee_porcentaje, fee_interior_porcentaje")
+    .eq("id", p.clienteId)
+    .single();
+  if (!cli) return { error: "El cliente no existe." };
+
+  const feeCamara = Number(cli.fee_porcentaje);
+  const feeInterior = cli.fee_interior_porcentaje != null ? Number(cli.fee_interior_porcentaje) : feeCamara;
+
+  const { data: cheques } = await admin
+    .from("cheques")
+    .select("id, numero_cheque, monto, plaza, estado, fee_calculado, multa")
+    .eq("cliente_id", cli.id);
+
+  let actualizados = 0;
+  for (const ch of cheques ?? []) {
+    const pct = ch.plaza === "interior" ? feeInterior : feeCamara;
+    const nuevoFee = Math.round(Number(ch.monto) * pct) / 100;
+
+    await admin.from("cheques")
+      .update({ fee_aplicado_pct: pct, fee_calculado: nuevoFee })
+      .eq("id", ch.id);
+
+    if (ch.estado === "procesado") {
+      await admin.from("movimientos_clientes")
+        .update({ monto: Number(ch.monto) - nuevoFee })
+        .eq("cheque_id", ch.id).eq("tipo", "acreditacion");
+    } else if (ch.estado === "rechazado") {
+      await admin.from("movimientos_clientes")
+        .update({ monto: -(nuevoFee + Number(ch.multa ?? 0)) })
+        .eq("cheque_id", ch.id).eq("tipo", "debito_rechazo");
+    }
+    actualizados++;
+  }
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId,
+    usuario_email: auth.email,
+    accion: "UPDATE",
+    tabla: "cheques",
+    registro_id: cli.id,
+    descripcion: `Reaplicación de tarifa vigente (Cámara ${feeCamara}% / Interior ${feeInterior}%) a ${actualizados} cheques de ${cli.razon_social} (verificada con segundo factor)`,
+    valores_antes: null,
+    valores_despues: null,
+  });
+
+  revalidatePath("/clientes");
+  revalidatePath(`/clientes/${cli.id}`);
+  revalidatePath("/cheques");
   revalidatePath("/dashboard");
   return { error: null, ok: true };
 }
