@@ -8,6 +8,8 @@ import PortalCliente from "@/components/clientes/portal-cliente";
 import ReaplicarTarifa from "@/components/admin/reaplicar-tarifa";
 import ExportarXls from "@/components/ui/exportar-xls";
 import EditarCliente from "@/components/clientes/editar-cliente";
+import AjusteSaldo from "@/components/admin/ajuste-saldo";
+import AnularMovimiento from "@/components/admin/anular-movimiento";
 
 const colorMov: Record<string, string> = {
   acreditacion: "bg-emerald-950 text-emerald-300",
@@ -119,6 +121,7 @@ export default async function PerfilClientePage({
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3">
             <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Exportar extracto de cuenta</span>
             <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
+            <div className="ml-auto"><AjusteSaldo clienteId={cliente.id} /></div>
           </div>
         )}
 
@@ -143,6 +146,7 @@ export default async function PerfilClientePage({
                   <th className="px-4 py-3 font-medium">Tipo</th>
                   <th className="px-4 py-3 font-medium">Descripción</th>
                   <th className="px-4 py-3 text-right font-medium">Monto</th>
+                  {esAdmin && <th className="px-4 py-3 text-right font-medium">Acciones</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800 bg-zinc-950">
@@ -160,11 +164,16 @@ export default async function PerfilClientePage({
                     <td className={`px-4 py-3 text-right font-mono ${Number(m.monto) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {fmtARS.format(Number(m.monto))}
                     </td>
+                    {esAdmin && (
+                      <td className="px-4 py-3 text-right">
+                        {m.tipo === "ajuste_manual" && <AnularMovimiento movimientoId={m.id} />}
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {(movimientos ?? []).length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={esAdmin ? 5 : 4} className="px-4 py-8 text-center text-zinc-500">
                       Sin movimientos todavía.
                     </td>
                   </tr>

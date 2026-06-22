@@ -427,3 +427,86 @@ export async function editarDatosCheque(p: {
   revalidatePath(`/cheques/${ch.id}`);
   return { error: null, ok: true };
 }
+
+// ---------- Ajuste manual de saldo (movimiento ajuste_manual, +/-) ----------
+export async function ajustarSaldoManual(p: {
+  clienteId: string;
+  monto: number;       // positivo = suma, negativo = resta
+  motivo: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  if (!p.monto || p.monto === 0) return { error: "El monto del ajuste no puede ser 0." };
+  if (!(p.motivo ?? "").trim()) return { error: "El motivo del ajuste es obligatorio." };
+
+  const admin = createAdminClient();
+  const { data: cli } = await admin.from("clientes").select("id, razon_social").eq("id", p.clienteId).single();
+  if (!cli) return { error: "El cliente no existe." };
+
+  // Guarda: si es un ajuste negativo, que no deje el saldo por debajo de 0
+  const { data: movs } = await admin.from("movimientos_clientes").select("monto").eq("cliente_id", cli.id);
+  const saldoActual = (movs ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  if (saldoActual + p.monto < 0) {
+    return { error: `El ajuste dejaría el saldo en negativo (saldo actual $${saldoActual.toLocaleString("es-AR")}).` };
+  }
+
+  await admin.from("movimientos_clientes").insert({
+    cliente_id: cli.id,
+    tipo: "ajuste_manual",
+    monto: p.monto,
+    descripcion: `Ajuste manual (${p.monto >= 0 ? "+" : "−"}): ${p.motivo.trim()}`,
+  });
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "INSERT",
+    tabla: "movimientos_clientes", registro_id: cli.id,
+    descripcion: `Ajuste manual de saldo a ${cli.razon_social}: ${p.monto >= 0 ? "+" : "−"}$${Math.abs(p.monto).toLocaleString("es-AR")} — motivo: ${p.motivo.trim()} (verificada con segundo factor)`,
+    valores_antes: { saldo: saldoActual },
+    valores_despues: { saldo: saldoActual + p.monto },
+  });
+
+  revalidatePath("/clientes");
+  revalidatePath(`/clientes/${cli.id}`);
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
+
+// ---------- Anular un movimiento puntual (solo ajuste_manual) ----------
+export async function anularMovimiento(p: {
+  movimientoId: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: mov } = await admin.from("movimientos_clientes").select("*").eq("id", p.movimientoId).single();
+  if (!mov) return { error: "El movimiento no existe." };
+
+  if (mov.tipo !== "ajuste_manual") {
+    return { error: "Solo se pueden anular ajustes manuales desde acá. Para acreditaciones o débitos de cheques usá 'Corregir estado' en el cheque; para liquidaciones usá 'Anular' en Liquidaciones." };
+  }
+
+  // Guarda: si el ajuste era positivo, borrarlo no puede dejar el saldo negativo
+  const { data: movs } = await admin.from("movimientos_clientes").select("monto").eq("cliente_id", mov.cliente_id);
+  const saldoActual = (movs ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  if (saldoActual - Number(mov.monto) < 0) {
+    return { error: "Anular este ajuste dejaría el saldo en negativo (ya se liquidó parte de ese saldo)." };
+  }
+
+  await admin.from("movimientos_clientes").delete().eq("id", mov.id);
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "DELETE",
+    tabla: "movimientos_clientes", registro_id: mov.cliente_id,
+    descripcion: `Anulación de ajuste manual ($${Number(mov.monto).toLocaleString("es-AR")}) — "${mov.descripcion}" (verificada con segundo factor)`,
+    valores_antes: mov, valores_despues: null,
+  });
+
+  revalidatePath("/clientes");
+  revalidatePath(`/clientes/${mov.cliente_id}`);
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
