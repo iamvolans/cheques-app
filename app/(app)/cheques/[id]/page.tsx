@@ -4,6 +4,8 @@ import Link from "next/link";
 import EliminarCheque from "@/components/admin/eliminar-cheque";
 import CorregirCheque from "@/components/admin/corregir-cheque";
 import CorregirEstado from "@/components/admin/corregir-estado";
+import ReasignarCheque from "@/components/admin/reasignar-cheque";
+import EditarDatosCheque from "@/components/admin/editar-datos-cheque";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -46,7 +48,7 @@ export default async function DetalleChequePage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: ch }, { data: logs }, { data: miPerfil }] = await Promise.all([
+  const [{ data: ch }, { data: logs }, { data: miPerfil }, { data: listaClientes }] = await Promise.all([
     supabase
       .from("cheques")
       .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias)")
@@ -59,6 +61,7 @@ export default async function DetalleChequePage({
       .eq("registro_id", id)
       .order("created_at"),
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
+    supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
   ]);
 
   if (!ch) notFound();
@@ -148,6 +151,25 @@ export default async function DetalleChequePage({
           </div>
         </section>
 
+        {esAdmin && (
+          <EditarDatosCheque
+            chequeId={ch.id}
+            numero={ch.numero_cheque}
+            librador={ch.librador}
+            cuit={ch.cuit_librador}
+            banco={ch.banco_emisor ?? ""}
+            fechaCobro={ch.fecha_cobro}
+            fechaAcred={ch.fecha_estimada_acred ?? null}
+          />
+        )}
+        {esAdmin && (
+          <ReasignarCheque
+            chequeId={ch.id}
+            numero={ch.numero_cheque}
+            clienteActualId={ch.clientes?.id ?? ch.cliente_id}
+            clientes={listaClientes ?? []}
+          />
+        )}
         {esAdmin && (
           <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />
         )}

@@ -332,3 +332,98 @@ export async function corregirEstado(p: {
   revalidatePath("/dashboard");
   return { error: null, ok: true };
 }
+
+// ---------- Helper admin SIN TOTP (para cambios no contables) ----------
+async function exigirAdmin(): Promise<{ error: string } | { userId: string; email: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
+  if (perfil?.rol !== "administrador") return { error: "Solo un Administrador puede hacer esto." };
+  return { userId: user.id, email: user.email ?? "" };
+}
+
+// ---------- Reasignar un cheque a otro cliente (mueve también sus movimientos) ----------
+export async function reasignarCheque(p: {
+  chequeId: string;
+  nuevoClienteId: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
+  if (!ch) return { error: "El cheque no existe." };
+  if (ch.cliente_id === p.nuevoClienteId) return { error: "El cheque ya pertenece a ese cliente." };
+
+  const { data: destino } = await admin.from("clientes").select("id, razon_social").eq("id", p.nuevoClienteId).single();
+  if (!destino) return { error: "El cliente destino no existe." };
+  const { data: origen } = await admin.from("clientes").select("razon_social").eq("id", ch.cliente_id).single();
+
+  // Suma de los movimientos de este cheque y guarda de saldo del origen
+  const { data: movsCheque } = await admin.from("movimientos_clientes").select("monto").eq("cheque_id", ch.id);
+  const sumMov = (movsCheque ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  const { data: movsOrigen } = await admin.from("movimientos_clientes").select("monto").eq("cliente_id", ch.cliente_id);
+  const saldoOrigen = (movsOrigen ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  if (saldoOrigen - sumMov < 0) {
+    return { error: "No se puede reasignar: el saldo del cliente de origen quedaría negativo (probablemente ya liquidó parte de este valor)." };
+  }
+
+  await admin.from("cheques").update({ cliente_id: p.nuevoClienteId }).eq("id", ch.id);
+  await admin.from("movimientos_clientes").update({ cliente_id: p.nuevoClienteId }).eq("cheque_id", ch.id);
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
+    tabla: "cheques", registro_id: ch.id,
+    descripcion: `Reasignación de cheque N° ${ch.numero_cheque}: de ${origen?.razon_social ?? "?"} → ${destino.razon_social} (movimientos incluidos, verificada con segundo factor)`,
+    valores_antes: ch, valores_despues: { ...ch, cliente_id: p.nuevoClienteId },
+  });
+
+  revalidatePath("/cheques");
+  revalidatePath(`/cheques/${ch.id}`);
+  revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
+
+// ---------- Editar datos NO contables del cheque (no toca saldo) ----------
+export async function editarDatosCheque(p: {
+  chequeId: string;
+  librador: string;
+  cuit_librador: string;
+  banco_emisor: string;
+  fecha_cobro: string;
+  fecha_estimada_acred: string | null;
+}): Promise<R> {
+  const auth = await exigirAdmin();
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
+  if (!ch) return { error: "El cheque no existe." };
+
+  const update = {
+    librador: p.librador.trim(),
+    cuit_librador: p.cuit_librador.trim(),
+    banco_emisor: p.banco_emisor.trim(),
+    fecha_cobro: p.fecha_cobro,
+    fecha_estimada_acred: p.fecha_estimada_acred || null,
+  };
+  if (!update.librador) return { error: "El librador no puede quedar vacío." };
+  if (!/^\d{2}-?\d{8}-?\d$/.test(update.cuit_librador)) return { error: "El CUIT del librador es inválido." };
+
+  await admin.from("cheques").update(update).eq("id", ch.id);
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
+    tabla: "cheques", registro_id: ch.id,
+    descripcion: `Edición de datos no contables del cheque N° ${ch.numero_cheque} (librador/CUIT/banco/fechas)`,
+    valores_antes: { librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
+    valores_despues: update,
+  });
+
+  revalidatePath("/cheques");
+  revalidatePath(`/cheques/${ch.id}`);
+  return { error: null, ok: true };
+}
