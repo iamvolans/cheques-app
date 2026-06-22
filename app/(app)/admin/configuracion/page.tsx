@@ -36,20 +36,20 @@ export default async function ConfiguracionPage() {
       supabase.from("feriados").select("*").gte("fecha", hoy).order("fecha"),
     ]);
 
-  const seccion = "rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20 space-y-4";
-  const titulo = "text-sm font-medium uppercase tracking-wide text-zinc-400";
-  const fila = "flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 py-2 text-sm last:border-0";
+  const seccion = "rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 space-y-4";
+  const titulo = "text-sm font-medium uppercase tracking-wide text-muted-foreground";
+  const fila = "flex flex-wrap items-center justify-between gap-2 border-b border-border py-2 text-sm last:border-0";
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        <header className="border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Configuración</h1>
+        <header className="border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Configuración</h1>
           
         </header>
 
         <section className={seccion}>
-          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-red-500/80 align-middle" />Lista negra de libradores</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-danger/80 align-middle" />Lista negra de libradores</h2>
           <FormConfig
             accion={agregarListaNegra}
             etiqueta="Bloquear librador"
@@ -61,19 +61,19 @@ export default async function ConfiguracionPage() {
           />
           {(listaNegra ?? []).map((l) => (
             <div key={l.id} className={fila}>
-              <span className="text-zinc-100">
-                <span className="font-mono text-zinc-400">{l.cuit}</span>
+              <span className="text-foreground">
+                <span className="font-mono text-muted-foreground">{l.cuit}</span>
                 {l.razon_social && ` · ${l.razon_social}`}
-                <span className="text-zinc-500"> — {l.motivo}</span>
+                <span className="text-muted-foreground"> — {l.motivo}</span>
               </span>
               <BotonConfig accion={quitarListaNegra} payload={{ id: l.id }} label="Quitar" peligro />
             </div>
           ))}
-          {(listaNegra ?? []).length === 0 && <p className="text-sm text-zinc-500">Sin libradores bloqueados.</p>}
+          {(listaNegra ?? []).length === 0 && <p className="text-sm text-muted-foreground">Sin libradores bloqueados.</p>}
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-blue-500/80 align-middle" />Convenios (a quién se factura la comisión)</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-info/80 align-middle" />Convenios (a quién se factura la comisión)</h2>
           <FormConfig
             accion={agregarConvenio}
             etiqueta="Agregar convenio"
@@ -84,8 +84,8 @@ export default async function ConfiguracionPage() {
           />
           {(convenios ?? []).map((c) => (
             <div key={c.id} className={fila}>
-              <span className={c.activo ? "text-zinc-100" : "text-zinc-500 line-through"}>
-                {c.razon_social} <span className="font-mono text-zinc-400">{c.cuit}</span>
+              <span className={c.activo ? "text-foreground" : "text-muted-foreground line-through"}>
+                {c.razon_social} <span className="font-mono text-muted-foreground">{c.cuit}</span>
               </span>
               <BotonConfig
                 accion={toggleConvenio}
@@ -98,7 +98,7 @@ export default async function ConfiguracionPage() {
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-emerald-500/80 align-middle" />Cuentas bancarias propias</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-primary/80 align-middle" />Cuentas bancarias propias</h2>
           <FormConfig
             accion={agregarCuenta}
             etiqueta="Agregar cuenta"
@@ -112,9 +112,9 @@ export default async function ConfiguracionPage() {
           />
           {(cuentas ?? []).map((c) => (
             <div key={c.id} className={fila}>
-              <span className={c.activa ? "text-zinc-100" : "text-zinc-500 line-through"}>
-                {c.banco}{c.alias && <span className="text-zinc-400"> · {c.alias}</span>}
-                {c.descripcion && <span className="text-zinc-500"> — {c.descripcion}</span>}
+              <span className={c.activa ? "text-foreground" : "text-muted-foreground line-through"}>
+                {c.banco}{c.alias && <span className="text-muted-foreground"> · {c.alias}</span>}
+                {c.descripcion && <span className="text-muted-foreground"> — {c.descripcion}</span>}
               </span>
               <MultaCuenta id={c.id} multa={Number(c.multa_rechazo_banco ?? 0)} />
               <BotonConfig
@@ -128,7 +128,7 @@ export default async function ConfiguracionPage() {
         </section>
 
         <section className={seccion}>
-          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-violet-500/80 align-middle" />Feriados (para el cálculo de 48hs hábiles)</h2>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-info/80 align-middle" />Feriados (para el cálculo de 48hs hábiles)</h2>
           <FormConfig
             accion={agregarFeriado}
             etiqueta="Agregar feriado"
@@ -144,13 +144,13 @@ export default async function ConfiguracionPage() {
           />
           {(feriados ?? []).map((f) => (
             <div key={f.fecha} className={fila}>
-              <span className="text-zinc-100">
-                <span className="font-mono text-zinc-400">{f.fecha}</span> · {f.descripcion}
+              <span className="text-foreground">
+                <span className="font-mono text-muted-foreground">{f.fecha}</span> · {f.descripcion}
               </span>
               <BotonConfig accion={quitarFeriado} payload={{ fecha: f.fecha }} label="Quitar" peligro />
             </div>
           ))}
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             Se muestran solo los feriados futuros. Acordate de cargar los del año nuevo cada diciembre.
           </p>
         </section>

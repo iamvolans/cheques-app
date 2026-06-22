@@ -22,20 +22,20 @@ export default async function LibradoresPage() {
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-7xl space-y-10">
-        <header className="border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Libradores · Riesgo</h1>
+        <header className="border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Libradores · Riesgo</h1>
           
         </header>
 
         <section>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             Acumulador por CUIT librador
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-zinc-800">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+              <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-3 py-3 font-medium">Librador</th>
                   <th className="px-3 py-3 font-medium">CUIT</th>
@@ -48,39 +48,39 @@ export default async function LibradoresPage() {
                   <th className="px-3 py-3 text-right font-medium">Mayor monto rechazado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+              <tbody className="divide-y divide-border bg-background">
                 {(libradores ?? []).map((l) => (
-                  <tr key={l.cuit_librador} className="transition hover:bg-zinc-800/40">
-                    <td className="px-3 py-3 text-zinc-100">
+                  <tr key={l.cuit_librador} className="transition hover:bg-muted/40">
+                    <td className="px-3 py-3 text-foreground">
                       {l.en_lista_negra && (
-                        <span className="mr-1 rounded bg-red-950 px-1.5 py-0.5 text-xs font-semibold text-red-300">
+                        <span className="mr-1 rounded bg-danger-muted px-1.5 py-0.5 text-xs font-semibold text-danger">
                           LISTA NEGRA
                         </span>
                       )}
                       {l.librador}
                     </td>
-                    <td className="px-3 py-3 font-mono text-zinc-400">{l.cuit_librador}</td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-300">{l.total_cheques}</td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-100">
+                    <td className="px-3 py-3 font-mono text-muted-foreground">{l.cuit_librador}</td>
+                    <td className="px-3 py-3 text-right font-mono text-foreground/90">{l.total_cheques}</td>
+                    <td className="px-3 py-3 text-right font-mono text-foreground">
                       {fmtARS.format(Number(l.monto_total_gestionado))}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-400">
+                    <td className="px-3 py-3 text-right font-mono text-muted-foreground">
                       {fmtARS.format(Number(l.monto_ultimos_30d ?? 0))}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-300">{l.cheques_rechazados}</td>
+                    <td className="px-3 py-3 text-right font-mono text-foreground/90">{l.cheques_rechazados}</td>
                     <td className={`px-3 py-3 text-right font-mono font-semibold ${
-                      Number(l.pct_rechazo) >= 20 ? "text-red-400"
-                      : Number(l.pct_rechazo) > 0 ? "text-amber-400"
-                      : "text-emerald-400"
+                      Number(l.pct_rechazo) >= 20 ? "text-danger"
+                      : Number(l.pct_rechazo) > 0 ? "text-warning"
+                      : "text-primary"
                     }`}>
                       {Number(l.pct_rechazo).toFixed(1)}%
                     </td>
-                    <td className="px-3 py-3 font-mono text-zinc-400">
+                    <td className="px-3 py-3 font-mono text-muted-foreground">
                       {l.fecha_ultimo_rechazo
                         ? new Date(l.fecha_ultimo_rechazo).toLocaleDateString("es-AR")
                         : "—"}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-400">
+                    <td className="px-3 py-3 text-right font-mono text-muted-foreground">
                       {l.mayor_monto_rechazado ? fmtARS.format(Number(l.mayor_monto_rechazado)) : "—"}
                     </td>
                   </tr>
@@ -91,12 +91,12 @@ export default async function LibradoresPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             KPI por cliente — ¿quién trae los rechazos?
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-zinc-800">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+              <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-3 py-3 font-medium">Cliente</th>
                   <th className="px-3 py-3 text-right font-medium">Cheques traídos</th>
@@ -106,22 +106,22 @@ export default async function LibradoresPage() {
                   <th className="px-3 py-3 text-right font-medium">% Rechazo</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+              <tbody className="divide-y divide-border bg-background">
                 {(kpiClientes ?? []).map((k) => (
-                  <tr key={k.cliente_id} className="transition hover:bg-zinc-800/40">
-                    <td className="px-3 py-3 text-zinc-100">{k.razon_social}</td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-300">{k.total_cheques ?? 0}</td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-100">
+                  <tr key={k.cliente_id} className="transition hover:bg-muted/40">
+                    <td className="px-3 py-3 text-foreground">{k.razon_social}</td>
+                    <td className="px-3 py-3 text-right font-mono text-foreground/90">{k.total_cheques ?? 0}</td>
+                    <td className="px-3 py-3 text-right font-mono text-foreground">
                       {fmtARS.format(Number(k.monto_total ?? 0))}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-300">{k.cheques_rechazados ?? 0}</td>
-                    <td className="px-3 py-3 text-right font-mono text-zinc-400">
+                    <td className="px-3 py-3 text-right font-mono text-foreground/90">{k.cheques_rechazados ?? 0}</td>
+                    <td className="px-3 py-3 text-right font-mono text-muted-foreground">
                       {fmtARS.format(Number(k.monto_rechazado ?? 0))}
                     </td>
                     <td className={`px-3 py-3 text-right font-mono font-semibold ${
-                      Number(k.pct_rechazo) >= 20 ? "text-red-400"
-                      : Number(k.pct_rechazo) > 0 ? "text-amber-400"
-                      : "text-emerald-400"
+                      Number(k.pct_rechazo) >= 20 ? "text-danger"
+                      : Number(k.pct_rechazo) > 0 ? "text-warning"
+                      : "text-primary"
                     }`}>
                       {k.pct_rechazo != null ? Number(k.pct_rechazo).toFixed(1) + "%" : "—"}
                     </td>

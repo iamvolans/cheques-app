@@ -8,11 +8,11 @@ import ReasignarCheque from "@/components/admin/reasignar-cheque";
 import EditarDatosCheque from "@/components/admin/editar-datos-cheque";
 
 const colorEstado: Record<string, string> = {
-  aceptado: "bg-zinc-800 text-zinc-300",
-  depositado: "bg-blue-950 text-blue-300",
-  procesado: "bg-emerald-950 text-emerald-300",
-  rechazado: "bg-red-950 text-red-300",
-  en_custodia: "bg-amber-950 text-amber-300",
+  aceptado: "bg-muted text-foreground/90",
+  depositado: "bg-info-muted text-info",
+  procesado: "bg-success-muted text-primary",
+  rechazado: "bg-danger-muted text-danger",
+  en_custodia: "bg-warning-muted text-warning",
 };
 
 function Doc({ titulo, url }: { titulo: string; url: string | null }) {
@@ -21,12 +21,12 @@ function Doc({ titulo, url }: { titulo: string; url: string | null }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-wide text-zinc-500">{titulo}</p>
-        <a href={url} target="_blank" rel="noreferrer" className="text-xs text-emerald-400 hover:underline">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{titulo}</p>
+        <a href={url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
           Abrir en Drive ↗
         </a>
       </div>
-      <iframe src={preview} className="h-72 w-full rounded-lg border border-zinc-800 bg-zinc-900" allow="autoplay" />
+      <iframe src={preview} className="h-72 w-full rounded-lg border border-border bg-card" allow="autoplay" />
     </div>
   );
 }
@@ -91,34 +91,34 @@ export default async function DetalleChequePage({
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div>
-            <h1 className="font-mono text-2xl font-semibold tracking-tight text-zinc-50">
+            <h1 className="font-mono text-2xl font-semibold tracking-tight text-foreground">
               Cheque N° {ch.numero_cheque}
               {ch.alerta_lista_negra && (
-                <span className="ml-2 rounded bg-red-950 px-2 py-0.5 text-xs font-semibold text-red-300">LISTA NEGRA</span>
+                <span className="ml-2 rounded bg-danger-muted px-2 py-0.5 text-xs font-semibold text-danger">LISTA NEGRA</span>
               )}
             </h1>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               Cliente:{" "}
-              <Link href={`/clientes/${ch.clientes?.id}`} className="text-emerald-400 hover:underline">
+              <Link href={`/clientes/${ch.clientes?.id}`} className="text-primary hover:underline">
                 {ch.clientes?.razon_social}
               </Link>
             </p>
-            <Link href="/cheques" className="text-sm text-zinc-400 hover:text-zinc-200">← Volver a cheques</Link>
+            <Link href="/cheques" className="text-sm text-muted-foreground hover:text-foreground">← Volver a cheques</Link>
           </div>
           <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
             {ch.estado === "en_custodia" ? "custodia" : ch.estado}
           </span>
         </header>
 
-        <section className="grid gap-x-8 gap-y-3 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 shadow-lg shadow-black/20 sm:grid-cols-2">
+        <section className="grid gap-x-8 gap-y-3 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-6 shadow-lg shadow-foreground/5 sm:grid-cols-2">
           {campos.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4 border-b border-zinc-800/50 pb-2 text-sm">
-              <span className="text-zinc-500">{k}</span>
-              <span className="text-right font-mono text-zinc-100">{v}</span>
+            <div key={k} className="flex justify-between gap-4 border-b border-border-subtle pb-2 text-sm">
+              <span className="text-muted-foreground">{k}</span>
+              <span className="text-right font-mono text-foreground">{v}</span>
             </div>
           ))}
         </section>
@@ -132,22 +132,22 @@ export default async function DetalleChequePage({
         )}
 
         <section>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             Historial del cheque
           </h2>
-          <div className="space-y-0 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
+          <div className="space-y-0 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5">
             {(logs ?? []).map((l) => (
-              <div key={l.id} className="flex gap-4 border-l-2 border-zinc-700 py-2 pl-4 text-sm">
-                <span className="w-44 shrink-0 font-mono text-xs text-zinc-500">
+              <div key={l.id} className="flex gap-4 border-l-2 border-border py-2 pl-4 text-sm">
+                <span className="w-44 shrink-0 font-mono text-xs text-muted-foreground">
                   {new Date(l.created_at).toLocaleString("es-AR")}
                 </span>
-                <span className="text-zinc-100">
+                <span className="text-foreground">
                   {l.descripcion}
-                  <span className="text-zinc-500"> — {l.usuario_email ?? "sistema"}</span>
+                  <span className="text-muted-foreground"> — {l.usuario_email ?? "sistema"}</span>
                 </span>
               </div>
             ))}
-            {(logs ?? []).length === 0 && <p className="text-sm text-zinc-500">Sin historial.</p>}
+            {(logs ?? []).length === 0 && <p className="text-sm text-muted-foreground">Sin historial.</p>}
           </div>
         </section>
 

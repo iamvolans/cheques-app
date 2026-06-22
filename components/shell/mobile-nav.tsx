@@ -31,7 +31,7 @@ export default function MobileNav({ esAdmin }: { esAdmin: boolean }) {
             href={i.href}
             className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
               activo
-                ? "bg-emerald-500/15 text-primary"
+                ? "bg-primary/15 text-primary"
                 : "bg-card text-muted-foreground hover:text-foreground"
             }`}
           >

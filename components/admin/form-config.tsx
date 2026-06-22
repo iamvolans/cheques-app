@@ -30,17 +30,17 @@ export default function FormConfig({
           name={c.name}
           type={c.type ?? "text"}
           placeholder={c.placeholder}
-          className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+          className="rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/15"
         />
       ))}
       <button
         type="submit"
         disabled={pendiente}
-        className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+        className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary disabled:opacity-50"
       >
         {pendiente ? "…" : etiqueta}
       </button>
-      {estado.error && <span className="text-xs text-red-400">{estado.error}</span>}
+      {estado.error && <span className="text-xs text-danger">{estado.error}</span>}
     </form>
   );
 }

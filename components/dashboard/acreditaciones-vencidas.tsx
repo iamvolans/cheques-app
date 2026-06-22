@@ -20,7 +20,7 @@ export default async function AcreditacionesVencidas() {
   return (
     <Link
       href="/cheques?estado=depositado"
-      className="block rounded-2xl border border-amber-700/60 bg-amber-950/30 px-4 py-3 text-sm text-amber-200 transition hover:bg-amber-950/50"
+      className="block rounded-2xl border border-warning/40/60 bg-warning-muted/30 px-4 py-3 text-sm text-warning transition hover:bg-warning-muted/50"
     >
       ⚠ {vencidas.length} cheque{vencidas.length === 1 ? "" : "s"} depositado{vencidas.length === 1 ? "" : "s"} {vencidas.length === 1 ? "ya pasó" : "ya pasaron"} su fecha estimada de acreditación ({fmt.format(total)}). Revisá si ya acreditaron o si hubo un rechazo.
     </Link>

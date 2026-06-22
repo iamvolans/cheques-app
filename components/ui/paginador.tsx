@@ -24,9 +24,9 @@ export default function Paginador({
   };
 
   const resumen = (
-    <span className="text-xs text-zinc-500">
+    <span className="text-xs text-muted-foreground">
       {total} registro{total === 1 ? "" : "s"}
-      {totalMonto && <> · total filtrado <span className="font-mono text-emerald-400">{totalMonto}</span></>}
+      {totalMonto && <> · total filtrado <span className="font-mono text-primary">{totalMonto}</span></>}
     </span>
   );
 
@@ -34,7 +34,7 @@ export default function Paginador({
     return <div className="flex items-center justify-between px-1 py-3">{resumen}</div>;
   }
 
-  const btn = "rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-zinc-800";
+  const btn = "rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/90 transition hover:bg-muted";
   const off = "pointer-events-none opacity-40";
 
   return (
@@ -42,7 +42,7 @@ export default function Paginador({
       {resumen}
       <div className="flex items-center gap-2">
         <Link href={url(pagina - 1)} className={`${btn} ${pagina <= 1 ? off : ""}`}>← Anterior</Link>
-        <span className="text-xs text-zinc-400">Página {pagina} de {totalPaginas}</span>
+        <span className="text-xs text-muted-foreground">Página {pagina} de {totalPaginas}</span>
         <Link href={url(pagina + 1)} className={`${btn} ${pagina >= totalPaginas ? off : ""}`}>Siguiente →</Link>
       </div>
     </div>

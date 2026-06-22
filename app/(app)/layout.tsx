@@ -36,7 +36,7 @@ export default async function AppLayout({
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background md:flex">
         <div className="flex items-center gap-3 border-b border-border px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 font-mono text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-900/40">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary font-mono text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-900/40">
             GC
           </div>
           <div className="leading-tight">
@@ -47,7 +47,7 @@ export default async function AppLayout({
         <SidebarNav esAdmin={esAdmin} />
         <div className="border-t border-border px-5 py-3">
           <p className="flex items-center gap-2 text-[11px] text-muted-foreground/70">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
             v1.2 · GOAT
           </p>
         </div>
@@ -72,7 +72,7 @@ export default async function AppLayout({
               <button
                 type="submit"
                 title="Cerrar sesión"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-red-800 hover:text-red-400"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-danger/40 hover:text-danger"
               >
                 <LogOut size={15} />
               </button>

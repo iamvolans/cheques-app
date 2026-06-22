@@ -42,16 +42,16 @@ export default async function AuditoriaPage({
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
 
   const colorAccion: Record<string, string> = {
-    INSERT: "bg-emerald-950 text-emerald-300",
-    UPDATE: "bg-blue-950 text-blue-300",
-    DELETE: "bg-red-950 text-red-300",
+    INSERT: "bg-success-muted text-primary",
+    UPDATE: "bg-info-muted text-info",
+    DELETE: "bg-danger-muted text-danger",
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Auditoría</h1>
+        <header className="mb-6 border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Auditoría</h1>
           
         </header>
 
@@ -66,8 +66,8 @@ export default async function AuditoriaPage({
               href={t === "todas" ? "/admin/auditoria" : `/admin/auditoria?tabla=${t}`}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
                 (tabla ?? "todas") === t
-                  ? "border-emerald-600 bg-emerald-950 text-emerald-300"
-                  : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500"
+                  ? "border-emerald-600 bg-success-muted text-primary"
+                  : "border-border bg-card text-foreground/90 hover:border-zinc-500"
               }`}
             >
               {t.replace("_", " ")}
@@ -75,9 +75,9 @@ export default async function AuditoriaPage({
           ))}
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+        <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+            <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-3 py-3 font-medium">Cuándo</th>
                 <th className="px-3 py-3 font-medium">Quién</th>
@@ -87,26 +87,26 @@ export default async function AuditoriaPage({
                 <th className="px-3 py-3 font-medium">Datos</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+            <tbody className="divide-y divide-border bg-background">
               {(logs ?? []).map((l) => (
-                <tr key={l.id} className="align-top transition hover:bg-zinc-800/40">
-                  <td className="px-3 py-3 font-mono text-xs text-zinc-400">
+                <tr key={l.id} className="align-top transition hover:bg-muted/40">
+                  <td className="px-3 py-3 font-mono text-xs text-muted-foreground">
                     {new Date(l.created_at).toLocaleString("es-AR")}
                   </td>
-                  <td className="px-3 py-3 text-zinc-300">{l.usuario_email ?? "sistema"}</td>
+                  <td className="px-3 py-3 text-foreground/90">{l.usuario_email ?? "sistema"}</td>
                   <td className="px-3 py-3">
-                    <span className={`rounded px-2 py-0.5 text-xs font-medium ${colorAccion[l.accion] ?? "bg-zinc-800 text-zinc-300"}`}>
+                    <span className={`rounded px-2 py-0.5 text-xs font-medium ${colorAccion[l.accion] ?? "bg-muted text-foreground/90"}`}>
                       {l.accion}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-zinc-400">{l.tabla}</td>
-                  <td className="px-3 py-3 text-zinc-100">{l.descripcion}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{l.tabla}</td>
+                  <td className="px-3 py-3 text-foreground">{l.descripcion}</td>
                   <td className="px-3 py-3">
                     <details>
-                      <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-300">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground/90">
                         ver antes/después
                       </summary>
-                      <pre className="mt-2 max-h-60 max-w-md overflow-auto rounded bg-zinc-900 p-2 text-xs text-zinc-400">
+                      <pre className="mt-2 max-h-60 max-w-md overflow-auto rounded bg-card p-2 text-xs text-muted-foreground">
 {JSON.stringify({ antes: l.valores_antes, despues: l.valores_despues }, null, 2)}
                       </pre>
                     </details>
@@ -114,7 +114,7 @@ export default async function AuditoriaPage({
                 </tr>
               ))}
               {(logs ?? []).length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Sin registros.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Sin registros.</td></tr>
               )}
             </tbody>
           </table>

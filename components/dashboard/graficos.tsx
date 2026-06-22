@@ -33,8 +33,8 @@ const estiloTooltip = {
 
 function Tarjeta({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
-      <p className="mb-3 text-xs uppercase tracking-wide text-zinc-500">{titulo}</p>
+    <div className="rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5">
+      <p className="mb-3 text-xs uppercase tracking-wide text-muted-foreground">{titulo}</p>
       <div className="h-52">{children}</div>
     </div>
   );

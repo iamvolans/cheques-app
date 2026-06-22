@@ -53,7 +53,7 @@ export default function Campana() {
       >
         <Bell size={16} />
         {noLeidas > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
             {noLeidas}
           </span>
         )}
@@ -66,7 +66,7 @@ export default function Campana() {
             <p className="border-b border-border px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Notificaciones
             </p>
-            <div className="max-h-96 divide-y divide-zinc-800/70 overflow-y-auto">
+            <div className="max-h-96 divide-y divide-border overflow-y-auto">
               {items.length === 0 && (
                 <p className="px-4 py-6 text-center text-xs text-foreground0">Sin novedades.</p>
               )}

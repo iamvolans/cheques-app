@@ -43,13 +43,13 @@ export default async function ConcentracionDestinos({ esAdmin }: { esAdmin: bool
   const esPF = (cuit: string) => ["20", "23", "24", "27"].includes(limpiar(cuit).slice(0, 2));
 
   return (
-    <section className="mb-6 overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/50 shadow-lg shadow-black/20">
-      <p className="border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wide text-zinc-400">
+    <section className="mb-6 overflow-x-auto rounded-2xl border border-border bg-card/50 shadow-lg shadow-foreground/5">
+      <p className="border-b border-border px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         Concentración por destino · acumulado transferido por CUIT
       </p>
       <table className="w-full min-w-[760px] text-sm">
         <thead>
-          <tr className="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500">
+          <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <th className="px-5 py-2.5 font-medium">Destino</th>
             <th className="px-3 py-2.5 font-medium">CUIT</th>
             <th className="px-3 py-2.5 font-medium">Tipo</th>
@@ -59,28 +59,28 @@ export default async function ConcentracionDestinos({ esAdmin }: { esAdmin: bool
             {esAdmin && <th className="px-3 py-2.5 font-medium">Control</th>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-800/70">
+        <tbody className="divide-y divide-border">
           {filas.map((f) => {
             const bloqueado = setBloq.has(limpiar(f.cuit));
             return (
               <tr key={f.cuit} className={bloqueado ? "opacity-70" : ""}>
-                <td className="px-5 py-2.5 text-zinc-100">
+                <td className="px-5 py-2.5 text-foreground">
                   {f.beneficiario}
                   {bloqueado && (
-                    <span className="ml-2 rounded-full whitespace-nowrap bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-300">
+                    <span className="ml-2 rounded-full whitespace-nowrap bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">
                       Bloqueado
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-2.5 font-mono text-zinc-400">{f.cuit}</td>
+                <td className="px-3 py-2.5 font-mono text-muted-foreground">{f.cuit}</td>
                 <td className="px-3 py-2.5">
-                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${esPF(f.cuit) ? "bg-violet-500/10 text-violet-300" : "bg-blue-500/10 text-blue-300"}`}>
+                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${esPF(f.cuit) ? "bg-info/10 text-info" : "bg-info/10 text-info"}`}>
                     {esPF(f.cuit) ? "Persona física" : "Empresa"}
                   </span>
                 </td>
-                <td className="px-3 py-2.5 text-right font-mono text-emerald-300">{fmt.format(f.total)}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-zinc-300">{f.cant}</td>
-                <td className="px-3 py-2.5 font-mono text-xs text-zinc-500">{f.ultima}</td>
+                <td className="px-3 py-2.5 text-right font-mono text-primary">{fmt.format(f.total)}</td>
+                <td className="px-3 py-2.5 text-right font-mono text-foreground/90">{f.cant}</td>
+                <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{f.ultima}</td>
                 {esAdmin && (
                   <td className="px-3 py-2.5">
                     <BotonBloqueo cuit={f.cuit} bloqueado={bloqueado} />

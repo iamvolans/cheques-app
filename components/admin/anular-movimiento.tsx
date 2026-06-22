@@ -13,7 +13,7 @@ export default function AnularMovimiento({ movimientoId }: { movimientoId: strin
 
   if (!abierto) {
     return (
-      <button onClick={() => setAbierto(true)} className="rounded border border-red-900 px-2 py-0.5 text-[10px] text-red-300 transition hover:bg-red-950">
+      <button onClick={() => setAbierto(true)} className="rounded border border-danger/40 px-2 py-0.5 text-[10px] text-danger transition hover:bg-danger-muted">
         Anular
       </button>
     );
@@ -21,7 +21,7 @@ export default function AnularMovimiento({ movimientoId }: { movimientoId: strin
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <input inputMode="numeric" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))} placeholder="MFA" className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-0.5 text-center font-mono text-[10px] tracking-widest text-zinc-100 outline-none focus:border-emerald-500" />
+      <input inputMode="numeric" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))} placeholder="MFA" className="w-20 rounded border border-border bg-background px-2 py-0.5 text-center font-mono text-[10px] tracking-widest text-foreground outline-none focus:border-primary" />
       <button
         disabled={pendiente || codigo.length !== 6}
         onClick={() => {
@@ -32,12 +32,12 @@ export default function AnularMovimiento({ movimientoId }: { movimientoId: strin
             else { setAbierto(false); setCodigo(""); router.refresh(); }
           });
         }}
-        className="rounded bg-red-700 px-2 py-0.5 text-[10px] font-medium text-white hover:bg-red-600 disabled:opacity-50"
+        className="rounded bg-danger px-2 py-0.5 text-[10px] font-medium text-white hover:bg-danger disabled:opacity-50"
       >
         {pendiente ? "…" : "OK"}
       </button>
-      <button onClick={() => { setAbierto(false); setError(null); }} className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-300">×</button>
-      {error && <p className="w-full text-[10px] text-red-400">{error}</p>}
+      <button onClick={() => { setAbierto(false); setError(null); }} className="rounded border border-border px-1.5 py-0.5 text-[10px] text-foreground/90">×</button>
+      {error && <p className="w-full text-[10px] text-danger">{error}</p>}
     </div>
   );
 }

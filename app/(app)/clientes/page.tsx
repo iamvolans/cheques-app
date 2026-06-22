@@ -41,11 +41,11 @@ export default async function ClientesPage({
   });
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex items-center justify-between border-b border-zinc-800 pb-4">
+        <header className="mb-6 flex items-center justify-between border-b border-border pb-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Clientes</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Clientes</h1>
             <div className="flex gap-3 text-sm">
               
               
@@ -55,9 +55,9 @@ export default async function ClientesPage({
           <NuevoCliente />
         </header>
 
-        <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+        <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+            <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Razón Social</th>
                 <th className="px-4 py-3 font-medium">CUIT</th>
@@ -67,20 +67,20 @@ export default async function ClientesPage({
                 {esAdmin && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+            <tbody className="divide-y divide-border bg-background">
               {(clientes ?? []).map((c) => (
-                <tr key={c.cliente_id} className="transition hover:bg-zinc-800/40">
+                <tr key={c.cliente_id} className="transition hover:bg-muted/40">
                   <td className="px-4 py-3">
-                    <Link href={`/clientes/${c.cliente_id}`} className="text-zinc-100 hover:text-emerald-400 hover:underline">
+                    <Link href={`/clientes/${c.cliente_id}`} className="text-foreground hover:text-primary hover:underline">
                       {c.razon_social}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-mono text-zinc-400">{c.cuit}</td>
-                  <td className="px-4 py-3 text-zinc-400">{c.email ?? "—"}</td>
-                  <td className="px-4 py-3 text-right font-mono text-zinc-300">
+                  <td className="px-4 py-3 font-mono text-muted-foreground">{c.cuit}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.email ?? "—"}</td>
+                  <td className="px-4 py-3 text-right font-mono text-foreground/90">
                     {Number(c.fee_porcentaje).toFixed(2)}%
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-emerald-400">
+                  <td className="px-4 py-3 text-right font-mono text-primary">
                     {fmtARS.format(Number(c.saldo_disponible))}
                   </td>
                   {esAdmin && (
@@ -95,7 +95,7 @@ export default async function ClientesPage({
               ))}
               {(clientes ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={esAdmin ? 6 : 5} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={esAdmin ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
                     Todavía no hay clientes cargados.
                   </td>
                 </tr>

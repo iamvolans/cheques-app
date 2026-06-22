@@ -46,17 +46,17 @@ export default function Calendario({ items }: { items: Item[] }) {
 
   const hoyClave = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
   const seleccionados = sel ? (porFecha.get(sel) ?? []) : [];
-  const btn = "rounded-lg border border-zinc-700 px-3 py-1 text-sm text-zinc-300 transition hover:bg-zinc-800";
+  const btn = "rounded-lg border border-border px-3 py-1 text-sm text-foreground/90 transition hover:bg-muted";
 
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <button onClick={() => cambiar(-1)} className={btn}>←</button>
-        <p className="text-sm font-medium text-zinc-200">{MESES[month]} {year}</p>
+        <p className="text-sm font-medium text-foreground">{MESES[month]} {year}</p>
         <button onClick={() => cambiar(1)} className={btn}>→</button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase text-zinc-500">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase text-muted-foreground">
         {DIAS.map((d) => <div key={d} className="py-1">{d}</div>)}
       </div>
 
@@ -71,11 +71,11 @@ export default function Calendario({ items }: { items: Item[] }) {
             <button
               key={i}
               onClick={() => setSel(lista.length ? k : null)}
-              className={`min-h-16 rounded-lg border p-1 text-left transition ${lista.length ? "border-amber-700/50 bg-amber-950/20 hover:bg-amber-950/40" : "border-zinc-800 bg-zinc-900/40"} ${esHoy ? "ring-1 ring-emerald-500" : ""}`}
+              className={`min-h-16 rounded-lg border p-1 text-left transition ${lista.length ? "border-warning/40/50 bg-warning-muted/20 hover:bg-warning-muted/40" : "border-border bg-card/40"} ${esHoy ? "ring-1 ring-primary" : ""}`}
             >
-              <span className={`text-xs ${esHoy ? "font-bold text-emerald-400" : "text-zinc-400"}`}>{d}</span>
+              <span className={`text-xs ${esHoy ? "font-bold text-primary" : "text-muted-foreground"}`}>{d}</span>
               {lista.length > 0 && (
-                <span className="mt-1 block text-[10px] leading-tight text-amber-300">{lista.length} val. · {fmt.format(total)}</span>
+                <span className="mt-1 block text-[10px] leading-tight text-warning">{lista.length} val. · {fmt.format(total)}</span>
               )}
             </button>
           );
@@ -83,15 +83,15 @@ export default function Calendario({ items }: { items: Item[] }) {
       </div>
 
       {sel && (
-        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-400">Liberan el {sel}</p>
-          <div className="divide-y divide-zinc-800/70">
+        <div className="mt-4 rounded-xl border border-border bg-card/50 p-3">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Liberan el {sel}</p>
+          <div className="divide-y divide-border">
             {seleccionados.map((x) => (
               <div key={x.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="truncate text-zinc-200">
-                  <span className="font-mono text-zinc-400">N° {x.numero_cheque}</span> · {x.librador} <span className="text-zinc-500">({x.cliente})</span>
+                <span className="truncate text-foreground">
+                  <span className="font-mono text-muted-foreground">N° {x.numero_cheque}</span> · {x.librador} <span className="text-muted-foreground">({x.cliente})</span>
                 </span>
-                <span className="shrink-0 font-mono text-zinc-100">{fmt.format(Number(x.monto))}</span>
+                <span className="shrink-0 font-mono text-foreground">{fmt.format(Number(x.monto))}</span>
               </div>
             ))}
           </div>

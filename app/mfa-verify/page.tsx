@@ -69,18 +69,18 @@ export default function MfaVerifyPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Verificación en dos pasos
           </h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             Ingresá el código de Google Authenticator
           </p>
         </div>
 
-        <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-6">
           <input
             inputMode="numeric"
             maxLength={6}
@@ -89,11 +89,11 @@ export default function MfaVerifyPage() {
             onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))}
             onKeyDown={(e) => e.key === "Enter" && verificar()}
             placeholder="000000"
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-center font-mono text-2xl tracking-[0.5em] text-zinc-100 outline-none placeholder:text-zinc-700 focus:border-emerald-500"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-center font-mono text-2xl tracking-[0.5em] text-foreground outline-none placeholder:text-zinc-700 focus:border-primary"
           />
 
           {error && (
-            <p className="rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300">
+            <p className="rounded-lg border border-danger/40 bg-danger-muted px-3 py-2 text-sm text-danger">
               {error}
             </p>
           )}
@@ -101,14 +101,14 @@ export default function MfaVerifyPage() {
           <button
             onClick={verificar}
             disabled={verificando || codigo.length !== 6}
-            className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+            className="w-full rounded-lg bg-primary py-2 text-sm font-medium text-white transition hover:bg-primary disabled:opacity-50"
           >
             {verificando ? "Verificando…" : "Verificar"}
           </button>
 
           <button
             onClick={salir}
-            className="w-full text-center text-xs text-zinc-500 transition hover:text-zinc-300"
+            className="w-full text-center text-xs text-muted-foreground transition hover:text-foreground/90"
           >
             Cancelar y volver al login
           </button>

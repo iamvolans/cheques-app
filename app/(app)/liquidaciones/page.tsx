@@ -44,10 +44,10 @@ export default async function LiquidacionesPage({
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Liquidaciones</h1>
+        <header className="mb-6 border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Liquidaciones</h1>
           <div className="flex gap-3 text-sm">
             
             
@@ -62,9 +62,9 @@ export default async function LiquidacionesPage({
 
         <ConcentracionDestinos esAdmin={true} />
 
-        <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+        <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+            <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Cliente</th>
@@ -75,15 +75,15 @@ export default async function LiquidacionesPage({
                 {esAdmin && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+            <tbody className="divide-y divide-border bg-background">
               {(liqs ?? []).map((l) => (
-                <tr key={l.id} className="transition hover:bg-zinc-800/40">
-                  <td className="px-4 py-3 font-mono text-zinc-400">{l.fecha_transferencia}</td>
-                  <td className="px-4 py-3 text-zinc-100">{l.clientes?.razon_social}</td>
-                  <td className="px-4 py-3 font-mono text-zinc-300">{l.coelsa_id}</td>
-                  <td className="px-4 py-3 font-mono text-zinc-400">{l.cvu_cbu_destino ?? l.alias_destino}</td>
-                  <td className="px-4 py-3 text-zinc-400">{l.beneficiario}</td>
-                  <td className="px-4 py-3 text-right font-mono text-emerald-400">
+                <tr key={l.id} className="transition hover:bg-muted/40">
+                  <td className="px-4 py-3 font-mono text-muted-foreground">{l.fecha_transferencia}</td>
+                  <td className="px-4 py-3 text-foreground">{l.clientes?.razon_social}</td>
+                  <td className="px-4 py-3 font-mono text-foreground/90">{l.coelsa_id}</td>
+                  <td className="px-4 py-3 font-mono text-muted-foreground">{l.cvu_cbu_destino ?? l.alias_destino}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{l.beneficiario}</td>
+                  <td className="px-4 py-3 text-right font-mono text-primary">
                     {fmtARS.format(Number(l.monto_liquidado))}
                   </td>
                   {esAdmin && (
@@ -95,7 +95,7 @@ export default async function LiquidacionesPage({
               ))}
               {(liqs ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={esAdmin ? 7 : 6} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={esAdmin ? 7 : 6} className="px-4 py-10 text-center text-muted-foreground">
                     No hay liquidaciones registradas.
                   </td>
                 </tr>

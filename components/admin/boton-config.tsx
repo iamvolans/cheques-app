@@ -29,13 +29,13 @@ export default function BotonConfig<P>({
         }}
         className={`rounded px-2 py-1 text-xs font-medium transition disabled:opacity-50 ${
           peligro
-            ? "bg-red-900 text-red-200 hover:bg-red-800"
-            : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+            ? "bg-danger/20 text-danger hover:bg-danger/30"
+            : "bg-muted text-foreground hover:bg-muted"
         }`}
       >
         {label}
       </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </span>
   );
 }

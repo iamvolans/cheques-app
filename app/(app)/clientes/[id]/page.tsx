@@ -12,10 +12,10 @@ import AjusteSaldo from "@/components/admin/ajuste-saldo";
 import AnularMovimiento from "@/components/admin/anular-movimiento";
 
 const colorMov: Record<string, string> = {
-  acreditacion: "bg-emerald-950 text-emerald-300",
-  debito_rechazo: "bg-red-950 text-red-300",
-  liquidacion: "bg-blue-950 text-blue-300",
-  ajuste_manual: "bg-zinc-800 text-zinc-300",
+  acreditacion: "bg-success-muted text-primary",
+  debito_rechazo: "bg-danger-muted text-danger",
+  liquidacion: "bg-info-muted text-info",
+  ajuste_manual: "bg-muted text-foreground/90",
 };
 
 export default async function PerfilClientePage({
@@ -74,22 +74,22 @@ export default async function PerfilClientePage({
     (acc, g) => acc + Number(g.ganancia_total ?? 0), 0);
 
   const cards = [
-    { titulo: "Saldo disponible", valor: fmtARS.format(saldo), color: "text-emerald-400" },
-    { titulo: "Ganancia neta generada", valor: fmtARS.format(gananciaTotal), color: "text-blue-400" },
-    { titulo: `Total gestionado (${kpi?.total_cheques ?? 0} cheques)`, valor: fmtARS.format(Number(kpi?.monto_total ?? 0)), color: "text-zinc-100" },
-    { titulo: "% de rechazo", valor: `${Number(kpi?.pct_rechazo ?? 0).toFixed(1)}%`, color: Number(kpi?.pct_rechazo ?? 0) > 0 ? "text-amber-400" : "text-emerald-400" },
+    { titulo: "Saldo disponible", valor: fmtARS.format(saldo), color: "text-primary" },
+    { titulo: "Ganancia neta generada", valor: fmtARS.format(gananciaTotal), color: "text-info" },
+    { titulo: `Total gestionado (${kpi?.total_cheques ?? 0} cheques)`, valor: fmtARS.format(Number(kpi?.monto_total ?? 0)), color: "text-foreground" },
+    { titulo: "% de rechazo", valor: `${Number(kpi?.pct_rechazo ?? 0).toFixed(1)}%`, color: Number(kpi?.pct_rechazo ?? 0) > 0 ? "text-warning" : "text-primary" },
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-4">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{cliente.razon_social}</h1>
-            <p className="font-mono text-sm text-zinc-400">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{cliente.razon_social}</h1>
+            <p className="font-mono text-sm text-muted-foreground">
               {cliente.cuit} · {cliente.email} · Fee Cámara {Number(cliente.fee_porcentaje).toFixed(2)}%{cliente.fee_interior_porcentaje != null && ` · Interior ${Number(cliente.fee_interior_porcentaje).toFixed(2)}%`}
             </p>
-            <Link href="/clientes" className="text-sm text-zinc-400 hover:text-zinc-200">
+            <Link href="/clientes" className="text-sm text-muted-foreground hover:text-foreground">
               ← Volver a clientes
             </Link>
           </div>
@@ -97,7 +97,7 @@ export default async function PerfilClientePage({
             <a
               href={`/resumen-cliente?id=${cliente.id}`}
               target="_blank"
-              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-zinc-800"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/90 transition hover:bg-muted"
             >
               <FileText size={13} className="-mt-0.5 mr-1.5 inline" />Resumen de cuenta
             </a>
@@ -120,8 +120,8 @@ export default async function PerfilClientePage({
         </header>
 
         {esAdmin && (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Exportar extracto de cuenta</span>
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card/40 px-4 py-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Exportar extracto de cuenta</span>
             <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
             <div className="ml-auto"><AjusteSaldo clienteId={cliente.id} /></div>
           </div>
@@ -129,20 +129,20 @@ export default async function PerfilClientePage({
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (
-            <div key={c.titulo} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">{c.titulo}</p>
+            <div key={c.titulo} className="rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{c.titulo}</p>
               <p className={`mt-2 font-mono text-2xl font-semibold ${c.color}`}>{c.valor}</p>
             </div>
           ))}
         </div>
 
         <section>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             Movimientos de cuenta
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+          <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+              <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">Fecha</th>
                   <th className="px-4 py-3 font-medium">Tipo</th>
@@ -151,10 +151,10 @@ export default async function PerfilClientePage({
                   {esAdmin && <th className="px-4 py-3 text-right font-medium">Acciones</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+              <tbody className="divide-y divide-border bg-background">
                 {(movimientos ?? []).map((m) => (
-                  <tr key={m.id} className="transition hover:bg-zinc-800/40">
-                    <td className="px-4 py-3 font-mono text-zinc-400">
+                  <tr key={m.id} className="transition hover:bg-muted/40">
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
                       {new Date(m.created_at).toLocaleString("es-AR")}
                     </td>
                     <td className="px-4 py-3">
@@ -162,8 +162,8 @@ export default async function PerfilClientePage({
                         {m.tipo.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">{m.descripcion}</td>
-                    <td className={`px-4 py-3 text-right font-mono ${Number(m.monto) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className="px-4 py-3 text-foreground/90">{m.descripcion}</td>
+                    <td className={`px-4 py-3 text-right font-mono ${Number(m.monto) >= 0 ? "text-primary" : "text-danger"}`}>
                       {fmtARS.format(Number(m.monto))}
                     </td>
                     {esAdmin && (
@@ -175,7 +175,7 @@ export default async function PerfilClientePage({
                 ))}
                 {(movimientos ?? []).length === 0 && (
                   <tr>
-                    <td colSpan={esAdmin ? 5 : 4} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={esAdmin ? 5 : 4} className="px-4 py-8 text-center text-muted-foreground">
                       Sin movimientos todavía.
                     </td>
                   </tr>
@@ -186,12 +186,12 @@ export default async function PerfilClientePage({
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             Cheques del cliente
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-zinc-800 shadow-lg shadow-black/20">
+          <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+              <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">N°</th>
                   <th className="px-4 py-3 font-medium">Librador</th>
@@ -201,15 +201,15 @@ export default async function PerfilClientePage({
                   <th className="px-4 py-3 font-medium">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+              <tbody className="divide-y divide-border bg-background">
                 {(cheques ?? []).map((ch) => (
-                  <tr key={ch.id} className="transition hover:bg-zinc-800/40">
-                    <td className="px-4 py-3 font-mono text-zinc-300">{ch.numero_cheque}</td>
-                    <td className="px-4 py-3 text-zinc-100">{ch.librador}</td>
-                    <td className="px-4 py-3 text-right font-mono text-zinc-100">{fmtARS.format(Number(ch.monto))}</td>
-                    <td className="px-4 py-3 text-right font-mono text-zinc-400">{fmtARS.format(Number(ch.fee_calculado))}</td>
-                    <td className="px-4 py-3 font-mono text-zinc-400">{ch.fecha_cobro}</td>
-                    <td className="px-4 py-3 text-zinc-300 uppercase text-xs">{ch.estado}</td>
+                  <tr key={ch.id} className="transition hover:bg-muted/40">
+                    <td className="px-4 py-3 font-mono text-foreground/90">{ch.numero_cheque}</td>
+                    <td className="px-4 py-3 text-foreground">{ch.librador}</td>
+                    <td className="px-4 py-3 text-right font-mono text-foreground">{fmtARS.format(Number(ch.monto))}</td>
+                    <td className="px-4 py-3 text-right font-mono text-muted-foreground">{fmtARS.format(Number(ch.fee_calculado))}</td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">{ch.fecha_cobro}</td>
+                    <td className="px-4 py-3 text-foreground/90 uppercase text-xs">{ch.estado}</td>
                   </tr>
                 ))}
               </tbody>
@@ -219,22 +219,22 @@ export default async function PerfilClientePage({
 
         {esAdmin && (
           <section>
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Historial de cambios
             </h2>
-            <div className="space-y-0 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
+            <div className="space-y-0 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5">
               {(historial ?? []).map((h: { created_at: string; usuario_email: string | null; accion: string; tabla: string; descripcion: string }, i: number) => (
-                <div key={i} className="flex gap-4 border-l-2 border-zinc-700 py-2 pl-4 text-sm">
-                  <span className="w-44 shrink-0 font-mono text-xs text-zinc-500">
+                <div key={i} className="flex gap-4 border-l-2 border-border py-2 pl-4 text-sm">
+                  <span className="w-44 shrink-0 font-mono text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString("es-AR")}
                   </span>
-                  <span className="text-zinc-100">
+                  <span className="text-foreground">
                     {h.descripcion}
-                    <span className="text-zinc-500"> — {h.usuario_email ?? "sistema"}</span>
+                    <span className="text-muted-foreground"> — {h.usuario_email ?? "sistema"}</span>
                   </span>
                 </div>
               ))}
-              {(historial ?? []).length === 0 && <p className="text-sm text-zinc-500">Sin cambios registrados.</p>}
+              {(historial ?? []).length === 0 && <p className="text-sm text-muted-foreground">Sin cambios registrados.</p>}
             </div>
           </section>
         )}

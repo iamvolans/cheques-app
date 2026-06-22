@@ -22,13 +22,13 @@ export default function BotonBloqueo({ cuit, bloqueado }: { cuit: string; bloque
         }}
         className={`rounded px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 ${
           bloqueado
-            ? "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-            : "border border-red-900 text-red-300 hover:bg-red-950"
+            ? "border border-border text-foreground/90 hover:bg-muted"
+            : "border border-danger/40 text-danger hover:bg-danger-muted"
         }`}
       >
         {pendiente ? "…" : bloqueado ? "Desbloquear" : "Bloquear destino"}
       </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </span>
   );
 }

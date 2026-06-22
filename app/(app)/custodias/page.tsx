@@ -31,14 +31,14 @@ export default async function CustodiasPage() {
   const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-3xl">
-        <header className="mb-6 border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Calendario de custodias</h1>
-          <p className="mt-1 text-sm text-zinc-500">{items.length} cheques diferidos en custodia · total {fmt.format(total)}</p>
+        <header className="mb-6 border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Calendario de custodias</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{items.length} cheques diferidos en custodia · total {fmt.format(total)}</p>
         </header>
         {items.length === 0 ? (
-          <p className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-10 text-center text-sm text-zinc-500">No hay cheques en custodia.</p>
+          <p className="rounded-xl border border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">No hay cheques en custodia.</p>
         ) : (
           <Calendario items={items} />
         )}

@@ -8,11 +8,11 @@ import Graficos from "@/components/dashboard/graficos";
 import AcreditacionesVencidas from "@/components/dashboard/acreditaciones-vencidas";
 
 const colorEstado: Record<string, string> = {
-  en_custodia: "bg-amber-500/10 text-amber-300",
-  aceptado: "bg-zinc-800 text-zinc-300",
-  depositado: "bg-blue-500/10 text-blue-300",
-  procesado: "bg-emerald-500/10 text-emerald-300",
-  rechazado: "bg-red-500/10 text-red-300",
+  en_custodia: "bg-warning/10 text-warning",
+  aceptado: "bg-muted text-foreground/90",
+  depositado: "bg-info/10 text-info",
+  procesado: "bg-primary/10 text-primary",
+  rechazado: "bg-danger/10 text-danger",
 };
 
 export default async function DashboardPage() {
@@ -81,12 +81,12 @@ export default async function DashboardPage() {
     .map((g) => ({ ...g, pctRechazo: g.total ? +((100 * g.rechazos) / g.total).toFixed(1) : 0 }));
 
   const tonos: Record<string, { chip: string; valor: string; halo: string }> = {
-    emerald: { chip: "bg-emerald-500/10 text-emerald-400", valor: "text-emerald-300", halo: "hover:border-emerald-700/60 hover:shadow-emerald-900/20" },
-    blue: { chip: "bg-blue-500/10 text-blue-400", valor: "text-blue-300", halo: "hover:border-blue-700/60 hover:shadow-blue-900/20" },
-    violet: { chip: "bg-violet-500/10 text-violet-400", valor: "text-violet-300", halo: "hover:border-violet-700/60 hover:shadow-violet-900/20" },
-    amber: { chip: "bg-amber-500/10 text-amber-400", valor: "text-amber-300", halo: "hover:border-amber-700/60 hover:shadow-amber-900/20" },
-    red: { chip: "bg-red-500/10 text-red-400", valor: "text-red-300", halo: "hover:border-red-700/60 hover:shadow-red-900/20" },
-    zinc: { chip: "bg-zinc-500/10 text-zinc-300", valor: "text-zinc-100", halo: "hover:border-zinc-600" },
+    emerald: { chip: "bg-primary/10 text-primary", valor: "text-primary", halo: "hover:border-primary/60 hover:shadow-emerald-900/20" },
+    blue: { chip: "bg-info/10 text-info", valor: "text-info", halo: "hover:border-blue-700/60 hover:shadow-blue-900/20" },
+    violet: { chip: "bg-info/10 text-info", valor: "text-info", halo: "hover:border-violet-700/60 hover:shadow-violet-900/20" },
+    amber: { chip: "bg-warning/10 text-warning", valor: "text-warning", halo: "hover:border-warning/40/60 hover:shadow-amber-900/20" },
+    red: { chip: "bg-danger/10 text-danger", valor: "text-danger", halo: "hover:border-red-700/60 hover:shadow-red-900/20" },
+    zinc: { chip: "bg-zinc-500/10 text-foreground/90", valor: "text-foreground", halo: "hover:border-zinc-600" },
   };
 
   const financiero = [
@@ -103,12 +103,12 @@ export default async function DashboardPage() {
   ];
 
   const Tarjeta = ({ titulo, sub, valor, Icon, tono }: { titulo: string; sub?: string; valor: string; Icon: typeof Inbox; tono: string }) => (
-    <div className={`rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20 transition ${tonos[tono].halo}`}>
+    <div className={`rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 transition ${tonos[tono].halo}`}>
       <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${tonos[tono].chip}`}>
         <Icon size={19} />
       </div>
-      <p className="text-xs uppercase tracking-wide text-zinc-500">{titulo}</p>
-      {sub && <p className="text-[11px] text-zinc-600">{sub}</p>}
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{titulo}</p>
+      {sub && <p className="text-[11px] text-muted-foreground/70">{sub}</p>}
       <p className={`mt-1 font-mono text-2xl font-semibold tracking-tight ${tonos[tono].valor}`}>{valor}</p>
     </div>
   );
@@ -117,8 +117,8 @@ export default async function DashboardPage() {
     <main className="p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Dashboard</h1>
-          <p className="text-sm text-zinc-500">El pulso de la operación en tiempo real.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">El pulso de la operación en tiempo real.</p>
         </div>
 
         <AcreditacionesVencidas />
@@ -128,18 +128,18 @@ export default async function DashboardPage() {
             href="/cheques"
             className={`flex items-center gap-4 rounded-2xl border p-4 shadow-lg transition hover:brightness-110 ${
               urgentes.length > 0
-                ? "border-red-800 bg-red-950/60 shadow-red-950/30"
-                : "border-amber-800 bg-amber-950/50 shadow-amber-950/30"
+                ? "border-danger/40 bg-danger-muted/60 shadow-red-950/30"
+                : "border-warning/40 bg-warning-muted/50 shadow-amber-950/30"
             }`}
           >
-            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${urgentes.length > 0 ? "bg-red-500/15 text-red-300" : "bg-amber-500/15 text-amber-300"}`}>
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${urgentes.length > 0 ? "bg-danger/15 text-danger" : "bg-warning/15 text-warning"}`}>
               <Siren size={22} />
             </span>
             <span className="min-w-0">
-              <span className={`block font-semibold ${urgentes.length > 0 ? "text-red-200" : "text-amber-200"}`}>
+              <span className={`block font-semibold ${urgentes.length > 0 ? "text-danger" : "text-warning"}`}>
                 {enOficina.length} cheque{enOficina.length === 1 ? "" : "s"} en oficina por {fmtARS.format(suma(enOficina))} — hay que llevarlos al banco
               </span>
-              <span className="block text-sm text-zinc-400">
+              <span className="block text-sm text-muted-foreground">
                 {urgentes.length > 0
                   ? `${urgentes.length} esperan desde ayer o antes (incluye diferidos ya vencidos). Tocá para verlos.`
                   : "Cargados hoy o diferidos que ya vencieron. Tocá para ver el detalle."}
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">Operación física</h2>
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Operación física</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {fisico.map((c) => <Tarjeta key={c.titulo} {...c} />)}
           </div>
@@ -161,30 +161,30 @@ export default async function DashboardPage() {
 
         <Graficos datos={serie} />
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 shadow-lg shadow-black/20">
-          <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-400">
+        <section className="rounded-2xl border border-border bg-card/50 shadow-lg shadow-foreground/5">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Actividad reciente
             </h2>
-            <Link href="/cheques" className="text-xs text-emerald-400 hover:underline">
+            <Link href="/cheques" className="text-xs text-primary hover:underline">
               Ver todos →
             </Link>
           </div>
-          <div className="divide-y divide-zinc-800/70">
+          <div className="divide-y divide-border">
             {(recientes ?? []).map((ch) => (
               <Link
                 key={ch.id}
                 href={`/cheques/${ch.id}`}
-                className="flex items-center justify-between gap-4 px-5 py-3 text-sm transition hover:bg-zinc-800/30"
+                className="flex items-center justify-between gap-4 px-5 py-3 text-sm transition hover:bg-muted/30"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-zinc-100">
-                    <span className="font-mono text-zinc-400">N° {ch.numero_cheque}</span> · {ch.librador}
+                  <p className="truncate text-foreground">
+                    <span className="font-mono text-muted-foreground">N° {ch.numero_cheque}</span> · {ch.librador}
                   </p>
-                  <p className="text-xs text-zinc-500">{(ch.clientes as unknown as { razon_social?: string } | null)?.razon_social}</p>
+                  <p className="text-xs text-muted-foreground">{(ch.clientes as unknown as { razon_social?: string } | null)?.razon_social}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <span className="font-mono text-zinc-100">{fmtARS.format(Number(ch.monto))}</span>
+                  <span className="font-mono text-foreground">{fmtARS.format(Number(ch.monto))}</span>
                   <span className={`rounded-md px-2 py-0.5 text-[11px] font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
                     {ch.estado === "en_custodia" ? "custodia" : ch.estado}
                   </span>
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
               </Link>
             ))}
             {(recientes ?? []).length === 0 && (
-              <p className="px-5 py-8 text-center text-sm text-zinc-500">Sin actividad todavía.</p>
+              <p className="px-5 py-8 text-center text-sm text-muted-foreground">Sin actividad todavía.</p>
             )}
           </div>
         </section>

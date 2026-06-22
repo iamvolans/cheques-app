@@ -40,7 +40,7 @@ export default function AccionesCheque({
   const btn =
     "rounded px-2 py-1 text-xs font-medium transition disabled:opacity-50";
   const inp =
-    "w-32 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-100";
+    "w-32 rounded border border-border bg-background px-2 py-1 text-xs text-foreground";
 
   if (rechazando) {
     return (
@@ -81,18 +81,18 @@ export default function AccionesCheque({
                 gasto: Number(gasto) || 0,
               })
             }
-            className={`${btn} bg-red-700 text-white hover:bg-red-600`}
+            className={`${btn} bg-danger text-white hover:bg-danger`}
           >
             Confirmar
           </button>
           <button
             onClick={() => setRechazando(false)}
-            className={`${btn} border border-zinc-700 text-zinc-300`}
+            className={`${btn} border border-border text-foreground/90`}
           >
             ×
           </button>
         </div>
-        {error && <p className="max-w-40 text-xs text-red-400">{error}</p>}
+        {error && <p className="max-w-40 text-xs text-danger">{error}</p>}
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function AccionesCheque({
   return (
     <div className="flex flex-wrap items-center gap-1">
       {estado === "en_custodia" && !disponible && (
-        <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-400/90" title="Diferido: aún no llegó su fecha de cobro">
+        <span className="inline-flex items-center gap-1.5 text-[11px] text-warning/90" title="Diferido: aún no llegó su fecha de cobro">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
           custodia
         </span>
@@ -118,7 +118,7 @@ export default function AccionesCheque({
         <button
           disabled={pendiente}
           onClick={() => ejecutar("procesado")}
-          className={`${btn} bg-emerald-700 text-white hover:bg-emerald-600`}
+          className={`${btn} bg-primary text-white hover:bg-primary`}
         >
           Procesar
         </button>
@@ -127,12 +127,12 @@ export default function AccionesCheque({
         <button
           disabled={pendiente}
           onClick={() => setRechazando(true)}
-          className={`${btn} bg-red-900 text-red-200 hover:bg-red-800`}
+          className={`${btn} bg-danger/20 text-danger hover:bg-danger/30`}
         >
           Rechazar
         </button>
       )}
-      {error && <p className="max-w-40 text-xs text-red-400">{error}</p>}
+      {error && <p className="max-w-40 text-xs text-danger">{error}</p>}
     </div>
   );
 }

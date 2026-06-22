@@ -39,7 +39,7 @@ export default function FilaUsuario({
             })
           )
         }
-        className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 disabled:opacity-50"
+        className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground disabled:opacity-50"
       >
         <option value="operador">Operador</option>
         <option value="administrador">Administrador</option>
@@ -50,8 +50,8 @@ export default function FilaUsuario({
         onClick={() => ejecutar(() => cambiarActivo({ usuarioId: id, activo: !activo }))}
         className={`rounded px-2 py-1 text-xs font-medium transition disabled:opacity-50 ${
           activo
-            ? "bg-red-900 text-red-200 hover:bg-red-800"
-            : "bg-emerald-700 text-white hover:bg-emerald-600"
+            ? "bg-danger/20 text-danger hover:bg-danger/30"
+            : "bg-primary text-white hover:bg-primary"
         }`}
       >
         {activo ? "Desactivar" : "Reactivar"}
@@ -59,8 +59,8 @@ export default function FilaUsuario({
 
       {!esYoMismo && <ResetPassword userId={id} />}
 
-      {esYoMismo && <span className="text-xs text-zinc-500">(vos)</span>}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {esYoMismo && <span className="text-xs text-muted-foreground">(vos)</span>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

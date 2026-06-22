@@ -38,22 +38,22 @@ export default function EditarDatosCheque({
   const [pendiente, startTransition] = useTransition();
   const router = useRouter();
 
-  const inp = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-zinc-100 outline-none focus:border-emerald-500";
+  const inp = "rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary";
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+    <section className="rounded-2xl border border-border bg-card/40 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-500/10 text-zinc-300">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-500/10 text-foreground/90">
             <Pencil size={17} />
           </span>
           <div>
-            <p className="text-sm font-semibold text-zinc-200">Editar datos del cheque</p>
-            <p className="text-xs text-zinc-500">Librador, CUIT, banco y fechas. No afecta el saldo. Queda en auditoría.</p>
+            <p className="text-sm font-semibold text-foreground">Editar datos del cheque</p>
+            <p className="text-xs text-muted-foreground">Librador, CUIT, banco y fechas. No afecta el saldo. Queda en auditoría.</p>
           </div>
         </div>
         {!abierto && (
-          <button onClick={() => setAbierto(true)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-zinc-800">
+          <button onClick={() => setAbierto(true)} className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/90 transition hover:bg-muted">
             Editar N° {numero}
           </button>
         )}
@@ -61,19 +61,19 @@ export default function EditarDatosCheque({
 
       {abierto && (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500">Librador
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Librador
             <input value={f.librador} onChange={(e) => setF({ ...f, librador: e.target.value })} className={inp} />
           </label>
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500">CUIT
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">CUIT
             <input value={f.cuit} onChange={(e) => setF({ ...f, cuit: fmtCuit(e.target.value) })} inputMode="numeric" maxLength={13} className={inp} />
           </label>
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500">Banco emisor
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Banco emisor
             <input value={f.banco} onChange={(e) => setF({ ...f, banco: e.target.value })} className={inp} />
           </label>
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500">Fecha de cobro
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de cobro
             <input type="date" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
           </label>
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500">Acreditación estimada
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Acreditación estimada
             <input type="date" value={f.fechaAcred} onChange={(e) => setF({ ...f, fechaAcred: e.target.value })} className={inp} />
           </label>
           <div className="flex items-end gap-2">
@@ -91,13 +91,13 @@ export default function EditarDatosCheque({
                   else { setAbierto(false); router.refresh(); }
                 });
               }}
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary disabled:opacity-50"
             >
               {pendiente ? "Guardando…" : "Guardar"}
             </button>
-            <button onClick={() => { setAbierto(false); setError(null); }} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300">Cancelar</button>
+            <button onClick={() => { setAbierto(false); setError(null); }} className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/90">Cancelar</button>
           </div>
-          {error && <p className="sm:col-span-2 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-xs text-red-300">{error}</p>}
+          {error && <p className="sm:col-span-2 rounded-lg border border-danger/40 bg-danger-muted px-3 py-2 text-xs text-danger">{error}</p>}
         </div>
       )}
     </section>

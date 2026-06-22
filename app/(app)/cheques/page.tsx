@@ -9,11 +9,11 @@ import ExportarXls from "@/components/ui/exportar-xls";
 export const maxDuration = 60; // las subidas a Drive pueden tardar
 
 const colorEstado: Record<string, string> = {
-  aceptado: "bg-zinc-800 text-zinc-300",
-  depositado: "bg-blue-950 text-blue-300",
-  procesado: "bg-emerald-950 text-emerald-300",
-  rechazado: "bg-red-950 text-red-300",
-  en_custodia: "bg-amber-950 text-amber-300",
+  aceptado: "bg-muted text-foreground/90",
+  depositado: "bg-info-muted text-info",
+  procesado: "bg-success-muted text-primary",
+  rechazado: "bg-danger-muted text-danger",
+  en_custodia: "bg-warning-muted text-warning",
 };
 
 type Filtros = {
@@ -91,15 +91,15 @@ export default async function ChequesPage({
   const hoy = new Date().toISOString().slice(0, 10);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
-  const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-zinc-500";
+  const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground";
   const inputCls =
-    "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm normal-case tracking-normal text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15";
+    "rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case tracking-normal text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/15";
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4 sm:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 border-b border-zinc-800 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">Cheques</h1>
+        <header className="mb-6 border-b border-border pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cheques</h1>
         </header>
 
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -117,7 +117,7 @@ export default async function ChequesPage({
         {/* Barra de filtros */}
         <form
           method="get"
-          className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-4 shadow-lg shadow-black/20"
+          className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-4 shadow-lg shadow-foreground/5"
         >
           <label className={`${lblCls} min-w-52 flex-1`}>
             Buscar
@@ -158,23 +158,23 @@ export default async function ChequesPage({
           </label>
           <button
             type="submit"
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-emerald-500"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-primary"
           >
             Filtrar
           </button>
           {hayFiltros && (
             <Link
               href="/cheques"
-              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+              className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/90 transition hover:bg-muted"
             >
               Limpiar
             </Link>
           )}
         </form>
 
-        <div className="overflow-x-auto rounded-xl border border-zinc-800">
+        <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[1000px] text-sm">
-            <thead className="bg-zinc-900/80 text-left text-[11px] uppercase tracking-wider text-zinc-500">
+            <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-3 py-3 font-medium">N°</th>
                 <th className="px-3 py-3 font-medium">Librador</th>
@@ -189,43 +189,43 @@ export default async function ChequesPage({
                 <th className="px-3 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+            <tbody className="divide-y divide-border bg-background">
               {(cheques ?? []).map((ch) => (
-                <tr key={ch.id} className="transition hover:bg-zinc-800/40">
-                  <td className="px-3 py-3 font-mono text-zinc-300">
-                    <Link href={`/cheques/${ch.id}`} className="hover:text-emerald-400 hover:underline">{ch.numero_cheque}</Link>
+                <tr key={ch.id} className="transition hover:bg-muted/40">
+                  <td className="px-3 py-3 font-mono text-foreground/90">
+                    <Link href={`/cheques/${ch.id}`} className="hover:text-primary hover:underline">{ch.numero_cheque}</Link>
                     {ch.tipo === "echeq" && (
-                      <span className="ml-1 rounded bg-violet-950 px-1 text-xs text-violet-300">E</span>
+                      <span className="ml-1 rounded bg-info-muted px-1 text-xs text-info">E</span>
                     )}
                     {ch.foto_frente_url && (
-                      <a href={ch.foto_frente_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">F</a>
+                      <a href={ch.foto_frente_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">F</a>
                     )}
                     {ch.foto_dorso_url && (
-                      <a href={ch.foto_dorso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">D</a>
+                      <a href={ch.foto_dorso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">D</a>
                     )}
                     {ch.pdf_endoso_url && (
-                      <a href={ch.pdf_endoso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-emerald-400 hover:underline">PDF</a>
+                      <a href={ch.pdf_endoso_url} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">PDF</a>
                     )}
                   </td>
-                  <td className="px-3 py-3 text-zinc-100">
+                  <td className="px-3 py-3 text-foreground">
                     {ch.alerta_lista_negra && <span title="Librador en lista negra">⚠ </span>}
                     {ch.librador}
                   </td>
-                  <td className="px-3 py-3 font-mono text-zinc-400">{ch.cuit_librador}</td>
+                  <td className="px-3 py-3 font-mono text-muted-foreground">{ch.cuit_librador}</td>
                   <td className="px-3 py-3">
-                    {ch.plaza === "camara" && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">Cámara</span>}
-                    {ch.plaza === "interior" && <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-300">Interior</span>}
-                    {!ch.plaza && <span className="text-zinc-600">—</span>}
+                    {ch.plaza === "camara" && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">Cámara</span>}
+                    {ch.plaza === "interior" && <span className="rounded-full bg-info/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-info">Interior</span>}
+                    {!ch.plaza && <span className="text-muted-foreground/70">—</span>}
                   </td>
-                  <td className="px-3 py-3 text-zinc-400">{ch.clientes?.razon_social}</td>
-                  <td className="px-3 py-3 text-right font-mono text-zinc-100">
+                  <td className="px-3 py-3 text-muted-foreground">{ch.clientes?.razon_social}</td>
+                  <td className="px-3 py-3 text-right font-mono text-foreground">
                     {fmtARS.format(Number(ch.monto))}
                   </td>
-                  <td className="px-3 py-3 text-right font-mono text-zinc-400">
+                  <td className="px-3 py-3 text-right font-mono text-muted-foreground">
                     {fmtARS.format(Number(ch.fee_calculado))}
                   </td>
-                  <td className="px-3 py-3 font-mono text-zinc-400">{ch.fecha_cobro}</td>
-                  <td className="px-3 py-3 font-mono text-zinc-400">
+                  <td className="px-3 py-3 font-mono text-muted-foreground">{ch.fecha_cobro}</td>
+                  <td className="px-3 py-3 font-mono text-muted-foreground">
                     {ch.fecha_estimada_acred ?? "—"}
                   </td>
                   <td className="px-3 py-3">
@@ -246,7 +246,7 @@ export default async function ChequesPage({
               ))}
               {(cheques ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-zinc-500">
+                  <td colSpan={11} className="px-4 py-10 text-center text-muted-foreground">
                     {hayFiltros ? "Sin resultados para esos filtros." : "No hay cheques cargados todavía."}
                   </td>
                 </tr>
