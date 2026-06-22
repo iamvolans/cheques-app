@@ -109,7 +109,7 @@ export default async function DashboardPage() {
       </div>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{titulo}</p>
       {sub && <p className="text-[11px] text-muted-foreground/70">{sub}</p>}
-      <p className={`mt-1 font-mono text-2xl font-semibold tracking-tight ${tonos[tono].valor}`}>{valor}</p>
+      <p className={`metric metric-lg mt-1 ${tonos[tono].valor}`}>{valor}</p>
     </div>
   );
 

@@ -131,7 +131,7 @@ export default async function PerfilClientePage({
           {cards.map((c) => (
             <div key={c.titulo} className="rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">{c.titulo}</p>
-              <p className={`mt-2 font-mono text-2xl font-semibold ${c.color}`}>{c.valor}</p>
+              <p className={`metric metric-lg mt-2 ${c.color}`}>{c.valor}</p>
             </div>
           ))}
         </div>
