@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import EliminarCheque from "@/components/admin/eliminar-cheque";
 import CorregirCheque from "@/components/admin/corregir-cheque";
+import CorregirEstado from "@/components/admin/corregir-estado";
 
 const colorEstado: Record<string, string> = {
   aceptado: "bg-zinc-800 text-zinc-300",
@@ -149,6 +150,9 @@ export default async function DetalleChequePage({
 
         {esAdmin && (
           <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />
+        )}
+        {esAdmin && (
+          <CorregirEstado chequeId={ch.id} numero={ch.numero_cheque} estadoActual={ch.estado} />
         )}
         {esAdmin && ["aceptado", "en_custodia"].includes(ch.estado) && (
           <EliminarCheque chequeId={ch.id} numero={ch.numero_cheque} />

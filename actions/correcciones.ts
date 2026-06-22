@@ -228,3 +228,107 @@ export async function reaplicarTarifaCliente(p: {
   revalidatePath("/dashboard");
   return { error: null, ok: true };
 }
+
+// ---------- Corregir el ESTADO de un cheque (ajusta movimientos según la matriz) ----------
+
+type EstadoCheque = "aceptado" | "depositado" | "en_custodia" | "procesado" | "rechazado";
+
+export async function corregirEstado(p: {
+  chequeId: string;
+  nuevoEstado: EstadoCheque;
+  motivoRechazo?: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
+  if (!ch) return { error: "El cheque no existe." };
+
+  const anterior = ch.estado as EstadoCheque;
+  const nuevo = p.nuevoEstado;
+  if (anterior === nuevo) return { error: "El cheque ya está en ese estado." };
+
+  // Si pasa a rechazado, el motivo es obligatorio
+  if (nuevo === "rechazado" && !(p.motivoRechazo ?? "").trim()) {
+    return { error: "Para marcar como rechazado tenés que indicar el motivo." };
+  }
+
+  const fee = Number(ch.fee_calculado);
+  const multa = Number(ch.multa ?? 0);
+  const acreditacion = Number(ch.monto) - fee;
+  const debitoRechazo = -(fee + multa);
+
+  // Saldo actual del cliente
+  const { data: movs } = await admin
+    .from("movimientos_clientes").select("monto").eq("cliente_id", ch.cliente_id);
+  const saldoActual = (movs ?? []).reduce((a, m) => a + Number(m.monto), 0);
+
+  // Impacto que el estado ANTERIOR tenía sobre el saldo
+  const impactoAnterior = anterior === "procesado" ? acreditacion : anterior === "rechazado" ? debitoRechazo : 0;
+  // Impacto que tendrá el estado NUEVO
+  const impactoNuevo = nuevo === "procesado" ? acreditacion : nuevo === "rechazado" ? debitoRechazo : 0;
+
+  // Guarda: no dejar el saldo en negativo
+  if (saldoActual - impactoAnterior + impactoNuevo < 0) {
+    return { error: "El cambio dejaría el saldo del cliente en negativo (puede que ya se haya liquidado parte de este valor)." };
+  }
+
+  // 1) Quitar el movimiento del estado anterior, si tenía
+  if (anterior === "procesado") {
+    await admin.from("movimientos_clientes").delete().eq("cheque_id", ch.id).eq("tipo", "acreditacion");
+  } else if (anterior === "rechazado") {
+    await admin.from("movimientos_clientes").delete().eq("cheque_id", ch.id).eq("tipo", "debito_rechazo");
+  }
+
+  // 2) Crear el movimiento del estado nuevo, si corresponde
+  if (nuevo === "procesado") {
+    await admin.from("movimientos_clientes").insert({
+      cliente_id: ch.cliente_id,
+      cheque_id: ch.id,
+      tipo: "acreditacion",
+      monto: acreditacion,
+      descripcion: `Acreditación cheque N° ${ch.numero_cheque} (monto ${ch.monto} - fee ${fee})`,
+    });
+  } else if (nuevo === "rechazado") {
+    await admin.from("movimientos_clientes").insert({
+      cliente_id: ch.cliente_id,
+      cheque_id: ch.id,
+      tipo: "debito_rechazo",
+      monto: debitoRechazo,
+      descripcion: `Débito por rechazo cheque N° ${ch.numero_cheque} (fee ${fee} + multa ${multa})`,
+    });
+  }
+
+  // 3) Actualizar el cheque (estado + campos asociados al rechazo)
+  const updateCheque: Record<string, unknown> = { estado: nuevo };
+  if (nuevo === "rechazado") {
+    updateCheque.motivo_rechazo = (p.motivoRechazo ?? "").trim();
+    updateCheque.fecha_resolucion = new Date().toISOString();
+  }
+  if (anterior === "rechazado" && nuevo !== "rechazado") {
+    updateCheque.motivo_rechazo = null;
+  }
+  if (nuevo === "procesado") {
+    updateCheque.fecha_resolucion = new Date().toISOString();
+  }
+  await admin.from("cheques").update(updateCheque).eq("id", ch.id);
+
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId,
+    usuario_email: auth.email,
+    accion: "UPDATE",
+    tabla: "cheques",
+    registro_id: ch.id,
+    descripcion: `Corrección de estado del cheque N° ${ch.numero_cheque}: ${anterior} → ${nuevo}${nuevo === "rechazado" ? ` (motivo: ${(p.motivoRechazo ?? "").trim()})` : ""} (verificada con segundo factor)`,
+    valores_antes: ch,
+    valores_despues: { ...ch, estado: nuevo },
+  });
+
+  revalidatePath("/cheques");
+  revalidatePath(`/cheques/${ch.id}`);
+  revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
