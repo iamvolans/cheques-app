@@ -31,11 +31,11 @@ function Item({ href, label, Icon }: (typeof operacion)[number]) {
       href={href}
       className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
         activo
-          ? "bg-emerald-500/10 font-medium text-emerald-300"
-          : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+          ? "bg-primary/10 font-medium text-primary"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
       }`}
     >
-      <Icon size={17} className={activo ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-300"} />
+      <Icon size={17} className={activo ? "text-primary" : "text-foreground0 group-hover:text-foreground/90"} />
       {label}
       {activo && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" />}
     </Link>
@@ -46,7 +46,7 @@ export default function SidebarNav({ esAdmin }: { esAdmin: boolean }) {
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
       <div>
-        <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
+        <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/70">
           Operación
         </p>
         <div className="space-y-0.5">
@@ -55,7 +55,7 @@ export default function SidebarNav({ esAdmin }: { esAdmin: boolean }) {
       </div>
       {esAdmin && (
         <div>
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/70">
             Administración
           </p>
           <div className="space-y-0.5">

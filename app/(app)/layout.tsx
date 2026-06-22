@@ -32,21 +32,21 @@ export default async function AppLayout({
   const esAdmin = perfil?.rol === "administrador";
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-zinc-800/70 bg-zinc-950 md:flex">
-        <div className="flex items-center gap-3 border-b border-zinc-800/70 px-5 py-5">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background md:flex">
+        <div className="flex items-center gap-3 border-b border-border px-5 py-5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 font-mono text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-900/40">
             GC
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold tracking-tight text-zinc-50">Gestión de Cobranza</p>
-            <p className="text-[11px] text-zinc-500">Cheques & E-Cheqs</p>
+            <p className="text-sm font-semibold tracking-tight text-foreground">Gestión de Cobranza</p>
+            <p className="text-[11px] text-foreground0">Cheques & E-Cheqs</p>
           </div>
         </div>
         <SidebarNav esAdmin={esAdmin} />
-        <div className="border-t border-zinc-800/70 px-5 py-3">
-          <p className="flex items-center gap-2 text-[11px] text-zinc-600">
+        <div className="border-t border-border px-5 py-3">
+          <p className="flex items-center gap-2 text-[11px] text-muted-foreground/70">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
             v1.2 · GOAT
           </p>
@@ -55,24 +55,24 @@ export default async function AppLayout({
 
       {/* Contenido */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/80 px-6 py-3 backdrop-blur">
-          <p className="text-sm text-zinc-500 md:hidden">Gestión de Cobranza</p>
-          <div className="hidden text-sm text-zinc-500 md:block" />
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/80 px-6 py-3 backdrop-blur">
+          <p className="text-sm text-foreground0 md:hidden">Gestión de Cobranza</p>
+          <div className="hidden text-sm text-foreground0 md:block" />
           <div className="flex items-center gap-3">
             <div className="text-right leading-tight">
-              <p className="text-sm text-zinc-200">{perfil?.nombre ?? perfil?.email}</p>
-              <p className="text-[11px] uppercase tracking-wide text-emerald-400">{perfil?.rol}</p>
+              <p className="text-sm text-foreground">{perfil?.nombre ?? perfil?.email}</p>
+              <p className="text-[11px] uppercase tracking-wide text-primary">{perfil?.rol}</p>
             </div>
             <ThemeToggle />
             {esAdmin && <Campana />}
-            <span title="MFA activo" className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+            <span title="MFA activo" className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <ShieldCheck size={16} />
             </span>
             <form action={logout}>
               <button
                 type="submit"
                 title="Cerrar sesión"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 text-zinc-400 transition hover:border-red-800 hover:text-red-400"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-red-800 hover:text-red-400"
               >
                 <LogOut size={15} />
               </button>
