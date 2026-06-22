@@ -216,3 +216,51 @@ body, body * {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ===================== Jerarquía tipográfica + numerales ===================== */
+
+/* Renderizado más nítido en toda la app */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Numerales tabulares en TODO lo mono (montos, CUITs, fechas):
+   los dígitos ocupan el mismo ancho → columnas perfectamente alineadas entre filas */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+/* Títulos: mejor balance de línea y leve ajuste óptico */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+h1 {
+  letter-spacing: -0.02em;
+}
+
+/* === Clases opt-in para realzar jerarquía donde haga falta === */
+
+/* Número-métrica destacado (saldos, KPIs): mono, tabular, peso y tracking de "dato importante" */
+.metric {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.metric-lg {
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+/* Etiqueta tipo "caps" tenue (encabezados de sección, labels de tarjeta) */
+.label-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
