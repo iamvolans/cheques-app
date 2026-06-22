@@ -178,3 +178,41 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 select { cursor: pointer; }
+
+/* ===================== Microinteracciones (sutiles, fintech premium) ===================== */
+
+/* Transición base consistente en elementos interactivos.
+   Solo propiedades de color/borde/sombra/opacidad/transform — nunca 'all'. */
+button, a, select,
+[role="button"],
+input[type="date"], input[type="month"], input[type="number"], input[type="text"] {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    opacity 150ms ease,
+    transform 120ms ease;
+}
+
+/* Micro-feedback táctil al presionar botones (apenas perceptible) */
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.985);
+}
+
+/* Fundido corto al cambiar de tema (claro <-> oscuro), sin flash brusco.
+   Se aplica solo a fondos/bordes/texto de superficies, no a todo. */
+body, body * {
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Respeta a quien prefiere menos movimiento (accesibilidad) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
