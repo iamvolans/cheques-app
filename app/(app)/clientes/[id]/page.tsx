@@ -43,6 +43,7 @@ export default async function PerfilClientePage({
     { data: kpi },
     { data: movimientos },
     { data: cheques },
+    { data: historial },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     supabase.from("clientes").select("*").eq("id", id).single(),
@@ -61,6 +62,7 @@ export default async function PerfilClientePage({
       .eq("cliente_id", id)
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase.rpc("fn_historial_cliente", { p_cliente_id: id }),
   ]);
 
   if (!cliente) notFound();
@@ -214,6 +216,28 @@ export default async function PerfilClientePage({
             </table>
           </div>
         </section>
+
+        {esAdmin && (
+          <section>
+            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+              Historial de cambios
+            </h2>
+            <div className="space-y-0 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-lg shadow-black/20">
+              {(historial ?? []).map((h: { created_at: string; usuario_email: string | null; accion: string; tabla: string; descripcion: string }, i: number) => (
+                <div key={i} className="flex gap-4 border-l-2 border-zinc-700 py-2 pl-4 text-sm">
+                  <span className="w-44 shrink-0 font-mono text-xs text-zinc-500">
+                    {new Date(h.created_at).toLocaleString("es-AR")}
+                  </span>
+                  <span className="text-zinc-100">
+                    {h.descripcion}
+                    <span className="text-zinc-500"> — {h.usuario_email ?? "sistema"}</span>
+                  </span>
+                </div>
+              ))}
+              {(historial ?? []).length === 0 && <p className="text-sm text-zinc-500">Sin cambios registrados.</p>}
+            </div>
+          </section>
+        )}
 
         {esAdmin && (
           <EliminarCliente clienteId={cliente.id} nombre={cliente.razon_social} />
