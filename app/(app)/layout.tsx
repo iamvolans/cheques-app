@@ -4,6 +4,7 @@ import { logout } from "@/actions/auth";
 import SidebarNav from "@/components/shell/sidebar-nav";
 import MobileNav from "@/components/shell/mobile-nav";
 import Campana from "@/components/shell/campana";
+import ThemeToggle from "@/components/shell/theme-toggle";
 import { LogOut, ShieldCheck } from "lucide-react";
 
 export default async function AppLayout({
@@ -62,6 +63,7 @@ export default async function AppLayout({
               <p className="text-sm text-zinc-200">{perfil?.nombre ?? perfil?.email}</p>
               <p className="text-[11px] uppercase tracking-wide text-emerald-400">{perfil?.rol}</p>
             </div>
+            <ThemeToggle />
             {esAdmin && <Campana />}
             <span title="MFA activo" className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
               <ShieldCheck size={16} />
