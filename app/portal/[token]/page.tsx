@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import SolicitarLiquidacion from "@/components/portal/solicitar-liquidacion";
+import PortalLogin from "@/components/portal/portal-login";
+import { tieneSesionPortal } from "@/lib/portal/sesion";
 
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -17,10 +19,16 @@ export default async function PortalClientePage({
   const admin = createAdminClient();
   const { data: cliente } = await admin
     .from("clientes")
-    .select("id, razon_social, cuit, fee_porcentaje, fee_interior_porcentaje")
+    .select("id, razon_social, cuit, fee_porcentaje, fee_interior_porcentaje, portal_pin_hash, portal_totp_activo")
     .eq("portal_token", token)
     .single();
   if (!cliente) notFound();
+
+  // Gate de seguridad: sin sesión válida, mostrar login (PIN + 2FA si lo tiene)
+  const autorizado = await tieneSesionPortal(cliente.id);
+  if (cliente.portal_pin_hash && !autorizado) {
+    return <PortalLogin token={token} pide2fa={Boolean(cliente.portal_totp_activo)} />;
+  }
 
   const [{ data: saldoRow }, { data: enGestion }, { data: movimientos }, { data: solicitudes }] =
     await Promise.all([
