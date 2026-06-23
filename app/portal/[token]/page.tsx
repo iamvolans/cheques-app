@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import SolicitarLiquidacion from "@/components/portal/solicitar-liquidacion";
 import PortalLogin from "@/components/portal/portal-login";
+import Activar2FA from "@/components/portal/activar-2fa";
 import { tieneSesionPortal } from "@/lib/portal/sesion";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -71,6 +72,8 @@ export default async function PortalClientePage({
             <p className="text-xs text-zinc-500">CUIT {cliente.cuit} · Portal de cuenta · {new Date().toLocaleString("es-AR")}</p>
           </div>
         </header>
+
+        <Activar2FA token={token} activo={Boolean(cliente.portal_totp_activo)} />
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-4">

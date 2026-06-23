@@ -5,6 +5,7 @@ import Liquidar from "@/components/clientes/liquidar";
 import { FileText } from "lucide-react";
 import EliminarCliente from "@/components/admin/eliminar-cliente";
 import PortalCliente from "@/components/clientes/portal-cliente";
+import PortalSeguridadAdmin from "@/components/clientes/portal-seguridad-admin";
 import ReaplicarTarifa from "@/components/admin/reaplicar-tarifa";
 import ExportarXls from "@/components/ui/exportar-xls";
 import EditarCliente from "@/components/clientes/editar-cliente";
@@ -103,6 +104,9 @@ export default async function PerfilClientePage({
             </a>
             {esAdmin && (
               <PortalCliente clienteId={cliente.id} token={cliente.portal_token ?? null} />
+            )}
+            {esAdmin && (
+              <PortalSeguridadAdmin clienteId={cliente.id} tieneTotp={Boolean(cliente.portal_totp_activo)} />
             )}
             {esAdmin && (
               <ReaplicarTarifa clienteId={cliente.id} feeCamara={Number(cliente.fee_porcentaje)} feeInterior={cliente.fee_interior_porcentaje != null ? Number(cliente.fee_interior_porcentaje) : null} />
