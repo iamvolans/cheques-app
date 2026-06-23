@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SolicitarLiquidacion from "@/components/portal/solicitar-liquidacion";
 import PortalLogin from "@/components/portal/portal-login";
 import Activar2FA from "@/components/portal/activar-2fa";
+import DescargarExtracto from "@/components/portal/descargar-extracto";
 import { tieneSesionPortal } from "@/lib/portal/sesion";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -206,6 +207,8 @@ export default async function PortalClientePage({
             {(movimientos ?? []).length === 0 && <p className="px-4 py-6 text-center text-sm text-zinc-500">Sin movimientos.</p>}
           </div>
         </section>
+
+        <DescargarExtracto token={token} />
 
         <p className="pb-4 text-center text-[11px] text-zinc-600">Información al momento de la consulta. Las fechas de acreditación son estimadas en días hábiles bancarios. Ante cualquier consulta, escribinos a cobranzas@goat.ar</p>
       </div>
