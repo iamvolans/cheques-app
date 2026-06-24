@@ -67,7 +67,7 @@ export default async function LibradoresPage() {
                           bajo: "Bajo", sin_historial: "Nuevo",
                         };
                         return (
-                          <span className={`inline-flex min-w-[3.5rem] items-center justify-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${estilo[banda] ?? "bg-muted text-muted-foreground"}`} title={`Score de riesgo: ${l.score_riesgo}/100`}>
+                          <span className={`inline-flex min-w-[4.5rem] items-center justify-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold leading-none ${estilo[banda] ?? "bg-muted text-muted-foreground"}`} title={`Score de riesgo: ${l.score_riesgo}/100`}>
                             <span className="font-mono">{l.score_riesgo}</span> · {etiqueta[banda] ?? banda}
                           </span>
                         );
