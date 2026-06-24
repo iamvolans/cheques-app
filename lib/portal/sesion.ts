@@ -23,7 +23,7 @@ export async function crearSesionPortal(clienteId: string) {
     secure: true,
     sameSite: "lax",
     maxAge: DURACION_MIN * 60,
-    path: "/portal",
+    path: "/",
   });
 }
 
