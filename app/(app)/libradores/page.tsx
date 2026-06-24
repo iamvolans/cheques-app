@@ -15,7 +15,7 @@ export default async function LibradoresPage() {
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
   const [{ data: libradores }, { data: kpiClientes }] = await Promise.all([
-    supabase.from("vw_libradores_stats").select("*").order("pct_rechazo", { ascending: false }),
+    supabase.from("vw_libradores_score").select("*").order("score_riesgo", { ascending: false }),
     supabase.from("vw_kpi_clientes").select("*").order("pct_rechazo", { ascending: false }),
   ]);
 
@@ -37,6 +37,7 @@ export default async function LibradoresPage() {
             <table className="w-full text-sm">
               <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
+                  <th className="px-3 py-3 text-center font-medium">Score</th>
                   <th className="px-3 py-3 font-medium">Librador</th>
                   <th className="px-3 py-3 font-medium">CUIT</th>
                   <th className="px-3 py-3 text-right font-medium">Cheques</th>
@@ -51,6 +52,27 @@ export default async function LibradoresPage() {
               <tbody className="divide-y divide-border bg-background">
                 {(libradores ?? []).map((l) => (
                   <tr key={l.cuit_librador} className="transition hover:bg-muted/40">
+                    <td className="px-3 py-3 text-center">
+                      {(() => {
+                        const banda = l.banda_riesgo as string;
+                        const estilo: Record<string, string> = {
+                          critico: "bg-danger text-danger-foreground",
+                          alto: "bg-warning text-warning-foreground",
+                          medio: "bg-info-muted text-info",
+                          bajo: "bg-success-muted text-primary",
+                          sin_historial: "bg-muted text-muted-foreground",
+                        };
+                        const etiqueta: Record<string, string> = {
+                          critico: "Crítico", alto: "Alto", medio: "Medio",
+                          bajo: "Bajo", sin_historial: "Nuevo",
+                        };
+                        return (
+                          <span className={`inline-flex min-w-[3.5rem] items-center justify-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${estilo[banda] ?? "bg-muted text-muted-foreground"}`} title={`Score de riesgo: ${l.score_riesgo}/100`}>
+                            <span className="font-mono">{l.score_riesgo}</span> · {etiqueta[banda] ?? banda}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-3 py-3 text-foreground">
                       {l.en_lista_negra && (
                         <span className="mr-1 rounded bg-danger-muted px-1.5 py-0.5 text-xs font-semibold text-danger">
