@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { crearCheque, type EstadoCheque } from "@/actions/cheques";
 import InputCuit from "@/components/ui/input-cuit";
 import InputMonto from "@/components/ui/input-monto";
+import InputBanco from "@/components/ui/input-banco";
 import AlertaRiesgoLibrador from "@/components/cheques/alerta-riesgo-librador";
 
 type Opcion = { id: string; nombre: string };
@@ -146,12 +147,7 @@ export default function NuevoCheque({
       </Campo>
 
       <Campo etiqueta="Banco emisor *">
-        <select name="banco_emisor" required className={inputCls} defaultValue="">
-          <option value="" disabled>Elegir banco…</option>
-          {bancos.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
+        <InputBanco key={`banco-${resetTick}`} name="banco_emisor" bancos={bancos} required className={inputCls} />
       </Campo>
       <Campo
         etiqueta="CP del librador"
