@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   TrendingUp, Wallet, AlertOctagon, CircleDollarSign,
-  Inbox, Landmark, Clock4, Siren, PieChart,
+  Inbox, Landmark, Clock4, Siren, PieChart, CalendarClock,
 } from "lucide-react";
 import Graficos from "@/components/dashboard/graficos";
 import AcreditacionesVencidas from "@/components/dashboard/acreditaciones-vencidas";
@@ -18,7 +18,7 @@ const colorEstado: Record<string, string> = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: ganancias }, { data: saldos }, { data: estados }, { data: recientes }, { data: resueltos }, { data: conc }] =
+  const [{ data: ganancias }, { data: saldos }, { data: estados }, { data: recientes }, { data: resueltos }, { data: conc }, { data: proy }] =
     await Promise.all([
       supabase.from("vw_ganancias").select("*"),
       supabase.from("vw_saldos_clientes").select("saldo_disponible"),
@@ -34,6 +34,7 @@ export default async function DashboardPage() {
         .not("fecha_resolucion", "is", null)
         .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString()),
       supabase.from("vw_concentracion_resumen").select("*").single(),
+      supabase.from("vw_proyeccion_acreditaciones").select("*"),
     ]);
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
@@ -91,6 +92,12 @@ export default async function DashboardPage() {
   const concTono = concPct >= 50 ? { chip: "bg-danger/10 text-danger", valor: "text-danger", barra: "bg-danger" }
     : concPct >= 30 ? { chip: "bg-warning/10 text-warning", valor: "text-warning", barra: "bg-warning" }
     : { chip: "bg-primary/10 text-primary", valor: "text-primary", barra: "bg-primary" };
+
+  // ---- Proyección de acreditaciones (próximos 30 días) ----
+  const proyTotal = (proy ?? []).reduce((a, p) => a + Number(p.monto), 0);
+  const proyCheques = (proy ?? []).reduce((a, p) => a + Number(p.cheques), 0);
+  const proyDias = (proy ?? []).length;
+  const proxDia = (proy ?? [])[0]?.dia ? new Date(String((proy ?? [])[0].dia) + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : null;
 
   const tonos: Record<string, { chip: string; valor: string; halo: string }> = {
     emerald: { chip: "bg-primary/10 text-primary", valor: "text-primary", halo: "hover:border-primary/60 hover:shadow-emerald-900/20" },
@@ -185,6 +192,28 @@ export default async function DashboardPage() {
             <p className="text-[11px] text-muted-foreground">ver análisis →</p>
           </div>
         </Link>
+
+        {proyTotal > 0 && (
+          <Link
+            href="/custodias"
+            className="flex items-center gap-4 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 transition hover:border-primary/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-info/10 text-info">
+              <CalendarClock size={19} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Próximas acreditaciones · 30 días</p>
+              <p className="truncate text-sm text-foreground/90">
+                {proyCheques} cheques depositados esperando acreditación
+                {proxDia && <span className="text-muted-foreground"> · primera caída {proxDia}</span>}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="metric metric-lg text-info">{fmtARS.format(proyTotal)}</p>
+              <p className="text-[11px] text-muted-foreground">ver detalle →</p>
+            </div>
+          </Link>
+        )}
 
         <div>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Operación física</h2>
