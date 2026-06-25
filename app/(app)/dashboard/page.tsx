@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   TrendingUp, Wallet, AlertOctagon, CircleDollarSign,
-  Inbox, Landmark, Clock4, Siren,
+  Inbox, Landmark, Clock4, Siren, PieChart,
 } from "lucide-react";
 import Graficos from "@/components/dashboard/graficos";
 import AcreditacionesVencidas from "@/components/dashboard/acreditaciones-vencidas";
@@ -18,7 +18,7 @@ const colorEstado: Record<string, string> = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: ganancias }, { data: saldos }, { data: estados }, { data: recientes }, { data: resueltos }] =
+  const [{ data: ganancias }, { data: saldos }, { data: estados }, { data: recientes }, { data: resueltos }, { data: conc }] =
     await Promise.all([
       supabase.from("vw_ganancias").select("*"),
       supabase.from("vw_saldos_clientes").select("saldo_disponible"),
@@ -33,6 +33,7 @@ export default async function DashboardPage() {
         .select("monto, fee_calculado, multa, gasto_bancario, estado, fecha_resolucion")
         .not("fecha_resolucion", "is", null)
         .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString()),
+      supabase.from("vw_concentracion_resumen").select("*").single(),
     ]);
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
@@ -79,6 +80,17 @@ export default async function DashboardPage() {
   const serie = [...porMes.values()]
     .sort((a, b) => a.mes.localeCompare(b.mes))
     .map((g) => ({ ...g, pctRechazo: g.total ? +((100 * g.rechazos) / g.total).toFixed(1) : 0 }));
+
+  // ---- Concentración (mayor exposición entre cliente y banco) ----
+  const pctCliente = Number(conc?.max_pct_cliente ?? 0);
+  const pctBanco = Number(conc?.max_pct_banco ?? 0);
+  const concEsCliente = pctCliente >= pctBanco;
+  const concPct = concEsCliente ? pctCliente : pctBanco;
+  const concNombre = concEsCliente ? (conc?.cliente_top ?? "—") : (conc?.banco_top ?? "—");
+  const concTipo = concEsCliente ? "cliente" : "banco";
+  const concTono = concPct >= 50 ? { chip: "bg-danger/10 text-danger", valor: "text-danger", barra: "bg-danger" }
+    : concPct >= 30 ? { chip: "bg-warning/10 text-warning", valor: "text-warning", barra: "bg-warning" }
+    : { chip: "bg-primary/10 text-primary", valor: "text-primary", barra: "bg-primary" };
 
   const tonos: Record<string, { chip: string; valor: string; halo: string }> = {
     emerald: { chip: "bg-primary/10 text-primary", valor: "text-primary", halo: "hover:border-primary/60 hover:shadow-emerald-900/20" },
@@ -151,6 +163,28 @@ export default async function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {financiero.map((c) => <Tarjeta key={c.titulo} {...c} />)}
         </div>
+
+        <Link
+          href="/riesgo"
+          className="flex items-center gap-4 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 transition hover:border-primary/40"
+        >
+          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${concTono.chip}`}>
+            <PieChart size={19} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Concentración máxima de cartera</p>
+            <p className="truncate text-sm text-foreground/90">
+              {concNombre} <span className="text-muted-foreground">({concTipo})</span>
+            </p>
+            <div className="mt-2 h-2 max-w-md overflow-hidden rounded-full bg-muted/50">
+              <div className={`h-full rounded-full ${concTono.barra}`} style={{ width: `${Math.min(100, concPct)}%` }} />
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className={`metric metric-lg ${concTono.valor}`}>{concPct.toFixed(1)}%</p>
+            <p className="text-[11px] text-muted-foreground">ver análisis →</p>
+          </div>
+        </Link>
 
         <div>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Operación física</h2>
