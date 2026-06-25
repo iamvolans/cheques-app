@@ -403,6 +403,11 @@ export async function editarDatosCheque(p: {
   const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
   if (!ch) return { error: "El cheque no existe." };
 
+  // Blindaje: el banco debe existir en la tabla de bancos (no texto libre)
+  const bancoLimpio = p.banco_emisor.trim();
+  const { data: bancoOk } = await admin.from("bancos").select("nombre").eq("nombre", bancoLimpio).maybeSingle();
+  if (!bancoOk) return { error: "El banco emisor debe elegirse de la lista." };
+
   const update = {
     librador: p.librador.trim(),
     cuit_librador: p.cuit_librador.trim(),

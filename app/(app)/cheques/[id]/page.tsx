@@ -48,7 +48,7 @@ export default async function DetalleChequePage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: ch }, { data: logs }, { data: miPerfil }, { data: listaClientes }] = await Promise.all([
+  const [{ data: ch }, { data: logs }, { data: miPerfil }, { data: listaClientes }, { data: listaBancos }] = await Promise.all([
     supabase
       .from("cheques")
       .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias)")
@@ -62,6 +62,7 @@ export default async function DetalleChequePage({
       .order("created_at"),
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
+    supabase.from("bancos").select("nombre").eq("activo", true).order("orden"),
   ]);
 
   if (!ch) notFound();
@@ -158,6 +159,7 @@ export default async function DetalleChequePage({
             librador={ch.librador}
             cuit={ch.cuit_librador}
             banco={ch.banco_emisor ?? ""}
+            bancos={(listaBancos ?? []).map((b) => b.nombre)}
             fechaCobro={ch.fecha_cobro}
             fechaAcred={ch.fecha_estimada_acred ?? null}
           />

@@ -13,6 +13,7 @@ export default function InputBanco({
   required,
   className,
   placeholder = "Buscá tu banco…",
+  onElegir,
 }: {
   name: string;
   bancos: string[];
@@ -20,6 +21,7 @@ export default function InputBanco({
   required?: boolean;
   className?: string;
   placeholder?: string;
+  onElegir?: (valor: string) => void;
 }) {
   const [seleccion, setSeleccion] = useState(defaultValue ?? "");
   const [texto, setTexto] = useState(defaultValue ?? "");
@@ -57,6 +59,7 @@ export default function InputBanco({
     setSeleccion(banco);
     setTexto(banco);
     setAbierto(false);
+    onElegir?.(banco);
   }
 
   function cerrar() {

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { editarDatosCheque } from "@/actions/correcciones";
 import { Pencil } from "lucide-react";
+import InputBanco from "@/components/ui/input-banco";
 
 function fmtCuit(raw: string) {
   const d = raw.replace(/\D/g, "").slice(0, 11);
@@ -18,6 +19,7 @@ export default function EditarDatosCheque({
   librador,
   cuit,
   banco,
+  bancos,
   fechaCobro,
   fechaAcred,
 }: {
@@ -26,6 +28,7 @@ export default function EditarDatosCheque({
   librador: string;
   cuit: string;
   banco: string;
+  bancos: string[];
   fechaCobro: string;
   fechaAcred: string | null;
 }) {
@@ -68,7 +71,7 @@ export default function EditarDatosCheque({
             <input value={f.cuit} onChange={(e) => setF({ ...f, cuit: fmtCuit(e.target.value) })} inputMode="numeric" maxLength={13} className={inp} />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Banco emisor
-            <input value={f.banco} onChange={(e) => setF({ ...f, banco: e.target.value })} className={inp} />
+            <InputBanco name="banco_edit" bancos={bancos} defaultValue={f.banco} className={inp} onElegir={(v) => setF({ ...f, banco: v })} />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de cobro
             <input type="date" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
