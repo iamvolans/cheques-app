@@ -66,10 +66,12 @@ export default function NuevoCheque({
   clientes,
   convenios,
   cuentas,
+  bancos,
 }: {
   clientes: Opcion[];
   convenios: Opcion[];
   cuentas: Opcion[];
+  bancos: string[];
 }) {
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState<"fisico" | "echeq">("fisico");
@@ -144,7 +146,12 @@ export default function NuevoCheque({
       </Campo>
 
       <Campo etiqueta="Banco emisor *">
-        <input name="banco_emisor" placeholder="ej: Banco Nación" required className={inputCls} />
+        <select name="banco_emisor" required className={inputCls} defaultValue="">
+          <option value="" disabled>Elegir banco…</option>
+          {bancos.map((b) => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
       </Campo>
       <Campo
         etiqueta="CP del librador"

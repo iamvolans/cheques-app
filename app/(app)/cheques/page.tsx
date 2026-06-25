@@ -74,6 +74,7 @@ export default async function ChequesPage({
     { data: clientes },
     { data: convenios },
     { data: cuentas },
+    { data: bancos },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qCheques,
@@ -81,6 +82,7 @@ export default async function ChequesPage({
     supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
     supabase.from("convenios").select("id, razon_social").eq("activo", true),
     supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
+    supabase.from("bancos").select("nombre").eq("activo", true).order("orden"),
   ]);
 
   const total = totalCheques ?? 0;
@@ -111,6 +113,7 @@ export default async function ChequesPage({
             clientes={(clientes ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
             convenios={(convenios ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
             cuentas={(cuentas ?? []).map((c) => ({ id: c.id, nombre: `${c.banco}${c.alias ? " · " + c.alias : ""}` }))}
+            bancos={(bancos ?? []).map((b) => b.nombre)}
           />
         </div>
 
