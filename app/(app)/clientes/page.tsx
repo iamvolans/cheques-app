@@ -4,6 +4,7 @@ import Link from "next/link";
 import NuevoCliente from "@/components/clientes/nuevo-cliente";
 import Liquidar from "@/components/clientes/liquidar";
 import Paginador from "@/components/ui/paginador";
+import Sparkline from "@/components/ui/sparkline";
 
 export default async function ClientesPage({
   searchParams,
@@ -26,10 +27,16 @@ export default async function ClientesPage({
   const pagina = Math.max(1, Number(sp.page) || 1);
   const inicio = (pagina - 1) * 25;
 
-  const [{ data: perfil }, { data: clientes, count }] = await Promise.all([
+  const [{ data: perfil }, { data: clientes, count }, { data: tendencias }] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     supabase.from("vw_saldos_clientes").select("*", { count: "exact" }).order("razon_social").range(inicio, inicio + 24),
+    supabase.from("vw_tendencia_cliente").select("*"),
   ]);
+
+  const seriePorCliente = new Map<string, number[]>();
+  for (const t of tendencias ?? []) {
+    seriePorCliente.set(t.cliente_id, (t.serie_volumen ?? []).map((v: unknown) => Number(v)));
+  }
 
   const total = count ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
@@ -63,6 +70,7 @@ export default async function ClientesPage({
                 <th className="px-4 py-3 font-medium">CUIT</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 text-right font-medium">Fee</th>
+                <th className="px-4 py-3 font-medium">Tendencia 6m</th>
                 <th className="px-4 py-3 text-right font-medium">Saldo disponible</th>
                 {esAdmin && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
@@ -80,6 +88,9 @@ export default async function ClientesPage({
                   <td className="px-4 py-3 text-right font-mono text-foreground/90">
                     {Number(c.fee_porcentaje).toFixed(2)}%
                   </td>
+                  <td className="px-4 py-3">
+                    <Sparkline datos={seriePorCliente.get(c.cliente_id) ?? []} />
+                  </td>
                   <td className="px-4 py-3 text-right font-mono text-primary">
                     {fmtARS.format(Number(c.saldo_disponible))}
                   </td>
@@ -95,7 +106,7 @@ export default async function ClientesPage({
               ))}
               {(clientes ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={esAdmin ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={esAdmin ? 7 : 6} className="px-4 py-10 text-center text-muted-foreground">
                     Todavía no hay clientes cargados.
                   </td>
                 </tr>
