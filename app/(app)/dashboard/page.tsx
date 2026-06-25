@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   TrendingUp, Wallet, AlertOctagon, CircleDollarSign,
-  Inbox, Landmark, Clock4, Siren, PieChart, CalendarClock,
+  Inbox, Landmark, Clock4, Siren, PieChart, CalendarClock, TrendingDown, ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
 import Graficos from "@/components/dashboard/graficos";
 import AcreditacionesVencidas from "@/components/dashboard/acreditaciones-vencidas";
@@ -82,6 +82,20 @@ export default async function DashboardPage() {
     .sort((a, b) => a.mes.localeCompare(b.mes))
     .map((g) => ({ ...g, pctRechazo: g.total ? +((100 * g.rechazos) / g.total).toFixed(1) : 0 }));
 
+  // ---- Tendencias: mes actual vs mes anterior (sobre la serie) ----
+  const mesAct = serie[serie.length - 1] ?? null;
+  const mesAnt = serie[serie.length - 2] ?? null;
+  const delta = (act: number, ant: number) => (ant > 0 ? ((act - ant) / ant) * 100 : null);
+  const tend = mesAct && mesAnt ? {
+    ganancia: delta(mesAct.ganancia, mesAnt.ganancia),
+    volumen: delta(mesAct.volumen, mesAnt.volumen),
+    rechazoPts: +(mesAct.pctRechazo - mesAnt.pctRechazo).toFixed(1),
+  } : null;
+  // Alerta si el % de rechazo del mes saltó respecto al anterior (umbral: +5 puntos)
+  const alertaRechazo = tend && tend.rechazoPts >= 5 && mesAct ? {
+    pts: tend.rechazoPts, mesActual: mesAct.pctRechazo, mesAnterior: mesAnt!.pctRechazo,
+  } : null;
+
   // ---- Concentración (mayor exposición entre cliente y banco) ----
   const pctCliente = Number(conc?.max_pct_cliente ?? 0);
   const pctBanco = Number(conc?.max_pct_banco ?? 0);
@@ -96,7 +110,6 @@ export default async function DashboardPage() {
   // ---- Proyección de acreditaciones (próximos 30 días) ----
   const proyTotal = (proy ?? []).reduce((a, p) => a + Number(p.monto), 0);
   const proyCheques = (proy ?? []).reduce((a, p) => a + Number(p.cheques), 0);
-  const proyDias = (proy ?? []).length;
   const proxDia = (proy ?? [])[0]?.dia ? new Date(String((proy ?? [])[0].dia) + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : null;
 
   const tonos: Record<string, { chip: string; valor: string; halo: string }> = {
@@ -138,9 +151,45 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground">El pulso de la operación en tiempo real.</p>
+          {tend && (
+            <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+              {tend.ganancia !== null && (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${tend.ganancia >= 0 ? "bg-success-muted text-primary" : "bg-danger-muted text-danger"}`}>
+                  {tend.ganancia >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  Ganancia del mes {tend.ganancia >= 0 ? "+" : ""}{tend.ganancia.toFixed(0)}% vs mes anterior
+                </span>
+              )}
+              {tend.volumen !== null && (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${tend.volumen >= 0 ? "bg-success-muted text-primary" : "bg-danger-muted text-danger"}`}>
+                  {tend.volumen >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  Volumen del mes {tend.volumen >= 0 ? "+" : ""}{tend.volumen.toFixed(0)}%
+                </span>
+              )}
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${tend.rechazoPts <= 0 ? "bg-success-muted text-primary" : "bg-warning-muted text-warning"}`}>
+                {tend.rechazoPts <= 0 ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}
+                Rechazo {tend.rechazoPts >= 0 ? "+" : ""}{tend.rechazoPts} pts vs mes anterior
+              </span>
+            </div>
+          )}
         </div>
 
         <AcreditacionesVencidas />
+
+        {alertaRechazo && (
+          <div className="flex items-center gap-4 rounded-2xl border border-warning/40 bg-warning-muted/50 p-4 shadow-lg shadow-amber-950/30">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning">
+              <TrendingDown size={22} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-warning">
+                El % de rechazo subió {alertaRechazo.pts} puntos respecto al mes pasado
+              </span>
+              <span className="block text-sm text-muted-foreground">
+                Pasó de {alertaRechazo.mesAnterior}% a {alertaRechazo.mesActual}% este mes. Revisá qué libradores o clientes lo están empujando.
+              </span>
+            </span>
+          </div>
+        )}
 
         {enOficina.length > 0 && (
           <Link
