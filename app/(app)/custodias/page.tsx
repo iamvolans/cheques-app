@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Calendario from "@/components/custodias/calendario";
+import ProyeccionFlujo, { type DiaProyeccion } from "@/components/dashboard/proyeccion-flujo";
 
 export default async function CustodiasPage() {
   const supabase = await createClient();
@@ -12,11 +13,18 @@ export default async function CustodiasPage() {
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const { data: custodias } = await supabase
-    .from("cheques")
-    .select("id, numero_cheque, librador, monto, fecha_cobro, clientes(razon_social)")
-    .eq("estado", "en_custodia")
-    .order("fecha_cobro");
+  const [{ data: custodias }, { data: proyeccion }] = await Promise.all([
+    supabase
+      .from("cheques")
+      .select("id, numero_cheque, librador, monto, fecha_cobro, clientes(razon_social)")
+      .eq("estado", "en_custodia")
+      .order("fecha_cobro"),
+    supabase.from("vw_proyeccion_acreditaciones").select("*"),
+  ]);
+
+  const datosProyeccion: DiaProyeccion[] = (proyeccion ?? []).map((p) => ({
+    dia: String(p.dia), cheques: Number(p.cheques), monto: Number(p.monto),
+  }));
 
   const items = (custodias ?? []).map((c) => ({
     id: c.id,
@@ -37,6 +45,12 @@ export default async function CustodiasPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Calendario de custodias</h1>
           <p className="mt-1 text-sm text-muted-foreground">{items.length} cheques diferidos en custodia · total {fmt.format(total)}</p>
         </header>
+        <section className="mb-8 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-6 shadow-lg shadow-foreground/5">
+          <h2 className="mb-1 text-sm font-medium uppercase tracking-wide text-muted-foreground">Proyección de acreditaciones · próximos 30 días</h2>
+          <p className="mb-4 text-xs text-muted-foreground/70">Cheques depositados esperando acreditación, por día estimado de cobro.</p>
+          <ProyeccionFlujo datos={datosProyeccion} />
+        </section>
+
         {items.length === 0 ? (
           <p className="rounded-xl border border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">No hay cheques en custodia.</p>
         ) : (
