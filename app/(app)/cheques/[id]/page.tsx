@@ -160,6 +160,7 @@ export default async function DetalleChequePage({
             cuit={ch.cuit_librador}
             banco={ch.banco_emisor ?? ""}
             bancos={(listaBancos ?? []).map((b) => b.nombre)}
+            cp={ch.codigo_postal ?? null}
             fechaCobro={ch.fecha_cobro}
             fechaAcred={ch.fecha_estimada_acred ?? null}
           />

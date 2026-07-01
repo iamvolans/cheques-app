@@ -20,6 +20,7 @@ export default function EditarDatosCheque({
   cuit,
   banco,
   bancos,
+  cp,
   fechaCobro,
   fechaAcred,
 }: {
@@ -29,12 +30,14 @@ export default function EditarDatosCheque({
   cuit: string;
   banco: string;
   bancos: string[];
+  cp: number | null;
   fechaCobro: string;
   fechaAcred: string | null;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [f, setF] = useState({
     librador, cuit: fmtCuit(cuit ?? ""), banco: banco ?? "",
+    cp: cp != null ? String(cp) : "",
     fechaCobro: fechaCobro ?? "", fechaAcred: fechaAcred ?? "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +76,10 @@ export default function EditarDatosCheque({
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Banco emisor
             <InputBanco name="banco_edit" bancos={bancos} defaultValue={f.banco} className={inp} onElegir={(v) => setF({ ...f, banco: v })} />
           </label>
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">C.P. sucursal Bancaria
+            <input type="number" min="1" max="9999" value={f.cp} onChange={(e) => setF({ ...f, cp: e.target.value })} className={inp} />
+            <span className="text-[10px] normal-case text-muted-foreground/70">{f.cp && Number(f.cp) <= 2000 ? "Cámara" : f.cp ? "Interior" : ""}{f.cp ? " · recalcula el fee al guardar" : ""}</span>
+          </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de cobro
             <input type="date" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
           </label>
@@ -87,7 +94,8 @@ export default function EditarDatosCheque({
                 startTransition(async () => {
                   const r = await editarDatosCheque({
                     chequeId, librador: f.librador, cuit_librador: f.cuit,
-                    banco_emisor: f.banco, fecha_cobro: f.fechaCobro,
+                    banco_emisor: f.banco, codigo_postal: Number(f.cp),
+                    fecha_cobro: f.fechaCobro,
                     fecha_estimada_acred: f.fechaAcred || null,
                   });
                   if (r.error) setError(r.error);

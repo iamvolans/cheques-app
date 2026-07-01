@@ -393,6 +393,7 @@ export async function editarDatosCheque(p: {
   librador: string;
   cuit_librador: string;
   banco_emisor: string;
+  codigo_postal: number;
   fecha_cobro: string;
   fecha_estimada_acred: string | null;
 }): Promise<R> {
