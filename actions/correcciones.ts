@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
-type R = { error: string | null; ok?: boolean };
+type R = { error: string | null; ok?: boolean; alerta?: string | null };
 
 async function exigirAdminConTotp(
   codigo: string
@@ -366,18 +366,54 @@ export async function reasignarCheque(p: {
   const sumMov = (movsCheque ?? []).reduce((a, m) => a + Number(m.monto), 0);
   const { data: movsOrigen } = await admin.from("movimientos_clientes").select("monto").eq("cliente_id", ch.cliente_id);
   const saldoOrigen = (movsOrigen ?? []).reduce((a, m) => a + Number(m.monto), 0);
-  if (saldoOrigen - sumMov < 0) {
-    return { error: "No se puede reasignar: el saldo del cliente de origen quedaría negativo (probablemente ya liquidó parte de este valor)." };
+  // (Se permite reasignar aunque el origen quede negativo; se advierte en el log más abajo.)
+  void sumMov; void saldoOrigen;
+
+  // Recalcular el fee con la tarifa del cliente DESTINO (según la plaza del cheque, que no cambia)
+  const { data: cliDest } = await admin
+    .from("clientes")
+    .select("fee_porcentaje, fee_interior_porcentaje")
+    .eq("id", p.nuevoClienteId)
+    .single();
+  if (!cliDest) return { error: "No se pudieron leer las tarifas del cliente destino." };
+  const feeCamaraD = Number(cliDest.fee_porcentaje);
+  const feeInteriorD = cliDest.fee_interior_porcentaje != null ? Number(cliDest.fee_interior_porcentaje) : feeCamaraD;
+  const nuevoPct = ch.plaza === "interior" ? feeInteriorD : feeCamaraD;
+  const nuevoFee = Math.round(Number(ch.monto) * nuevoPct) / 100;
+
+  // Mover el cheque y actualizar su fee al del destino
+  await admin.from("cheques")
+    .update({ cliente_id: p.nuevoClienteId, fee_aplicado_pct: nuevoPct, fee_calculado: nuevoFee })
+    .eq("id", ch.id);
+
+  // Reescribir los movimientos: nuevo dueño + monto recalculado con el fee del destino
+  if (ch.estado === "procesado") {
+    await admin.from("movimientos_clientes")
+      .update({ cliente_id: p.nuevoClienteId, monto: Number(ch.monto) - nuevoFee })
+      .eq("cheque_id", ch.id).eq("tipo", "acreditacion");
+  } else if (ch.estado === "rechazado") {
+    await admin.from("movimientos_clientes")
+      .update({ cliente_id: p.nuevoClienteId, monto: -(nuevoFee + Number(ch.multa ?? 0)) })
+      .eq("cheque_id", ch.id).eq("tipo", "debito_rechazo");
+  } else {
+    await admin.from("movimientos_clientes")
+      .update({ cliente_id: p.nuevoClienteId })
+      .eq("cheque_id", ch.id);
   }
 
-  await admin.from("cheques").update({ cliente_id: p.nuevoClienteId }).eq("id", ch.id);
-  await admin.from("movimientos_clientes").update({ cliente_id: p.nuevoClienteId }).eq("cheque_id", ch.id);
+  // ¿El origen quedó en saldo negativo tras revertirle lo que ya se le había acreditado?
+  const { data: movsOrigenPost } = await admin.from("movimientos_clientes").select("monto").eq("cliente_id", ch.cliente_id);
+  const saldoOrigenPost = (movsOrigenPost ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  const avisoNegativo = saldoOrigenPost < 0
+    ? ` ⚠ El saldo de ${origen?.razon_social ?? "el cliente origen"} quedó en negativo (${saldoOrigenPost.toFixed(2)}): revisar, probablemente ya había liquidado este valor.`
+    : "";
 
   await admin.from("logs_auditoria").insert({
     usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
     tabla: "cheques", registro_id: ch.id,
-    descripcion: `Reasignación de cheque N° ${ch.numero_cheque}: de ${origen?.razon_social ?? "?"} → ${destino.razon_social} (movimientos incluidos, verificada con segundo factor)`,
-    valores_antes: ch, valores_despues: { ...ch, cliente_id: p.nuevoClienteId },
+    descripcion: `Reasignación de cheque N° ${ch.numero_cheque}: de ${origen?.razon_social ?? "?"} → ${destino.razon_social}. Fee recalculado a ${nuevoPct}% (fee ${nuevoFee}).${avisoNegativo}`,
+    valores_antes: { cliente_id: ch.cliente_id, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado },
+    valores_despues: { cliente_id: p.nuevoClienteId, fee_aplicado_pct: nuevoPct, fee_calculado: nuevoFee },
   });
 
   revalidatePath("/cheques");
