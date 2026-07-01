@@ -409,10 +409,29 @@ export async function editarDatosCheque(p: {
   const { data: bancoOk } = await admin.from("bancos").select("nombre").eq("nombre", bancoLimpio).maybeSingle();
   if (!bancoOk) return { error: "El banco emisor debe elegirse de la lista." };
 
+  if (!Number.isInteger(p.codigo_postal) || p.codigo_postal < 1 || p.codigo_postal > 9999) {
+    return { error: "El C.P. es obligatorio y debe estar entre 1 y 9999." };
+  }
+  const nuevaPlaza = p.codigo_postal <= 2000 ? "camara" : "interior";
+  const { data: cliFee } = await admin
+    .from("clientes")
+    .select("fee_porcentaje, fee_interior_porcentaje")
+    .eq("id", ch.cliente_id)
+    .single();
+  if (!cliFee) return { error: "No se encontró el cliente del cheque." };
+  const feeCamara = Number(cliFee.fee_porcentaje);
+  const feeInterior = cliFee.fee_interior_porcentaje != null ? Number(cliFee.fee_interior_porcentaje) : feeCamara;
+  const nuevoPct = nuevaPlaza === "interior" ? feeInterior : feeCamara;
+  const nuevoFee = Math.round(Number(ch.monto) * nuevoPct) / 100;
+
   const update = {
     librador: p.librador.trim(),
     cuit_librador: p.cuit_librador.trim(),
     banco_emisor: p.banco_emisor.trim(),
+    codigo_postal: p.codigo_postal,
+    plaza: nuevaPlaza,
+    fee_aplicado_pct: nuevoPct,
+    fee_calculado: nuevoFee,
     fecha_cobro: p.fecha_cobro,
     fecha_estimada_acred: p.fecha_estimada_acred || null,
   };
@@ -421,11 +440,21 @@ export async function editarDatosCheque(p: {
 
   await admin.from("cheques").update(update).eq("id", ch.id);
 
+  if (ch.estado === "procesado") {
+    await admin.from("movimientos_clientes")
+      .update({ monto: Number(ch.monto) - nuevoFee })
+      .eq("cheque_id", ch.id).eq("tipo", "acreditacion");
+  } else if (ch.estado === "rechazado") {
+    await admin.from("movimientos_clientes")
+      .update({ monto: -(nuevoFee + Number(ch.multa ?? 0)) })
+      .eq("cheque_id", ch.id).eq("tipo", "debito_rechazo");
+  }
+
   await admin.from("logs_auditoria").insert({
     usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
     tabla: "cheques", registro_id: ch.id,
     descripcion: `Edición de datos no contables del cheque N° ${ch.numero_cheque} (librador/CUIT/banco/fechas)`,
-    valores_antes: { librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
+    valores_antes: { librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, codigo_postal: ch.codigo_postal, plaza: ch.plaza, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
     valores_despues: update,
   });
 
