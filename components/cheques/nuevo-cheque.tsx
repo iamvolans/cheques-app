@@ -150,7 +150,7 @@ export default function NuevoCheque({
         <InputBanco key={`banco-${resetTick}`} name="banco_emisor" bancos={bancos} required className={inputCls} />
       </Campo>
       <Campo
-        etiqueta="CP del librador"
+        etiqueta="C.P. sucursal Bancaria *"
         extra={
           <>
             {plaza === "camara" && <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">CÁMARA</span>}
@@ -163,6 +163,7 @@ export default function NuevoCheque({
           type="number"
           min="1"
           max="9999"
+          required
           placeholder="ej: 1426 ó 5000"
           value={cp}
           onChange={(e) => setCp(e.target.value)}

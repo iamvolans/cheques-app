@@ -19,10 +19,11 @@ const esquemaCheque = z.object({
   convenio_id: z.string().uuid("Elegí un convenio"),
   cuenta_bancaria_id: z.string().uuid("Elegí la cuenta propia"),
   fecha_cobro: z.string().min(10, "Falta la fecha de cobro"),
-  codigo_postal: z.preprocess(
-    (v) => (v === "" || v === null ? null : v),
-    z.coerce.number().int().min(1, "CP inválido").max(9999, "CP inválido").nullable()
-  ),
+  codigo_postal: z.coerce
+    .number({ error: "El C.P. es obligatorio" })
+    .int("C.P. inválido")
+    .min(1, "El C.P. es obligatorio")
+    .max(9999, "C.P. inválido"),
   echeq_id: z.string().optional(),
   portador_banco: z.string().optional(),
 });
