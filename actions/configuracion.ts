@@ -88,6 +88,7 @@ export async function agregarCuenta(_p: EstadoConfig, fd: FormData): Promise<Est
     cbu: String(fd.get("cbu") ?? "") || null,
     descripcion: String(fd.get("descripcion") ?? "") || null,
     multa_rechazo_banco: Number(fd.get("multa_rechazo_banco")) || 0,
+    costo_bancario_pct: Number(fd.get("costo_bancario_pct")) || 0,
   });
   if (error) return { error: error.message };
   refrescar();
@@ -160,6 +161,24 @@ export async function actualizarMultaCuenta(p: {
   const { error } = await supabase
     .from("cuentas_bancarias_empresa")
     .update({ multa_rechazo_banco: p.multa })
+    .eq("id", p.id);
+  if (error) return { error: error.message };
+  refrescar();
+  return { error: null };
+}
+
+
+export async function actualizarCostoCuenta(p: {
+  id: string;
+  costo: number;
+}): Promise<{ error: string | null }> {
+  const err = await exigirAdmin();
+  if (err) return { error: err };
+  if (!(p.costo >= 0) || p.costo > 100) return { error: "Costo bancario inválido (0 a 100%)." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("cuentas_bancarias_empresa")
+    .update({ costo_bancario_pct: p.costo })
     .eq("id", p.id);
   if (error) return { error: error.message };
   refrescar();

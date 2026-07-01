@@ -30,7 +30,7 @@ export default async function DashboardPage() {
         .limit(6),
       supabase
         .from("cheques")
-        .select("monto, fee_calculado, multa, gasto_bancario, estado, fecha_resolucion")
+        .select("monto, fee_calculado, multa, gasto_bancario, estado, fecha_resolucion, cuentas_bancarias_empresa(costo_bancario_pct)")
         .not("fecha_resolucion", "is", null)
         .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString()),
       supabase.from("vw_concentracion_resumen").select("*").single(),
@@ -69,7 +69,9 @@ export default async function DashboardPage() {
     const g = porMes.get(mes) ?? { mes, ganancia: 0, volumen: 0, rechazos: 0, total: 0 };
     g.total++;
     if (c.estado === "procesado") {
-      g.ganancia += Number(c.fee_calculado);
+      const costoPct = Number((c.cuentas_bancarias_empresa as unknown as { costo_bancario_pct?: number } | null)?.costo_bancario_pct ?? 0);
+      const costoBanco = Math.round(Number(c.monto) * costoPct) / 100;
+      g.ganancia += Number(c.fee_calculado) - costoBanco;
       g.volumen += Number(c.monto);
     }
     if (c.estado === "rechazado") {
