@@ -20,6 +20,7 @@ export default function ReasignarCheque({
   const [destino, setDestino] = useState("");
   const [codigo, setCodigo] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [pendiente, startTransition] = useTransition();
   const router = useRouter();
 
@@ -55,10 +56,18 @@ export default function ReasignarCheque({
             disabled={pendiente || codigo.length !== 6 || !destino}
             onClick={() => {
               setError(null);
+              setAviso(null);
               startTransition(async () => {
                 const r = await reasignarCheque({ chequeId, nuevoClienteId: destino, codigo });
-                if (r.error) setError(r.error);
-                else { setAbierto(false); setCodigo(""); setDestino(""); router.refresh(); }
+                if (r.error) { setError(r.error); return; }
+                setCodigo(""); setDestino("");
+                router.refresh();
+                if (r.alerta) {
+                  // Reasignación OK pero el origen quedó negativo: mostrar aviso y dejar el panel abierto
+                  setAviso(r.alerta);
+                } else {
+                  setAbierto(false);
+                }
               });
             }}
             className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary disabled:opacity-50"
@@ -67,6 +76,7 @@ export default function ReasignarCheque({
           </button>
           <button onClick={() => { setAbierto(false); setError(null); }} className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/90">Cancelar</button>
           {error && <p className="w-full rounded-lg border border-danger/40 bg-danger-muted px-3 py-2 text-xs text-danger">{error}</p>}
+          {aviso && <p className="w-full rounded-lg border border-warning/40 bg-warning-muted px-3 py-2 text-xs text-warning">{aviso} Reasignación realizada igual.</p>}
         </div>
       )}
     </section>

@@ -420,7 +420,7 @@ export async function reasignarCheque(p: {
   revalidatePath(`/cheques/${ch.id}`);
   revalidatePath("/clientes");
   revalidatePath("/dashboard");
-  return { error: null, ok: true };
+  return { error: null, ok: true, alerta: avisoNegativo || null };
 }
 
 // ---------- Editar datos NO contables del cheque (no toca saldo) ----------
