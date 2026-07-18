@@ -75,7 +75,9 @@ export default async function DashboardPage() {
       g.volumen += Number(c.monto);
     }
     if (c.estado === "rechazado") {
-      g.ganancia += Number(c.fee_calculado) + Number(c.multa ?? 0) - Number(c.gasto_bancario ?? 0);
+      const costoPctR = Number((c.cuentas_bancarias_empresa as unknown as { costo_bancario_pct?: number } | null)?.costo_bancario_pct ?? 0);
+      const costoBancoR = Math.round(Number(c.monto) * costoPctR) / 100;
+      g.ganancia += Number(c.fee_calculado) + Number(c.multa ?? 0) - Number(c.gasto_bancario ?? 0) - costoBancoR;
       g.rechazos++;
     }
     porMes.set(mes, g);
