@@ -5,6 +5,7 @@ import FormConfig from "@/components/admin/form-config";
 import BotonConfig from "@/components/admin/boton-config";
 import MultaCuenta from "@/components/admin/multa-cuenta";
 import CostoCuenta from "@/components/admin/costo-cuenta";
+import UmbralesPlaft from "@/components/admin/umbrales-plaft";
 import {
   agregarListaNegra, quitarListaNegra,
   agregarConvenio, toggleConvenio,
@@ -29,12 +30,13 @@ export default async function ConfiguracionPage() {
   if (miPerfil?.rol !== "administrador") redirect("/dashboard");
 
   const hoy = new Date().toISOString().slice(0, 10);
-  const [{ data: listaNegra }, { data: convenios }, { data: cuentas }, { data: feriados }] =
+  const [{ data: listaNegra }, { data: convenios }, { data: cuentas }, { data: feriados }, { data: plaftParams }] =
     await Promise.all([
       supabase.from("lista_negra_libradores").select("*").order("created_at", { ascending: false }),
       supabase.from("convenios").select("*").order("razon_social"),
       supabase.from("cuentas_bancarias_empresa").select("*").order("banco"),
       supabase.from("feriados").select("*").gte("fecha", hoy).order("fecha"),
+      supabase.from("plaft_parametros").select("*").eq("id", 1).maybeSingle(),
     ]);
 
   const seccion = "rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 space-y-4";
@@ -128,6 +130,17 @@ export default async function ConfiguracionPage() {
               />
             </div>
           ))}
+        </section>
+
+        <section className={seccion}>
+          <h2 className={titulo}><span className="mr-2.5 inline-block h-2 w-2 rounded-sm bg-warning/80 align-middle" />Umbrales PLAFT · acumulado mensual por destino</h2>
+          <UmbralesPlaft
+            fisica={Number(plaftParams?.umbral_mensual_fisica ?? 10000000)}
+            juridica={Number(plaftParams?.umbral_mensual_juridica ?? 50000000)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Límite de acumulación mensual por CUIT destino. Al cargar o aprobar una liquidación, el sistema avisa cuando el destino se acerca al umbral (ámbar desde el 60%) o lo supera (rojo). No bloquea: la decisión es del operador.
+          </p>
         </section>
 
         <section className={seccion}>

@@ -70,3 +70,28 @@ export async function consultarDestinoLiquidacion(
     },
   };
 }
+
+
+export async function actualizarUmbralesPlaft(p: {
+  fisica: number;
+  juridica: number;
+}): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida." };
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
+  if (perfil?.rol !== "administrador") return { error: "Solo un Administrador puede modificar los umbrales." };
+  if (!(p.fisica > 0) || !(p.juridica > 0)) return { error: "Los umbrales deben ser mayores a 0." };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("plaft_parametros")
+    .update({
+      umbral_mensual_fisica: p.fisica,
+      umbral_mensual_juridica: p.juridica,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1);
+  if (error) return { error: error.message };
+  return { error: null };
+}
