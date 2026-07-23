@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import FilaSolicitud from "@/components/liquidaciones/fila-solicitud";
+import AlertaDestino from "@/components/liquidaciones/alerta-destino";
 
 export default async function SolicitudesPendientes() {
   const supabase = await createClient();
@@ -32,6 +33,11 @@ export default async function SolicitudesPendientes() {
                 {s.cuit_beneficiario && ` · CUIT ${s.cuit_beneficiario}`}
                 {s.nota && ` · "${s.nota}"`} · {new Date(s.created_at).toLocaleString("es-AR")}
               </p>
+              {s.cuit_beneficiario ? (
+                <div className="mt-2">
+                  <AlertaDestino cuit={String(s.cuit_beneficiario)} />
+                </div>
+              ) : null}
             </div>
             <FilaSolicitud id={s.id} />
           </div>
