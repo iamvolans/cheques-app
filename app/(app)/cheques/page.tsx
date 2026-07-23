@@ -22,6 +22,10 @@ type Filtros = {
   cliente?: string;
   estado?: string;
   q?: string;
+  montoDesde?: string;
+  montoHasta?: string;
+  tipo?: string;
+  plaza?: string;
   page?: string;
 };
 
@@ -59,13 +63,17 @@ export default async function ChequesPage({
   if (f.hasta) { qCheques = qCheques.lte("fecha_cobro", f.hasta); qMonto = qMonto.lte("fecha_cobro", f.hasta); }
   if (f.cliente) { qCheques = qCheques.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
   if (f.estado) { qCheques = qCheques.eq("estado", f.estado); qMonto = qMonto.eq("estado", f.estado); }
+  if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qCheques = qCheques.gte("monto", Number(f.montoDesde)); qMonto = qMonto.gte("monto", Number(f.montoDesde)); }
+  if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qCheques = qCheques.lte("monto", Number(f.montoHasta)); qMonto = qMonto.lte("monto", Number(f.montoHasta)); }
+  if (f.tipo === "echeq" || f.tipo === "fisico") { qCheques = qCheques.eq("tipo", f.tipo); qMonto = qMonto.eq("tipo", f.tipo); }
+  if (f.plaza === "camara" || f.plaza === "interior") { qCheques = qCheques.eq("plaza", f.plaza); qMonto = qMonto.eq("plaza", f.plaza); }
   if (qTexto) {
     const filtro = `numero_cheque.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%`;
     qCheques = qCheques.or(filtro);
     qMonto = qMonto.or(filtro);
   }
 
-  const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q);
+  const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza);
 
   const [
     { data: perfil },
