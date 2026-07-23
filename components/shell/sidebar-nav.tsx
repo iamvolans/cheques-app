@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ReceiptText, Building2, Banknote,
-  ShieldAlert, UserCog, Settings2, ScrollText, FileSpreadsheet, CalendarDays, PieChart,
+  ShieldAlert, UserCog, Settings2, ScrollText, FileSpreadsheet, CalendarDays, PieChart, Radar,
 } from "lucide-react";
 
 const operacion = [
@@ -15,6 +15,7 @@ const operacion = [
   { href: "/custodias", label: "Custodias", Icon: CalendarDays },
   { href: "/libradores", label: "Riesgo · Libradores", Icon: ShieldAlert },
   { href: "/riesgo", label: "Riesgo · Cartera", Icon: PieChart },
+  { href: "/plaft", label: "Monitoreo · PLAFT", Icon: Radar },
 ];
 
 const administracion = [
