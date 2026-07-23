@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { liquidar, type EstadoLiq } from "@/actions/liquidaciones";
 import InputCuit from "@/components/ui/input-cuit";
 import InputMonto from "@/components/ui/input-monto";
+import AlertaDestino from "@/components/liquidaciones/alerta-destino";
 
 const inicial: EstadoLiq = { error: null };
 
@@ -15,6 +16,7 @@ export default function Liquidar({
   saldo: number;
 }) {
   const [abierto, setAbierto] = useState(false);
+  const [cuitDestino, setCuitDestino] = useState("");
   const [estado, accion, pendiente] = useActionState(liquidar, inicial);
 
   useEffect(() => {
@@ -46,7 +48,8 @@ export default function Liquidar({
       <input name="alias_destino" placeholder="Alias destino" className={inputCls} />
       <p className="text-[10px] text-muted-foreground">CBU/CVU o Alias: cargá al menos uno (pueden ser los dos).</p>
       <input name="beneficiario" placeholder="Razón Social / Beneficiario *" required className={inputCls} />
-      <InputCuit name="cuit_beneficiario" placeholder="CUIT del beneficiario *" required className={inputCls} />
+      <InputCuit name="cuit_beneficiario" placeholder="CUIT del beneficiario *" required className={inputCls} onValor={setCuitDestino} />
+      <AlertaDestino cuit={cuitDestino} />
       <InputMonto
         name="monto_liquidado"
         required
