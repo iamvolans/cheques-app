@@ -5,6 +5,7 @@ import EliminarCheque from "@/components/admin/eliminar-cheque";
 import CorregirCheque from "@/components/admin/corregir-cheque";
 import CorregirEstado from "@/components/admin/corregir-estado";
 import ReasignarCheque from "@/components/admin/reasignar-cheque";
+import RedepositarCheque from "@/components/admin/redepositar-cheque";
 import EditarDatosCheque from "@/components/admin/editar-datos-cheque";
 
 const colorEstado: Record<string, string> = {
@@ -172,6 +173,9 @@ export default async function DetalleChequePage({
             clienteActualId={ch.clientes?.id ?? ch.cliente_id}
             clientes={listaClientes ?? []}
           />
+        )}
+        {esAdmin && ch.estado === "rechazado" && (
+          <RedepositarCheque chequeId={ch.id} numero={ch.numero_cheque} />
         )}
         {esAdmin && (
           <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />

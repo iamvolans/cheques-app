@@ -581,3 +581,72 @@ export async function anularMovimiento(p: {
   revalidatePath("/dashboard");
   return { error: null, ok: true };
 }
+
+
+// ---------- Redepositar un cheque rechazado (segunda presentación) ----------
+export async function redepositarCheque(p: {
+  chequeId: string;
+  codigo: string;
+}): Promise<R> {
+  const auth = await exigirAdminConTotp(p.codigo);
+  if ("error" in auth) return { error: auth.error };
+
+  const admin = createAdminClient();
+  const { data: ch } = await admin.from("cheques").select("*").eq("id", p.chequeId).single();
+  if (!ch) return { error: "El cheque no existe." };
+  if (ch.estado !== "rechazado") return { error: "Solo se puede redepositar un cheque rechazado." };
+
+  const feeViejo = Number(ch.fee_calculado ?? 0);
+  const multaVieja = Number(ch.multa ?? 0);
+  const reversa = feeViejo + multaVieja;
+
+  // 1) Volver el cheque a depositado: el update va con el cliente de SESIÓN
+  //    para que los triggers vean al admin (fn_es_admin) y permitan limpiar la multa.
+  const supabase = await createClient();
+  const { error: eUpd } = await supabase
+    .from("cheques")
+    .update({
+      estado: "depositado",
+      fecha_deposito: new Date().toISOString().slice(0, 10),
+      fecha_resolucion: null,
+      multa: 0,
+      motivo_rechazo: null,
+      gasto_bancario: 0,
+    })
+    .eq("id", ch.id);
+  if (eUpd) return { error: `No se pudo redepositar: ${eUpd.message}` };
+
+  // 2) Revertir el débito del rechazo: se le devuelve al cliente fee + multa
+  if (reversa > 0) {
+    await admin.from("movimientos_clientes").insert({
+      cliente_id: ch.cliente_id,
+      cheque_id: ch.id,
+      tipo: "ajuste_manual",
+      monto: reversa,
+      descripcion: `Reversa débito por redepósito cheque N° ${ch.numero_cheque} (fee ${feeViejo} + multa ${multaVieja})`,
+      created_by: auth.userId,
+    });
+  }
+
+  // 3) Cancelar la notificación de rechazo pendiente (si aún no se envió)
+  await admin
+    .from("notificaciones_pendientes")
+    .delete()
+    .eq("cheque_id", ch.id)
+    .eq("tipo", "cheque_rechazado");
+
+  // 4) Auditoría completa
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
+    tabla: "cheques", registro_id: ch.id,
+    descripcion: `Redepósito del cheque N° ${ch.numero_cheque} (2da presentación). Reversa al cliente: ${reversa}. Verificado con segundo factor.`,
+    valores_antes: { estado: ch.estado, multa: ch.multa, motivo_rechazo: ch.motivo_rechazo, gasto_bancario: ch.gasto_bancario, fecha_resolucion: ch.fecha_resolucion, fecha_deposito: ch.fecha_deposito },
+    valores_despues: { estado: "depositado", multa: 0, motivo_rechazo: null, gasto_bancario: 0, fecha_resolucion: null },
+  });
+
+  revalidatePath("/cheques");
+  revalidatePath(`/cheques/${ch.id}`);
+  revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: true };
+}
