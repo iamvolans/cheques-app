@@ -167,6 +167,30 @@ export default async function ChequesPage({
               <option value="rechazado">Rechazado</option>
             </select>
           </label>
+          <label className={lblCls}>
+            Importe desde
+            <input name="montoDesde" type="number" min="0" step="0.01" defaultValue={f.montoDesde ?? ""} placeholder="0" className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Importe hasta
+            <input name="montoHasta" type="number" min="0" step="0.01" defaultValue={f.montoHasta ?? ""} placeholder="Sin tope" className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Tipo
+            <select name="tipo" defaultValue={f.tipo ?? ""} className={inputCls}>
+              <option value="">Todos</option>
+              <option value="fisico">Físico</option>
+              <option value="echeq">E-Cheq</option>
+            </select>
+          </label>
+          <label className={lblCls}>
+            Plaza
+            <select name="plaza" defaultValue={f.plaza ?? ""} className={inputCls}>
+              <option value="">Todas</option>
+              <option value="camara">Cámara</option>
+              <option value="interior">Interior</option>
+            </select>
+          </label>
           <button
             type="submit"
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-primary"
