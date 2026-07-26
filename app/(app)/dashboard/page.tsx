@@ -168,7 +168,7 @@ export default async function DashboardPage() {
       </div>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{titulo}</p>
       {sub && <p className="text-[11px] text-muted-foreground/70">{sub}</p>}
-      <p className={`metric metric-lg mt-1 ${tonos[tono].valor}`}>{valor}</p>
+      <p className={`metric metric-lg mt-1 ${valor.length > 17 ? "!text-xl" : valor.length > 14 ? "!text-2xl" : ""} ${tonos[tono].valor}`}>{valor}</p>
     </div>
   );
 
@@ -285,7 +285,7 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="metric metric-lg text-info">{fmtARS.format(proyTotal)}</p>
+              <p className={`metric metric-lg text-info ${fmtARS.format(proyTotal).length > 17 ? "!text-xl" : ""}`}>{fmtARS.format(proyTotal)}</p>
               <p className="text-[11px] text-muted-foreground">ver detalle →</p>
             </div>
           </Link>

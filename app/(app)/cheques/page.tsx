@@ -108,8 +108,12 @@ export default async function ChequesPage({
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 border-b border-border pb-4">
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cheques</h1>
+          <p className="text-sm text-muted-foreground">
+            {total} registro{total === 1 ? "" : "s"} · total filtrado{" "}
+            <span className="font-mono text-primary">{fmtARS.format(sumaMonto)}</span>
+          </p>
         </header>
 
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
