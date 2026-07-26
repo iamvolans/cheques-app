@@ -42,11 +42,22 @@ export async function GET(req: NextRequest) {
   const desde = req.nextUrl.searchParams.get("desde");
   const hasta = req.nextUrl.searchParams.get("hasta");
 
-  const { data: movs } = await admin
-    .from("movimientos_clientes")
-    .select("created_at, tipo, descripcion, monto, cheques(numero_cheque, librador, monto, fee_calculado, multa)")
-    .eq("cliente_id", cli.id)
-    .order("created_at", { ascending: true });
+  // Sin tope de 1000: paginado interno hasta agotar (el saldo acumulado necesita TODOS los movimientos)
+  type MovRaw = {
+    created_at: string; tipo: string; descripcion: string | null; monto: number | string;
+    cheques: unknown;
+  };
+  const movs: MovRaw[] = [];
+  for (let i = 0; ; i += 1000) {
+    const { data } = await admin
+      .from("movimientos_clientes")
+      .select("created_at, tipo, descripcion, monto, cheques(numero_cheque, librador, monto, fee_calculado, multa)")
+      .eq("cliente_id", cli.id)
+      .order("created_at", { ascending: true })
+      .range(i, i + 999);
+    movs.push(...((data ?? []) as unknown as MovRaw[]));
+    if (!data || data.length < 1000) break;
+  }
 
   // Saldo acumulado sobre TODO el historial; luego se filtra por rango (igual que el admin)
   let saldo = 0;
