@@ -1,3 +1,4 @@
+import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -112,7 +113,7 @@ export default async function DetalleChequePage({
             <Link href="/cheques" className="text-sm text-muted-foreground hover:text-foreground">← Volver a cheques</Link>
           </div>
           <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-            {ch.estado === "en_custodia" ? "custodia" : ch.estado}
+            {etiquetaEstado(ch.estado)}
           </span>
         </header>
 

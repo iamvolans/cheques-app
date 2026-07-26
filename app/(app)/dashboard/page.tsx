@@ -1,3 +1,4 @@
+import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
@@ -150,14 +151,14 @@ export default async function DashboardPage() {
 
   const financiero = [
     { titulo: "Ganancia neta", valor: fmtARS.format(gananciaNeta), Icon: TrendingUp, tono: "emerald" },
-    { titulo: `Volumen procesado · ${procesados.length} ok`, valor: fmtARS.format(volumenProcesado), Icon: CircleDollarSign, tono: "violet" },
+    { titulo: `Volumen acreditado · ${procesados.length} ok`, valor: fmtARS.format(volumenProcesado), Icon: CircleDollarSign, tono: "violet" },
     { titulo: "Pendiente a liquidar", valor: fmtARS.format(pendiente), Icon: Wallet, tono: "blue" },
     { titulo: "Rechazos / gestionados", valor: `${rechazados} / ${(estados ?? []).length}`, Icon: AlertOctagon, tono: rechazados > 0 ? "red" : "zinc" },
   ];
 
   const fisico = [
-    { titulo: `En oficina · ${enOficina.length} cheques`, sub: "listos para llevar al banco", valor: fmtARS.format(suma(enOficina)), Icon: Inbox, tono: enOficina.length > 0 ? "amber" : "zinc" },
-    { titulo: `Depositados · ${depositados.length} cheques`, sub: "en el banco, esperando acreditación", valor: fmtARS.format(suma(depositados)), Icon: Landmark, tono: "blue" },
+    { titulo: `En cartera · ${enOficina.length} cheques`, sub: "listos para llevar al banco", valor: fmtARS.format(suma(enOficina)), Icon: Inbox, tono: enOficina.length > 0 ? "amber" : "zinc" },
+    { titulo: `En Clearing · ${depositados.length} cheques`, sub: "en el banco, esperando acreditación", valor: fmtARS.format(suma(depositados)), Icon: Landmark, tono: "blue" },
     { titulo: `En custodia · ${enCustodia.length} diferidos`, sub: "aún no llegó su fecha de cobro", valor: fmtARS.format(suma(enCustodia)), Icon: Clock4, tono: "zinc" },
   ];
 
@@ -232,7 +233,7 @@ export default async function DashboardPage() {
             </span>
             <span className="min-w-0">
               <span className={`block font-semibold ${urgentes.length > 0 ? "text-danger" : "text-warning"}`}>
-                {enOficina.length} cheque{enOficina.length === 1 ? "" : "s"} en oficina por {fmtARS.format(suma(enOficina))} — hay que llevarlos al banco
+                {enOficina.length} cheque{enOficina.length === 1 ? "" : "s"} en cartera por {fmtARS.format(suma(enOficina))} — hay que llevarlos al banco
               </span>
               <span className="block text-sm text-muted-foreground">
                 {urgentes.length > 0
@@ -325,7 +326,7 @@ export default async function DashboardPage() {
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="font-mono text-foreground">{fmtARS.format(Number(ch.monto))}</span>
                   <span className={`rounded-md px-2 py-0.5 text-[11px] font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-                    {ch.estado === "en_custodia" ? "custodia" : ch.estado}
+                    {etiquetaEstado(ch.estado)}
                   </span>
                 </div>
               </Link>

@@ -6,10 +6,10 @@ import { corregirEstado } from "@/actions/correcciones";
 import { GitBranch } from "lucide-react";
 
 const ESTADOS = [
-  { v: "aceptado", l: "Aceptado" },
-  { v: "depositado", l: "Depositado" },
+  { v: "aceptado", l: "En cartera" },
+  { v: "depositado", l: "En Clearing" },
   { v: "en_custodia", l: "En custodia" },
-  { v: "procesado", l: "Procesado" },
+  { v: "procesado", l: "Acreditado" },
   { v: "rechazado", l: "Rechazado" },
 ] as const;
 

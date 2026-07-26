@@ -108,7 +108,7 @@ export default async function ResumenClientePage({
                   <td className={td}>{c.numero_cheque}</td>
                   <td className={td}>{c.librador}</td>
                   <td className={`${td} text-right`}>{fmt.format(Number(c.monto))}</td>
-                  <td className={td}>{c.estado === "depositado" ? "Depositado" : "Aceptado"}</td>
+                  <td className={td}>{c.estado === "depositado" ? "En Clearing" : "En cartera"}</td>
                   <td className={td}>{c.fecha_estimada_acred ?? "A definir"}</td>
                 </tr>
               ))}

@@ -1,3 +1,4 @@
+import { etiquetaEstado } from "@/lib/estados";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
     "Monto": Number(c.monto),
     "Fee %": Number(c.fee_aplicado_pct ?? 0),
     "Fee calculado": Number(c.fee_calculado ?? 0),
-    "Estado": c.estado,
+    "Estado": etiquetaEstado(String(c.estado)),
     "Banco emisor": c.banco_emisor,
     "Fecha cobro": c.fecha_cobro,
     "Acred. estimada": c.fecha_estimada_acred ?? "",

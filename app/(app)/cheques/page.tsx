@@ -1,3 +1,4 @@
+import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -165,9 +166,9 @@ export default async function ChequesPage({
             <select name="estado" defaultValue={f.estado ?? ""} className={inputCls}>
               <option value="">Todos</option>
               <option value="en_custodia">En custodia (diferidos)</option>
-              <option value="aceptado">Aceptado</option>
-              <option value="depositado">Depositado</option>
-              <option value="procesado">Procesado</option>
+              <option value="aceptado">En cartera</option>
+              <option value="depositado">En Clearing</option>
+              <option value="procesado">Acreditado</option>
               <option value="rechazado">Rechazado</option>
             </select>
           </label>
@@ -269,7 +270,7 @@ export default async function ChequesPage({
                   </td>
                   <td className="px-3 py-3">
                     <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorEstado[ch.estado] ?? ""}`}>
-                      {ch.estado === "en_custodia" ? "custodia" : ch.estado}
+                      {etiquetaEstado(ch.estado)}
                     </span>
                   </td>
                   <td className="px-3 py-3">
