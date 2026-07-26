@@ -6,15 +6,25 @@ export default async function ConcentracionDestinos({ esAdmin }: { esAdmin: bool
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  const [{ data: liqs }, { data: bloqueados }] = await Promise.all([
-    supabase
+  const { data: bloqueados } = await admin.from("cuits_destino_bloqueados").select("cuit");
+
+  // Sin tope de 1000: paginado interno hasta agotar
+  type LiqRaw = {
+    cuit_beneficiario: string; beneficiario: string | null;
+    monto_liquidado: number | string; fecha_transferencia: string;
+  };
+  const liqs: LiqRaw[] = [];
+  for (let i = 0; ; i += 1000) {
+    const { data } = await supabase
       .from("liquidaciones")
       .select("cuit_beneficiario, beneficiario, monto_liquidado, fecha_transferencia")
-      .not("cuit_beneficiario", "is", null),
-    admin.from("cuits_destino_bloqueados").select("cuit"),
-  ]);
+      .not("cuit_beneficiario", "is", null)
+      .range(i, i + 999);
+    liqs.push(...((data ?? []) as LiqRaw[]));
+    if (!data || data.length < 1000) break;
+  }
 
-  if (!liqs || liqs.length === 0) return null;
+  if (liqs.length === 0) return null;
 
   const limpiar = (c: string) => c.replace(/\D/g, "");
   const setBloq = new Set((bloqueados ?? []).map((b) => limpiar(b.cuit)));
@@ -74,7 +84,7 @@ export default async function ConcentracionDestinos({ esAdmin }: { esAdmin: bool
                 </td>
                 <td className="px-3 py-2.5 font-mono text-muted-foreground">{f.cuit}</td>
                 <td className="px-3 py-2.5">
-                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${esPF(f.cuit) ? "bg-info/10 text-info" : "bg-info/10 text-info"}`}>
+                  <span className={`rounded-full whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold uppercase ${esPF(f.cuit) ? "bg-warning-muted text-warning" : "bg-info-muted text-info"}`}>
                     {esPF(f.cuit) ? "Persona física" : "Empresa"}
                   </span>
                 </td>
