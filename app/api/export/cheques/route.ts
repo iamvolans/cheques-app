@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
   const tipo = p.get("tipo");
   const plaza = p.get("plaza");
   const qTexto = (p.get("q") ?? "").trim().replace(/[,()%]/g, "");
+  const tipoFecha = p.get("tipoFecha") ?? "cobro";
+  const colFecha = ({ cobro: "fecha_cobro", carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[tipoFecha] ?? "fecha_cobro";
+  const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
 
   // Paginado interno: bloques de 1000 (límite de Supabase) hasta agotar — sin tope total
   type Fila = Record<string, unknown>;
@@ -33,8 +36,8 @@ export async function GET(req: NextRequest) {
       .select(COLS)
       .order("fecha_cobro", { ascending: false })
       .range(inicio, inicio + BLOQUE - 1);
-    if (desde) q = q.gte("fecha_cobro", desde);
-    if (hasta) q = q.lte("fecha_cobro", hasta);
+    if (desde) q = q.gte(colFecha, desde);
+    if (hasta) q = q.lte(colFecha, vHasta(hasta));
     if (cliente) q = q.eq("cliente_id", cliente);
     if (estado) q = q.eq("estado", estado);
     if (montoDesde && !isNaN(Number(montoDesde))) q = q.gte("monto", Number(montoDesde));

@@ -23,6 +23,7 @@ type Filtros = {
   cliente?: string;
   estado?: string;
   q?: string;
+  tipoFecha?: string;
   montoDesde?: string;
   montoHasta?: string;
   tipo?: string;
@@ -60,8 +61,10 @@ export default async function ChequesPage({
     .range(inicio, inicio + 24);
   let qMonto = supabase.from("cheques").select("monto");
 
-  if (f.desde) { qCheques = qCheques.gte("fecha_cobro", f.desde); qMonto = qMonto.gte("fecha_cobro", f.desde); }
-  if (f.hasta) { qCheques = qCheques.lte("fecha_cobro", f.hasta); qMonto = qMonto.lte("fecha_cobro", f.hasta); }
+  const colFecha = ({ cobro: "fecha_cobro", carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[f.tipoFecha ?? "cobro"] ?? "fecha_cobro";
+  const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
+  if (f.desde) { qCheques = qCheques.gte(colFecha, f.desde); qMonto = qMonto.gte(colFecha, f.desde); }
+  if (f.hasta) { qCheques = qCheques.lte(colFecha, vHasta(f.hasta)); qMonto = qMonto.lte(colFecha, vHasta(f.hasta)); }
   if (f.cliente) { qCheques = qCheques.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
   if (f.estado) { qCheques = qCheques.eq("estado", f.estado); qMonto = qMonto.eq("estado", f.estado); }
   if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qCheques = qCheques.gte("monto", Number(f.montoDesde)); qMonto = qMonto.gte("monto", Number(f.montoDesde)); }
@@ -145,11 +148,21 @@ export default async function ChequesPage({
             />
           </label>
           <label className={lblCls}>
-            Cobro desde
+            Fechas por
+            <select name="tipoFecha" defaultValue={f.tipoFecha ?? "cobro"} className={inputCls}>
+              <option value="cobro">Fecha cobro</option>
+              <option value="carga">Fecha carga</option>
+              <option value="deposito">Fecha depósito</option>
+              <option value="acred">Fecha acreditación</option>
+              <option value="pago">Fecha pago</option>
+            </select>
+          </label>
+          <label className={lblCls}>
+            Desde
             <input name="desde" type="date" defaultValue={f.desde ?? ""} className={inputCls} />
           </label>
           <label className={lblCls}>
-            Cobro hasta
+            Hasta
             <input name="hasta" type="date" defaultValue={f.hasta ?? ""} className={inputCls} />
           </label>
           <label className={lblCls}>
