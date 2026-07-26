@@ -11,6 +11,10 @@ export async function GET(req: NextRequest) {
 
   const desde = req.nextUrl.searchParams.get("desde");
   const hasta = req.nextUrl.searchParams.get("hasta");
+  const cliente = req.nextUrl.searchParams.get("cliente");
+  const montoDesde = req.nextUrl.searchParams.get("montoDesde");
+  const montoHasta = req.nextUrl.searchParams.get("montoHasta");
+  const qTexto = (req.nextUrl.searchParams.get("q") ?? "").trim().replace(/[,()%]/g, "");
 
   // Sin tope: paginado interno en bloques de 1000 hasta agotar
   type Fila = Record<string, unknown>;
@@ -23,6 +27,10 @@ export async function GET(req: NextRequest) {
       .range(i, i + 999);
     if (desde) q = q.gte("fecha_transferencia", desde);
     if (hasta) q = q.lte("fecha_transferencia", hasta);
+    if (cliente) q = q.eq("cliente_id", cliente);
+    if (montoDesde && !isNaN(Number(montoDesde))) q = q.gte("monto_liquidado", Number(montoDesde));
+    if (montoHasta && !isNaN(Number(montoHasta))) q = q.lte("monto_liquidado", Number(montoHasta));
+    if (qTexto) q = q.or(`beneficiario.ilike.%${qTexto}%,cuit_beneficiario.ilike.%${qTexto}%,coelsa_id.ilike.%${qTexto}%`);
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     todas.push(...(data ?? []));

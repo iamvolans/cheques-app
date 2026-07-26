@@ -7,12 +7,22 @@ import AccionesLiquidacion from "@/components/liquidaciones/acciones-liquidacion
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+type Filtros = {
+  page?: string;
+  q?: string;
+  desde?: string;
+  hasta?: string;
+  montoDesde?: string;
+  montoHasta?: string;
+  cliente?: string;
+};
+
 export default async function LiquidacionesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Filtros>;
 }) {
-  const sp = await searchParams;
+  const f = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -24,17 +34,33 @@ export default async function LiquidacionesPage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const pagina = Math.max(1, Number(sp.page) || 1);
+  const pagina = Math.max(1, Number(f.page) || 1);
   const inicio = (pagina - 1) * 25;
+  const qTexto = (f.q ?? "").trim().replace(/[,()%]/g, "");
 
-  const [{ data: perfil }, { data: liqs, count }, { data: montos }] = await Promise.all([
+  let qLiqs = supabase
+    .from("liquidaciones")
+    .select("*, clientes(razon_social)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(inicio, inicio + 24);
+  let qMonto = supabase.from("liquidaciones").select("monto_liquidado");
+
+  if (f.desde) { qLiqs = qLiqs.gte("fecha_transferencia", f.desde); qMonto = qMonto.gte("fecha_transferencia", f.desde); }
+  if (f.hasta) { qLiqs = qLiqs.lte("fecha_transferencia", f.hasta); qMonto = qMonto.lte("fecha_transferencia", f.hasta); }
+  if (f.cliente) { qLiqs = qLiqs.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
+  if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qLiqs = qLiqs.gte("monto_liquidado", Number(f.montoDesde)); qMonto = qMonto.gte("monto_liquidado", Number(f.montoDesde)); }
+  if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qLiqs = qLiqs.lte("monto_liquidado", Number(f.montoHasta)); qMonto = qMonto.lte("monto_liquidado", Number(f.montoHasta)); }
+  if (qTexto) {
+    const filtro = `beneficiario.ilike.%${qTexto}%,cuit_beneficiario.ilike.%${qTexto}%,coelsa_id.ilike.%${qTexto}%`;
+    qLiqs = qLiqs.or(filtro);
+    qMonto = qMonto.or(filtro);
+  }
+
+  const [{ data: perfil }, { data: liqs, count }, { data: montos }, { data: clientes }] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
-    supabase
-      .from("liquidaciones")
-      .select("*, clientes(razon_social)", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(inicio, inicio + 24),
-    supabase.from("liquidaciones").select("monto_liquidado"),
+    qLiqs,
+    qMonto,
+    supabase.from("clientes").select("id, razon_social").order("razon_social"),
   ]);
   const esAdmin = perfil?.rol === "administrador";
 
@@ -42,16 +68,21 @@ export default async function LiquidacionesPage({
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
   const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto_liquidado), 0);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
+  const hayFiltros = Boolean(f.q || f.desde || f.hasta || f.cliente || f.montoDesde || f.montoHasta);
+
+  const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground";
+  const inputCls =
+    "rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case tracking-normal text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/15";
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 border-b border-border pb-4">
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Liquidaciones</h1>
-          <div className="flex gap-3 text-sm">
-            
-            
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {total} registro{total === 1 ? "" : "s"} · total filtrado{" "}
+            <span className="font-mono text-primary">{fmtARS.format(sumaMonto)}</span>
+          </p>
         </header>
 
         <div className="mb-4 flex justify-end">
@@ -61,6 +92,53 @@ export default async function LiquidacionesPage({
         <SolicitudesPendientes />
 
         <ConcentracionDestinos esAdmin={true} />
+
+        {/* Barra de filtros */}
+        <form
+          method="get"
+          className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-4 shadow-lg shadow-foreground/5"
+        >
+          <label className={`${lblCls} min-w-52 flex-1`}>
+            Buscar
+            <input name="q" defaultValue={f.q ?? ""} placeholder="Beneficiario, CUIT o Coelsa ID" className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Desde
+            <input name="desde" type="date" defaultValue={f.desde ?? ""} className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Hasta
+            <input name="hasta" type="date" defaultValue={f.hasta ?? ""} className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Importe desde
+            <input name="montoDesde" type="number" min="0" step="0.01" defaultValue={f.montoDesde ?? ""} placeholder="0" className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Importe hasta
+            <input name="montoHasta" type="number" min="0" step="0.01" defaultValue={f.montoHasta ?? ""} placeholder="Sin tope" className={inputCls} />
+          </label>
+          <label className={lblCls}>
+            Cliente
+            <select name="cliente" defaultValue={f.cliente ?? ""} className={inputCls}>
+              <option value="">Todos</option>
+              {(clientes ?? []).map((c) => (
+                <option key={c.id} value={c.id}>{c.razon_social}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="submit"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-primary"
+          >
+            Filtrar
+          </button>
+          {hayFiltros && (
+            <Link href="/liquidaciones" className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/90 transition hover:bg-muted">
+              Limpiar
+            </Link>
+          )}
+        </form>
 
         <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
           <table className="w-full text-sm">
@@ -96,7 +174,7 @@ export default async function LiquidacionesPage({
               {(liqs ?? []).length === 0 && (
                 <tr>
                   <td colSpan={esAdmin ? 7 : 6} className="px-4 py-10 text-center text-muted-foreground">
-                    No hay liquidaciones registradas.
+                    {hayFiltros ? "Sin resultados para esos filtros." : "No hay liquidaciones registradas."}
                   </td>
                 </tr>
               )}

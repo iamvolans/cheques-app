@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
   const desde = req.nextUrl.searchParams.get("desde");
   const hasta = req.nextUrl.searchParams.get("hasta");
   const tabla = req.nextUrl.searchParams.get("tabla");
+  const accion = req.nextUrl.searchParams.get("accion");
+  const qTexto = (req.nextUrl.searchParams.get("q") ?? "").trim().replace(/[,()%]/g, "");
 
   // Sin tope: paginado interno en bloques de 1000 hasta agotar
   type Fila = Record<string, unknown>;
@@ -23,6 +25,8 @@ export async function GET(req: NextRequest) {
     if (desde) q = q.gte("created_at", desde);
     if (hasta) q = q.lte("created_at", `${hasta}T23:59:59`);
     if (tabla && tabla !== "todas") q = q.eq("tabla", tabla);
+    if (accion && ["INSERT", "UPDATE", "DELETE"].includes(accion)) q = q.eq("accion", accion);
+    if (qTexto) q = q.or(`descripcion.ilike.%${qTexto}%,usuario_email.ilike.%${qTexto}%`);
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     todas.push(...(data ?? []));
