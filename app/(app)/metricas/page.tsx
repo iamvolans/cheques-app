@@ -84,12 +84,12 @@ export default async function MetricasPage() {
         </section>
 
         <section className="space-y-3">
-          <p className={titulo}>Ganancia · precio cobrado al cliente menos costos del banco</p>
+          <p className={titulo}>Ganancia · comisiones netas de costo bancario · los tres componentes suman el total</p>
           <div className={grilla}>
             <Recuadro titulo="Ganancia total (neta)" importe={ganTotal} tono="text-primary" />
-            <Recuadro titulo="Comisión acreditados" importe={N(gan.comision_acreditados)} porc={pct(N(gan.comision_acreditados), ganTotal)} base="ganancia" />
-            <Recuadro titulo="Comisión rechazados (fee + multa)" importe={N(gan.comision_rechazados)} porc={pct(N(gan.comision_rechazados), ganTotal)} base="ganancia" />
-            <Recuadro titulo="Costos (gasto rechazos + costo banco)" importe={N(gan.gasto_rechazos) + N(gan.costo_bancario_total)} tono="text-danger" />
+            <Recuadro titulo="Comisión acreditados (neta)" importe={N(gan.comision_acreditados)} porc={pct(N(gan.comision_acreditados), ganTotal)} base="ganancia" />
+            <Recuadro titulo="Comisión rechazados (neta)" importe={N(gan.comision_rechazados)} porc={pct(N(gan.comision_rechazados), ganTotal)} base="ganancia" />
+            <Recuadro titulo="Margen multas de rechazo" importe={N(gan.margen_multas)} porc={pct(N(gan.margen_multas), ganTotal)} base="ganancia" />
           </div>
         </section>
       </div>
