@@ -1,3 +1,4 @@
+import DepositoLote from "@/components/cheques/deposito-lote";
 import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -225,10 +226,13 @@ export default async function ChequesPage({
           )}
         </form>
 
+        <DepositoLote />
+
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[1000px] text-sm">
             <thead className="bg-card/80 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
+                <th className="w-8 px-2 py-3"></th>
                 <th className="px-3 py-3 font-medium">N°</th>
                 <th className="px-3 py-3 font-medium">Librador</th>
                 <th className="px-3 py-3 font-medium">CUIT</th>
@@ -245,6 +249,11 @@ export default async function ChequesPage({
             <tbody className="divide-y divide-border bg-background">
               {(cheques ?? []).map((ch) => (
                 <tr key={ch.id} className="transition hover:bg-muted/40">
+                  <td className="px-2 py-3">
+                    {(ch.estado === "aceptado" || (ch.estado === "en_custodia" && ch.fecha_cobro <= hoy)) && (
+                      <input type="checkbox" name="sel" value={ch.id} className="h-4 w-4 accent-emerald-600" />
+                    )}
+                  </td>
                   <td className="px-3 py-3 font-mono text-foreground/90">
                     <Link href={`/cheques/${ch.id}`} className="hover:text-primary hover:underline">{ch.numero_cheque}</Link>
                     {ch.tipo === "echeq" && (
@@ -299,7 +308,7 @@ export default async function ChequesPage({
               ))}
               {(cheques ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-4 py-10 text-center text-muted-foreground">
                     {hayFiltros ? "Sin resultados para esos filtros." : "No hay cheques cargados todavía."}
                   </td>
                 </tr>

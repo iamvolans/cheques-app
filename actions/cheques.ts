@@ -208,3 +208,50 @@ export async function cambiarEstado(input: {
   revalidatePath("/clientes");
   return { error: null };
 }
+
+
+// ---------- Depósito en lote: pasa a "depositado" todos los seleccionados ----------
+export async function depositarLote(ids: string[]): Promise<{
+  error: string | null;
+  ok?: number;
+  fallidos?: { numero: string; motivo: string }[];
+}> {
+  if (!ids || ids.length === 0) return { error: "No seleccionaste ningún cheque." };
+  if (ids.length > 300) return { error: "Máximo 300 cheques por lote." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  const { data: chs } = await supabase
+    .from("cheques")
+    .select("id, numero_cheque, estado, fecha_cobro")
+    .in("id", ids);
+
+  let okCount = 0;
+  const fallidos: { numero: string; motivo: string }[] = [];
+
+  for (const ch of chs ?? []) {
+    const depositable = ch.estado === "aceptado" || (ch.estado === "en_custodia" && ch.fecha_cobro <= hoy);
+    if (!depositable) {
+      fallidos.push({
+        numero: ch.numero_cheque,
+        motivo: ch.estado === "en_custodia" ? `diferido hasta ${ch.fecha_cobro}` : `estado ${ch.estado}`,
+      });
+      continue;
+    }
+    // Update individual: los triggers setean fecha_deposito/acreditación y auditan cada uno
+    const { error } = await supabase
+      .from("cheques")
+      .update({ estado: "depositado" })
+      .eq("id", ch.id)
+      .eq("estado", ch.estado);
+    if (error) fallidos.push({ numero: ch.numero_cheque, motivo: error.message });
+    else okCount++;
+  }
+
+  revalidatePath("/cheques");
+  revalidatePath("/dashboard");
+  return { error: null, ok: okCount, fallidos };
+}
