@@ -15,16 +15,22 @@ export async function GET(req: NextRequest) {
   const hasta = req.nextUrl.searchParams.get("hasta");
   const tabla = req.nextUrl.searchParams.get("tabla");
 
-  let q = supabase.from("logs_auditoria").select("*").order("created_at", { ascending: false }).limit(20000);
-  if (desde) q = q.gte("created_at", desde);
-  if (hasta) q = q.lte("created_at", `${hasta}T23:59:59`);
-  if (tabla && tabla !== "todas") q = q.eq("tabla", tabla);
+  // Sin tope: paginado interno en bloques de 1000 hasta agotar
+  type Fila = Record<string, unknown>;
+  const todas: Fila[] = [];
+  for (let i = 0; ; i += 1000) {
+    let q = supabase.from("logs_auditoria").select("*").order("created_at", { ascending: false }).range(i, i + 999);
+    if (desde) q = q.gte("created_at", desde);
+    if (hasta) q = q.lte("created_at", `${hasta}T23:59:59`);
+    if (tabla && tabla !== "todas") q = q.eq("tabla", tabla);
+    const { data, error } = await q;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    todas.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
 
-  const { data, error } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  const filas = (data ?? []).map((l) => ({
-    "Cuándo": new Date(l.created_at).toLocaleString("es-AR"),
+  const filas = todas.map((l) => ({
+    "Cuándo": new Date(l.created_at as string).toLocaleString("es-AR"),
     "Usuario": l.usuario_email ?? "sistema",
     "Acción": l.accion,
     "Tabla": l.tabla,

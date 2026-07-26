@@ -68,7 +68,7 @@ export default async function ChequesPage({
   if (f.tipo === "echeq" || f.tipo === "fisico") { qCheques = qCheques.eq("tipo", f.tipo); qMonto = qMonto.eq("tipo", f.tipo); }
   if (f.plaza === "camara" || f.plaza === "interior") { qCheques = qCheques.eq("plaza", f.plaza); qMonto = qMonto.eq("plaza", f.plaza); }
   if (qTexto) {
-    const filtro = `numero_cheque.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%`;
+    const filtro = `numero_cheque.ilike.%${qTexto}%,librador.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%`;
     qCheques = qCheques.or(filtro);
     qMonto = qMonto.or(filtro);
   }

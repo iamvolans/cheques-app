@@ -36,6 +36,7 @@ export default function EditarDatosCheque({
 }) {
   const [abierto, setAbierto] = useState(false);
   const [f, setF] = useState({
+    numero: numero ?? "",
     librador, cuit: fmtCuit(cuit ?? ""), banco: banco ?? "",
     cp: cp != null ? String(cp) : "",
     fechaCobro: fechaCobro ?? "", fechaAcred: fechaAcred ?? "",
@@ -73,6 +74,9 @@ export default function EditarDatosCheque({
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">CUIT
             <input value={f.cuit} onChange={(e) => setF({ ...f, cuit: fmtCuit(e.target.value) })} inputMode="numeric" maxLength={13} className={inp} />
           </label>
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">N° de cheque
+            <input value={f.numero} onChange={(e) => setF({ ...f, numero: e.target.value })} className={inp} />
+          </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Banco emisor
             <InputBanco name="banco_edit" bancos={bancos} defaultValue={f.banco} className={inp} onElegir={(v) => setF({ ...f, banco: v })} />
           </label>
@@ -93,7 +97,8 @@ export default function EditarDatosCheque({
                 setError(null);
                 startTransition(async () => {
                   const r = await editarDatosCheque({
-                    chequeId, librador: f.librador, cuit_librador: f.cuit,
+                    chequeId, numero_cheque: f.numero,
+                    librador: f.librador, cuit_librador: f.cuit,
                     banco_emisor: f.banco, codigo_postal: Number(f.cp),
                     fecha_cobro: f.fechaCobro,
                     fecha_estimada_acred: f.fechaAcred || null,

@@ -426,6 +426,7 @@ export async function reasignarCheque(p: {
 // ---------- Editar datos NO contables del cheque (no toca saldo) ----------
 export async function editarDatosCheque(p: {
   chequeId: string;
+  numero_cheque: string;
   librador: string;
   cuit_librador: string;
   banco_emisor: string;
@@ -461,6 +462,7 @@ export async function editarDatosCheque(p: {
   const nuevoFee = Math.round(Number(ch.monto) * nuevoPct) / 100;
 
   const update = {
+    numero_cheque: p.numero_cheque.trim(),
     librador: p.librador.trim(),
     cuit_librador: p.cuit_librador.trim(),
     banco_emisor: p.banco_emisor.trim(),
@@ -472,6 +474,7 @@ export async function editarDatosCheque(p: {
     fecha_estimada_acred: p.fecha_estimada_acred || null,
   };
   if (!update.librador) return { error: "El librador no puede quedar vacío." };
+  if (!update.numero_cheque) return { error: "El número de cheque no puede quedar vacío." };
   if (!/^\d{2}-?\d{8}-?\d$/.test(update.cuit_librador)) return { error: "El CUIT del librador es inválido." };
 
   await admin.from("cheques").update(update).eq("id", ch.id);
@@ -490,7 +493,7 @@ export async function editarDatosCheque(p: {
     usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
     tabla: "cheques", registro_id: ch.id,
     descripcion: `Edición de datos no contables del cheque N° ${ch.numero_cheque} (librador/CUIT/banco/fechas)`,
-    valores_antes: { librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, codigo_postal: ch.codigo_postal, plaza: ch.plaza, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
+    valores_antes: { numero_cheque: ch.numero_cheque, librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, codigo_postal: ch.codigo_postal, plaza: ch.plaza, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
     valores_despues: update,
   });
 

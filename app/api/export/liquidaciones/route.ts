@@ -12,18 +12,24 @@ export async function GET(req: NextRequest) {
   const desde = req.nextUrl.searchParams.get("desde");
   const hasta = req.nextUrl.searchParams.get("hasta");
 
-  let q = supabase
-    .from("liquidaciones")
-    .select("fecha_transferencia, clientes(razon_social), coelsa_id, beneficiario, cuit_beneficiario, cvu_cbu_destino, alias_destino, monto_liquidado, created_at")
-    .order("fecha_transferencia", { ascending: false })
-    .limit(10000);
-  if (desde) q = q.gte("fecha_transferencia", desde);
-  if (hasta) q = q.lte("fecha_transferencia", hasta);
+  // Sin tope: paginado interno en bloques de 1000 hasta agotar
+  type Fila = Record<string, unknown>;
+  const todas: Fila[] = [];
+  for (let i = 0; ; i += 1000) {
+    let q = supabase
+      .from("liquidaciones")
+      .select("fecha_transferencia, clientes(razon_social), coelsa_id, beneficiario, cuit_beneficiario, cvu_cbu_destino, alias_destino, monto_liquidado, created_at")
+      .order("fecha_transferencia", { ascending: false })
+      .range(i, i + 999);
+    if (desde) q = q.gte("fecha_transferencia", desde);
+    if (hasta) q = q.lte("fecha_transferencia", hasta);
+    const { data, error } = await q;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    todas.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
 
-  const { data, error } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  const filas = (data ?? []).map((l) => ({
+  const filas = todas.map((l) => ({
     "Fecha transferencia": l.fecha_transferencia,
     "Cliente": (l.clientes as unknown as { razon_social?: string } | null)?.razon_social ?? "",
     "Coelsa ID": l.coelsa_id,
