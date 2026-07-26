@@ -134,6 +134,9 @@ export default function NuevoCheque({
           className={inputCls}
         />
       </Campo>
+      <Campo etiqueta="Fecha de pago del cheque *">
+        <input name="fecha_pago" type="date" required className={inputCls} />
+      </Campo>
 
       <Campo etiqueta="Librador *">
         <input name="librador" placeholder="Razón social del emisor" required className={inputCls} />

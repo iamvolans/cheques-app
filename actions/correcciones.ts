@@ -653,3 +653,31 @@ export async function redepositarCheque(p: {
   revalidatePath("/dashboard");
   return { error: null, ok: true };
 }
+
+
+// ---------- Reasignar el convenio de un cheque (no toca saldos) ----------
+export async function reasignarConvenio(p: {
+  chequeId: string;
+  nuevoConvenioId: string;
+}): Promise<R> {
+  const auth = await exigirAdmin();
+  if ("error" in auth) return { error: auth.error };
+  const admin = createAdminClient();
+  const { data: ch } = await admin.from("cheques").select("id, numero_cheque, convenio_id").eq("id", p.chequeId).single();
+  if (!ch) return { error: "El cheque no existe." };
+  if (ch.convenio_id === p.nuevoConvenioId) return { error: "El cheque ya pertenece a ese convenio." };
+  const { data: conv } = await admin.from("convenios").select("id, razon_social").eq("id", p.nuevoConvenioId).single();
+  if (!conv) return { error: "El convenio destino no existe." };
+
+  await admin.from("cheques").update({ convenio_id: p.nuevoConvenioId }).eq("id", ch.id);
+  await admin.from("logs_auditoria").insert({
+    usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
+    tabla: "cheques", registro_id: ch.id,
+    descripcion: `Reasignación de convenio del cheque N° ${ch.numero_cheque} → ${conv.razon_social}`,
+    valores_antes: { convenio_id: ch.convenio_id },
+    valores_despues: { convenio_id: p.nuevoConvenioId },
+  });
+  revalidatePath("/cheques");
+  revalidatePath(`/cheques/${ch.id}`);
+  return { error: null, ok: true };
+}

@@ -1,3 +1,4 @@
+import ReasignarConvenio from "@/components/admin/reasignar-convenio";
 import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
@@ -50,12 +51,13 @@ export default async function DetalleChequePage({
   if (aal?.nextLevel === "aal1") redirect("/mfa-setup");
   if (aal?.currentLevel !== "aal2") redirect("/mfa-verify");
 
-  const [{ data: ch }, { data: logs }, { data: miPerfil }, { data: listaClientes }, { data: listaBancos }] = await Promise.all([
+  const [{ data: ch }, { data: listaConvenios }, { data: logs }, { data: miPerfil }, { data: listaClientes }, { data: listaBancos }] = await Promise.all([
     supabase
       .from("cheques")
       .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias)")
       .eq("id", id)
       .single(),
+    supabase.from("convenios").select("id, razon_social").order("razon_social"),
     supabase
       .from("logs_auditoria")
       .select("*")
@@ -84,6 +86,7 @@ export default async function DetalleChequePage({
     ["Endosos", String(ch.endosos)],
     ["Banco emisor", ch.banco_emisor],
     ["Convenio", ch.convenios?.razon_social ?? "—"],
+    ["Fecha de pago", ch.fecha_pago ?? "—"],
     ["Cuenta de ingreso", `${ch.cuentas_bancarias_empresa?.banco ?? "—"}${ch.cuentas_bancarias_empresa?.alias ? " · " + ch.cuentas_bancarias_empresa.alias : ""}`],
     ["Fecha de cobro", ch.fecha_cobro],
     ["Fecha de depósito", ch.fecha_deposito ?? "—"],
@@ -177,6 +180,13 @@ export default async function DetalleChequePage({
         )}
         {esAdmin && ch.estado === "rechazado" && (
           <RedepositarCheque chequeId={ch.id} numero={ch.numero_cheque} />
+        )}
+        {esAdmin && (
+          <ReasignarConvenio
+            chequeId={ch.id}
+            numero={ch.numero_cheque}
+            convenios={listaConvenios ?? []}
+          />
         )}
         {esAdmin && (
           <CorregirCheque chequeId={ch.id} numero={ch.numero_cheque} monto={Number(ch.monto)} />
