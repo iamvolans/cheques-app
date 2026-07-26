@@ -18,24 +18,47 @@ const colorEstado: Record<string, string> = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: ganancias }, { data: saldos }, { data: estados }, { data: recientes }, { data: resueltos }, { data: conc }, { data: proy }] =
+  const [{ data: ganancias }, { data: saldos }, { data: recientes }, { data: conc }, { data: proy }] =
     await Promise.all([
       supabase.from("vw_ganancias").select("*"),
       supabase.from("vw_saldos_clientes").select("saldo_disponible"),
-      supabase.from("cheques").select("estado, monto, fecha_cobro, created_at"),
       supabase
         .from("cheques")
         .select("id, numero_cheque, librador, monto, estado, created_at, clientes(razon_social)")
         .order("created_at", { ascending: false })
         .limit(6),
-      supabase
-        .from("cheques")
-        .select("monto, fee_calculado, multa, gasto_bancario, estado, fecha_resolucion, cuentas_bancarias_empresa(costo_bancario_pct)")
-        .not("fecha_resolucion", "is", null)
-        .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString()),
       supabase.from("vw_concentracion_resumen").select("*").single(),
       supabase.from("vw_proyeccion_acreditaciones").select("*"),
     ]);
+
+  // Sin tope de 1000 filas: paginado interno en bloques hasta agotar
+  type ChEstado = { estado: string; monto: number | string; fecha_cobro: string; created_at: string };
+  const estados: ChEstado[] = [];
+  for (let i = 0; ; i += 1000) {
+    const { data } = await supabase
+      .from("cheques")
+      .select("estado, monto, fecha_cobro, created_at")
+      .range(i, i + 999);
+    estados.push(...((data ?? []) as ChEstado[]));
+    if (!data || data.length < 1000) break;
+  }
+
+  type ChResuelto = {
+    monto: number | string; fee_calculado: number | string;
+    multa: number | string | null; gasto_bancario: number | string | null;
+    estado: string; fecha_resolucion: string; cuentas_bancarias_empresa: unknown;
+  };
+  const resueltos: ChResuelto[] = [];
+  for (let i = 0; ; i += 1000) {
+    const { data } = await supabase
+      .from("cheques")
+      .select("monto, fee_calculado, multa, gasto_bancario, estado, fecha_resolucion, cuentas_bancarias_empresa(costo_bancario_pct)")
+      .not("fecha_resolucion", "is", null)
+      .gte("fecha_resolucion", new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString())
+      .range(i, i + 999);
+    resueltos.push(...((data ?? []) as unknown as ChResuelto[]));
+    if (!data || data.length < 1000) break;
+  }
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const hoy = new Date().toISOString().slice(0, 10);
