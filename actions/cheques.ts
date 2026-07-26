@@ -257,3 +257,39 @@ export async function depositarLote(ids: string[]): Promise<{
   revalidatePath("/dashboard");
   return { error: null, ok: okCount, fallidos };
 }
+
+
+// ---------- Gestión de cheques físicos rechazados: notificado / recuperado / entregado ----------
+export async function gestionRechazo(p: {
+  chequeId: string;
+  paso: "notificado" | "recuperado" | "entregado";
+}): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  const { data: ch } = await supabase
+    .from("cheques")
+    .select("id, numero_cheque, estado, tipo")
+    .eq("id", p.chequeId)
+    .single();
+  if (!ch) return { error: "El cheque no existe." };
+  if (ch.estado !== "rechazado") return { error: "Solo aplica a cheques rechazados." };
+  if (ch.tipo !== "fisico") return { error: "Solo aplica a cheques físicos." };
+
+  const campo = {
+    notificado: "rechazo_notificado_at",
+    recuperado: "rechazo_recuperado_at",
+    entregado: "rechazo_entregado_at",
+  }[p.paso];
+
+  const { error } = await supabase
+    .from("cheques")
+    .update({ [campo]: new Date().toISOString() })
+    .eq("id", ch.id);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/cheques/${p.chequeId}`);
+  revalidatePath("/cheques");
+  return { error: null };
+}

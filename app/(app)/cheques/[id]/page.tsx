@@ -1,3 +1,4 @@
+import GestionRechazo from "@/components/cheques/gestion-rechazo";
 import ReasignarConvenio from "@/components/admin/reasignar-convenio";
 import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
@@ -176,6 +177,14 @@ export default async function DetalleChequePage({
             numero={ch.numero_cheque}
             clienteActualId={ch.clientes?.id ?? ch.cliente_id}
             clientes={listaClientes ?? []}
+          />
+        )}
+        {ch.estado === "rechazado" && ch.tipo === "fisico" && (
+          <GestionRechazo
+            chequeId={ch.id}
+            notificado={ch.rechazo_notificado_at ?? null}
+            recuperado={ch.rechazo_recuperado_at ?? null}
+            entregado={ch.rechazo_entregado_at ?? null}
           />
         )}
         {esAdmin && ch.estado === "rechazado" && (
