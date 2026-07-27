@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Logo from "@/components/shell/logo";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ReceiptText, Building2, Banknote,
@@ -49,7 +48,6 @@ function Item({ href, label, Icon }: (typeof operacion)[number]) {
 export default function SidebarNav({ esAdmin }: { esAdmin: boolean }) {
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
-      <Logo />
       <div>
         <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/70">
           Operación

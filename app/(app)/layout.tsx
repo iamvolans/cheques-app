@@ -1,3 +1,4 @@
+import pkg from "../../package.json";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { logout } from "@/actions/auth";
@@ -48,7 +49,7 @@ export default async function AppLayout({
         <div className="border-t border-border px-5 py-3">
           <p className="flex items-center gap-2 text-[11px] text-muted-foreground/70">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-            v1.2 · GOAT
+            {"v" + pkg.version + " · GOAT"}
           </p>
         </div>
       </aside>
