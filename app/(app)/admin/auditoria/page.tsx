@@ -73,7 +73,7 @@ export default async function AuditoriaPage({
         </header>
 
         <div className="mb-4 flex justify-end">
-          <ExportarXls endpoint={tabla && tabla !== "todas" ? `/api/export/auditoria?tabla=${tabla}` : "/api/export/auditoria"} />
+          <ExportarXls endpoint={tabla && tabla !== "todas" ? `/api/export/auditoria?tabla=${tabla}` : "/api/export/auditoria"} conFechas={false} />
         </div>
 
         <form method="get" className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-4 shadow-lg shadow-foreground/5">

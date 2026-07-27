@@ -11,3 +11,11 @@ export const ETIQUETA_ESTADO: Record<string, string> = {
 export function etiquetaEstado(estado: string): string {
   return ETIQUETA_ESTADO[estado] ?? estado;
 }
+
+// Etiqueta derivada: un diferido cuya fecha ya llego se muestra "En cartera"
+export function etiquetaEstadoConFecha(estado: string, fechaCobro?: string | null): string {
+  if (estado === "en_custodia" && fechaCobro && fechaCobro <= new Date().toISOString().slice(0, 10)) {
+    return "En cartera";
+  }
+  return etiquetaEstado(estado);
+}

@@ -120,7 +120,7 @@ export default function AccionesCheque({
           onClick={() => ejecutar("procesado")}
           className={`${btn} bg-primary text-white hover:bg-primary`}
         >
-          Procesar
+          Acreditar
         </button>
       )}
       {esAdmin && (estado === "depositado" || estado === "procesado") && (

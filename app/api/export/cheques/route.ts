@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
   const tipo = p.get("tipo");
   const plaza = p.get("plaza");
   const qTexto = (p.get("q") ?? "").trim().replace(/[,()%]/g, "");
+  const convenio = p.get("convenio");
   const tipoFecha = p.get("tipoFecha") ?? "cobro";
   const colFecha = ({ cobro: "fecha_cobro", carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[tipoFecha] ?? "fecha_cobro";
   const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
     if (desde) q = q.gte(colFecha, desde);
     if (hasta) q = q.lte(colFecha, vHasta(hasta));
     if (cliente) q = q.eq("cliente_id", cliente);
+    if (convenio) q = q.eq("convenio_id", convenio);
     if (estado) q = q.eq("estado", estado);
     if (montoDesde && !isNaN(Number(montoDesde))) q = q.gte("monto", Number(montoDesde));
     if (montoHasta && !isNaN(Number(montoHasta))) q = q.lte("monto", Number(montoHasta));

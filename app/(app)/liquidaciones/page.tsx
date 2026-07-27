@@ -86,7 +86,7 @@ export default async function LiquidacionesPage({
         </header>
 
         <div className="mb-4 flex justify-end">
-          <ExportarXls endpoint="/api/export/liquidaciones" />
+          <ExportarXls endpoint="/api/export/liquidaciones" conFechas={false} />
         </div>
 
         <SolicitudesPendientes />

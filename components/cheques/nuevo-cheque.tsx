@@ -123,7 +123,7 @@ export default function NuevoCheque({
       <Campo etiqueta="N° de cheque *">
         <input name="numero_cheque" placeholder="ej: 00012345" required className={inputCls} />
       </Campo>
-      <Campo etiqueta="Fecha de cobro * (futura = diferido)">
+      <Campo etiqueta="Fecha de pago del cheque * (futura = diferido)">
         <input
           name="fecha_cobro"
           type="date"
@@ -133,9 +133,6 @@ export default function NuevoCheque({
           onChange={(e) => setFecha(e.target.value)}
           className={inputCls}
         />
-      </Campo>
-      <Campo etiqueta="Fecha de pago del cheque *">
-        <input name="fecha_pago" type="date" required className={inputCls} />
       </Campo>
 
       <Campo etiqueta="Librador *">

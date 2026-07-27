@@ -1,6 +1,6 @@
 import GestionRechazo from "@/components/cheques/gestion-rechazo";
 import ReasignarConvenio from "@/components/admin/reasignar-convenio";
-import { etiquetaEstado } from "@/lib/estados";
+import { etiquetaEstadoConFecha } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -88,6 +88,7 @@ export default async function DetalleChequePage({
     ["Banco emisor", ch.banco_emisor],
     ["Convenio", ch.convenios?.razon_social ?? "—"],
     ["Fecha de pago", ch.fecha_pago ?? "—"],
+    ["Fecha de carga", new Date(ch.created_at).toLocaleString("es-AR")],
     ["Cuenta de ingreso", `${ch.cuentas_bancarias_empresa?.banco ?? "—"}${ch.cuentas_bancarias_empresa?.alias ? " · " + ch.cuentas_bancarias_empresa.alias : ""}`],
     ["Fecha de cobro", ch.fecha_cobro],
     ["Fecha de depósito", ch.fecha_deposito ?? "—"],
@@ -117,7 +118,7 @@ export default async function DetalleChequePage({
             <Link href="/cheques" className="text-sm text-muted-foreground hover:text-foreground">← Volver a cheques</Link>
           </div>
           <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-            {etiquetaEstado(ch.estado)}
+            {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}
           </span>
         </header>
 

@@ -1,5 +1,5 @@
 import DepositoLote from "@/components/cheques/deposito-lote";
-import { etiquetaEstado } from "@/lib/estados";
+import { etiquetaEstadoConFecha } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +25,7 @@ type Filtros = {
   estado?: string;
   q?: string;
   tipoFecha?: string;
+  convenio?: string;
   montoDesde?: string;
   montoHasta?: string;
   tipo?: string;
@@ -67,6 +68,7 @@ export default async function ChequesPage({
   if (f.desde) { qCheques = qCheques.gte(colFecha, f.desde); qMonto = qMonto.gte(colFecha, f.desde); }
   if (f.hasta) { qCheques = qCheques.lte(colFecha, vHasta(f.hasta)); qMonto = qMonto.lte(colFecha, vHasta(f.hasta)); }
   if (f.cliente) { qCheques = qCheques.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
+  if (f.convenio) { qCheques = qCheques.eq("convenio_id", f.convenio); qMonto = qMonto.eq("convenio_id", f.convenio); }
   if (f.estado) { qCheques = qCheques.eq("estado", f.estado); qMonto = qMonto.eq("estado", f.estado); }
   if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qCheques = qCheques.gte("monto", Number(f.montoDesde)); qMonto = qMonto.gte("monto", Number(f.montoDesde)); }
   if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qCheques = qCheques.lte("monto", Number(f.montoHasta)); qMonto = qMonto.lte("monto", Number(f.montoHasta)); }
@@ -78,7 +80,7 @@ export default async function ChequesPage({
     qMonto = qMonto.or(filtro);
   }
 
-  const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza);
+  const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza || f.convenio);
 
   const [
     { data: perfil },
@@ -122,7 +124,7 @@ export default async function ChequesPage({
         </header>
 
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <ExportarXls endpoint="/api/export/cheques" />
+          <ExportarXls endpoint="/api/export/cheques" conFechas={false} />
         </div>
 
         <div className="mb-5 flex justify-end">
@@ -171,6 +173,15 @@ export default async function ChequesPage({
             <select name="cliente" defaultValue={f.cliente ?? ""} className={inputCls}>
               <option value="">Todos</option>
               {(clientes ?? []).map((c) => (
+                <option key={c.id} value={c.id}>{c.razon_social}</option>
+              ))}
+            </select>
+          </label>
+          <label className={lblCls}>
+            Convenio
+            <select name="convenio" defaultValue={f.convenio ?? ""} className={inputCls}>
+              <option value="">Todos</option>
+              {(convenios ?? []).map((c) => (
                 <option key={c.id} value={c.id}>{c.razon_social}</option>
               ))}
             </select>
@@ -292,7 +303,7 @@ export default async function ChequesPage({
                   </td>
                   <td className="px-3 py-3">
                     <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorEstado[ch.estado] ?? ""}`}>
-                      {etiquetaEstado(ch.estado)}
+                      {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}
                     </span>
                   </td>
                   <td className="px-3 py-3">

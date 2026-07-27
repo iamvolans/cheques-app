@@ -18,8 +18,7 @@ const esquemaCheque = z.object({
   cliente_id: z.string().uuid("Elegí un cliente"),
   convenio_id: z.string().uuid("Elegí un convenio"),
   cuenta_bancaria_id: z.string().uuid("Elegí la cuenta propia"),
-  fecha_cobro: z.string().min(10, "Falta la fecha de cobro"),
-  fecha_pago: z.string().min(10, "Falta la fecha de pago del cheque"),
+  fecha_cobro: z.string().min(10, "Falta la fecha de pago del cheque"),
   codigo_postal: z.coerce
     .number({ error: "El C.P. es obligatorio" })
     .int("C.P. inválido")
@@ -120,7 +119,7 @@ export async function crearCheque(
       cuenta_bancaria_id: d.cuenta_bancaria_id,
       fecha_cobro: d.fecha_cobro,
       codigo_postal: d.codigo_postal,
-      fecha_pago: d.fecha_pago,
+      fecha_pago: d.fecha_cobro,
       echeq_id: d.tipo === "echeq" ? d.echeq_id : null,
       portador_banco: d.portador_banco || null,
       foto_frente_url,
