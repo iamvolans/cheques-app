@@ -37,10 +37,16 @@ function Doc({ titulo, url }: { titulo: string; url: string | null }) {
 
 export default async function DetalleChequePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ volver?: string }>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const crudo = sp.volver ?? "";
+  const volver = crudo.startsWith("/") && !crudo.startsWith("//") ? crudo : "/cheques";
+  const volverTxt = volver.startsWith("/dashboard") ? "← Volver al dashboard" : "← Volver a cheques";
   const supabase = await createClient();
 
   const {
@@ -115,7 +121,7 @@ export default async function DetalleChequePage({
                 {ch.clientes?.razon_social}
               </Link>
             </p>
-            <Link href="/cheques" className="text-sm text-muted-foreground hover:text-foreground">← Volver a cheques</Link>
+            <Link href={volver} className="text-sm text-muted-foreground hover:text-foreground">{volverTxt}</Link>
           </div>
           <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
             {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}

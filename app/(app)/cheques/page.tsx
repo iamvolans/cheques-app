@@ -80,6 +80,10 @@ export default async function ChequesPage({
   }
 
   const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza || f.convenio);
+  const qsActual = new URLSearchParams(
+    Object.entries(f).filter(function (e) { return Boolean(e[1]); }) as [string, string][]
+  ).toString();
+  const volverA = "/cheques" + (qsActual ? "?" + qsActual : "");
 
   const [
     { data: perfil },
@@ -260,7 +264,7 @@ export default async function ChequesPage({
                     <input type="checkbox" name="sel" value={ch.id} className="h-4 w-4 accent-emerald-600" />
                   </td>
                   <td className="px-3 py-3 font-mono text-foreground/90">
-                    <Link href={`/cheques/${ch.id}`} className="hover:text-primary hover:underline">{ch.numero_cheque}</Link>
+                    <Link href={"/cheques/" + ch.id + "?volver=" + encodeURIComponent(volverA)} className="hover:text-primary hover:underline">{ch.numero_cheque}</Link>
                     {ch.tipo === "echeq" && (
                       <span className="ml-1 rounded bg-info-muted px-1 text-xs text-info">E</span>
                     )}

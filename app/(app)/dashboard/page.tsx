@@ -314,7 +314,7 @@ export default async function DashboardPage() {
             {(recientes ?? []).map((ch) => (
               <Link
                 key={ch.id}
-                href={`/cheques/${ch.id}`}
+                href={"/cheques/" + ch.id + "?volver=/dashboard"}
                 className="flex items-center justify-between gap-4 px-5 py-3 text-sm transition hover:bg-muted/30"
               >
                 <div className="min-w-0">
