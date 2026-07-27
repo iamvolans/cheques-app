@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function desdeNumero(v?: string) {
   if (!v) return "";
@@ -14,12 +14,14 @@ export default function InputMonto({
   required,
   defaultValue,
   className,
+  onValor,
 }: {
   name: string;
   placeholder?: string;
   required?: boolean;
   defaultValue?: string;
   className?: string;
+  onValor?: (v: string) => void;
 }) {
   const [display, setDisplay] = useState(desdeNumero(defaultValue));
 
@@ -36,6 +38,13 @@ export default function InputMonto({
 
   // Lo que se envía al servidor: número plano "1000000.50"
   const normalizado = display.replace(/\./g, "").replace(",", ".");
+
+  // Aviso al padre por ref: evita el bucle si el callback llega inline
+  const avisar = useRef(onValor);
+  avisar.current = onValor;
+  useEffect(() => {
+    if (avisar.current) avisar.current(normalizado);
+  }, [normalizado]);
 
   return (
     <>

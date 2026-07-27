@@ -106,7 +106,7 @@ export default async function ClientesPage({
                   <td className="px-4 py-3">
                     <Sparkline datos={seriePorCliente.get(c.cliente_id) ?? []} />
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-primary">
+                  <td className={"px-4 py-3 text-right font-mono " + (Number(c.saldo_disponible) < 0 ? "font-semibold text-danger" : "text-primary")}>
                     {fmtARS.format(Number(c.saldo_disponible))}
                   </td>
                   {esAdmin && (
