@@ -40,7 +40,7 @@ export function aplicarFiltros<T>(query: T, f: FiltrosCheques): T {
   if (f.convenio) x = x.eq("convenio_id", f.convenio);
   if (f.estado === "devuelto") {
     x = x.eq("estado", "rechazado").not("recibo_id", "is", null);
-  } else if (f.estado === "rechazado") {
+  } else if (f.estado === "rechazado_sin_entregar") {
     x = x.eq("estado", "rechazado").is("recibo_id", null);
   } else if (f.estado) {
     x = x.eq("estado", f.estado);

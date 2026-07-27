@@ -195,7 +195,8 @@ export default async function ChequesPage({
               <option value="aceptado">En cartera</option>
               <option value="depositado">En Clearing</option>
               <option value="procesado">Acreditado</option>
-              <option value="rechazado">Rechazado</option>
+              <option value="rechazado">Rechazado (todos)</option>
+              <option value="rechazado_sin_entregar">Rechazado sin entregar</option>
               <option value="devuelto">Devuelto</option>
             </select>
           </label>
