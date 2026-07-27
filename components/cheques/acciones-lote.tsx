@@ -2,8 +2,9 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { depositarLote, acreditarLote, rechazarLote, idsFiltrados } from "@/actions/cheques";
+import { crearRecibo } from "@/actions/recibos";
 import type { FiltrosCheques } from "@/lib/filtros-cheques";
-import { Landmark, CheckCircle2, XCircle, ListChecks, Repeat2, Layers, Eraser } from "lucide-react";
+import { Landmark, CheckCircle2, XCircle, ListChecks, Repeat2, Layers, Eraser, ReceiptText } from "lucide-react";
 
 const TROZO = 150;
 
@@ -128,6 +129,17 @@ export default function AccionesLote({
     });
   };
 
+  const generarRecibo = () => {
+    const ids = idsGlobales ?? idsMarcados();
+    setMsg(null); setErr(null);
+    if (ids.length === 0) { setErr("No seleccionaste ningún cheque."); return; }
+    startTransition(async () => {
+      const r = await crearRecibo(ids);
+      if (r.error) { setErr(r.error); return; }
+      router.push("/recibos/" + r.reciboId);
+    });
+  };
+
   const pedir = (accion: "depositar" | "acreditar") => {
     if (idsGlobales && idsGlobales.length > TROZO) {
       setMsg(null); setErr(null); setConfirmar(accion);
@@ -191,6 +203,14 @@ export default function AccionesLote({
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary disabled:opacity-50"
         >
           <CheckCircle2 size={13} /> Acreditar
+        </button>
+        <button
+          type="button"
+          disabled={pendiente}
+          onClick={generarRecibo}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/90 transition hover:bg-muted disabled:opacity-50"
+        >
+          <ReceiptText size={13} /> Generar recibo
         </button>
         {esAdmin && !rechazando && (
           <button

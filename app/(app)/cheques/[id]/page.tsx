@@ -1,6 +1,6 @@
 import GestionRechazo from "@/components/cheques/gestion-rechazo";
 import ReasignarConvenio from "@/components/admin/reasignar-convenio";
-import { etiquetaEstadoConFecha } from "@/lib/estados";
+import { etiquetaEstadoConFecha, estadoVisual } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -16,6 +16,7 @@ const colorEstado: Record<string, string> = {
   depositado: "bg-info-muted text-info",
   procesado: "bg-success-muted text-primary",
   rechazado: "bg-danger-muted text-danger",
+  devuelto: "bg-muted text-muted-foreground",
   en_custodia: "bg-warning-muted text-warning",
 };
 
@@ -61,7 +62,7 @@ export default async function DetalleChequePage({
   const [{ data: ch }, { data: listaConvenios }, { data: logs }, { data: miPerfil }, { data: listaClientes }, { data: listaBancos }] = await Promise.all([
     supabase
       .from("cheques")
-      .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias), lotes(numero, fecha)")
+      .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias), lotes(numero, fecha), recibos_devolucion(numero, estado)")
       .eq("id", id)
       .single(),
     supabase.from("convenios").select("id, razon_social").order("razon_social"),
@@ -94,6 +95,9 @@ export default async function DetalleChequePage({
     ["Banco emisor", ch.banco_emisor],
     ["Convenio", ch.convenios?.razon_social ?? "—"],
     ["Fecha de pago", ch.fecha_pago ?? "—"],
+    ["Recibo de devolución", ch.recibos_devolucion
+      ? "N° " + ch.recibos_devolucion.numero + " (" + ch.recibos_devolucion.estado + ")"
+      : "—"],
     ["Lote", ch.lotes ? "N° " + ch.lotes.numero + " · " + ch.lotes.fecha : "—"],
     ["N° de foto", ch.foto_numero ? String(ch.foto_numero) : "—"],
     ["Fecha de carga", ch.fecha_carga ?? "—"],
@@ -126,8 +130,8 @@ export default async function DetalleChequePage({
             </p>
             <Link href={volver} className="text-sm text-muted-foreground hover:text-foreground">{volverTxt}</Link>
           </div>
-          <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[ch.estado] ?? ""}`}>
-            {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}
+          <span className={`rounded px-3 py-1 text-sm font-medium uppercase ${colorEstado[estadoVisual(ch.estado, ch.recibo_id)] ?? ""}`}>
+            {etiquetaEstadoConFecha(estadoVisual(ch.estado, ch.recibo_id), ch.fecha_cobro)}
           </span>
         </header>
 
@@ -189,7 +193,7 @@ export default async function DetalleChequePage({
             clientes={listaClientes ?? []}
           />
         )}
-        {ch.estado === "rechazado" && ch.tipo === "fisico" && (
+        {ch.estado === "rechazado" && !ch.recibo_id && ch.tipo === "fisico" && (
           <GestionRechazo
             chequeId={ch.id}
             notificado={ch.rechazo_notificado_at ?? null}

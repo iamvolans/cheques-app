@@ -1,6 +1,6 @@
 import { aplicarFiltros } from "@/lib/filtros-cheques";
 import AccionesLote from "@/components/cheques/acciones-lote";
-import { etiquetaEstadoConFecha } from "@/lib/estados";
+import { etiquetaEstadoConFecha, estadoVisual } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +15,7 @@ const colorEstado: Record<string, string> = {
   depositado: "bg-info-muted text-info",
   procesado: "bg-success-muted text-primary",
   rechazado: "bg-danger-muted text-danger",
+  devuelto: "bg-muted text-muted-foreground",
   en_custodia: "bg-warning-muted text-warning",
 };
 
@@ -195,6 +196,7 @@ export default async function ChequesPage({
               <option value="depositado">En Clearing</option>
               <option value="procesado">Acreditado</option>
               <option value="rechazado">Rechazado</option>
+              <option value="devuelto">Devuelto</option>
             </select>
           </label>
           <label className={lblCls}>
@@ -299,8 +301,8 @@ export default async function ChequesPage({
                     {ch.fecha_estimada_acred ?? "—"}
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorEstado[ch.estado] ?? ""}`}>
-                      {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}
+                    <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorEstado[estadoVisual(ch.estado, ch.recibo_id)] ?? ""}`}>
+                      {etiquetaEstadoConFecha(estadoVisual(ch.estado, ch.recibo_id), ch.fecha_cobro)}
                     </span>
                   </td>
                 </tr>

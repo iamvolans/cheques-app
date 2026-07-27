@@ -38,7 +38,13 @@ export function aplicarFiltros<T>(query: T, f: FiltrosCheques): T {
   if (f.hasta) x = x.lte(col, tope(f.hasta));
   if (f.cliente) x = x.eq("cliente_id", f.cliente);
   if (f.convenio) x = x.eq("convenio_id", f.convenio);
-  if (f.estado) x = x.eq("estado", f.estado);
+  if (f.estado === "devuelto") {
+    x = x.eq("estado", "rechazado").not("recibo_id", "is", null);
+  } else if (f.estado === "rechazado") {
+    x = x.eq("estado", "rechazado").is("recibo_id", null);
+  } else if (f.estado) {
+    x = x.eq("estado", f.estado);
+  }
   if (f.montoDesde && !isNaN(Number(f.montoDesde))) x = x.gte("monto", Number(f.montoDesde));
   if (f.montoHasta && !isNaN(Number(f.montoHasta))) x = x.lte("monto", Number(f.montoHasta));
   if (f.tipo === "echeq" || f.tipo === "fisico") x = x.eq("tipo", f.tipo);

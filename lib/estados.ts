@@ -6,6 +6,7 @@ export const ETIQUETA_ESTADO: Record<string, string> = {
   depositado: "En Clearing",
   procesado: "Acreditado",
   rechazado: "Rechazado",
+  devuelto: "Devuelto",
 };
 
 export function etiquetaEstado(estado: string): string {
@@ -18,4 +19,11 @@ export function etiquetaEstadoConFecha(estado: string, fechaCobro?: string | nul
     return "En cartera";
   }
   return etiquetaEstado(estado);
+}
+
+// Estado que se MUESTRA: un rechazado con recibo vigente se ve como Devuelto.
+// El estado real en la base sigue siendo "rechazado" (metricas y riesgo intactos).
+export function estadoVisual(estado: string, reciboId?: string | null): string {
+  if (estado === "rechazado" && reciboId) return "devuelto";
+  return estado;
 }
