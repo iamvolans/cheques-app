@@ -1,3 +1,4 @@
+import { aplicarFiltros } from "@/lib/filtros-cheques";
 import AccionesLote from "@/components/cheques/acciones-lote";
 import { etiquetaEstadoConFecha } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
@@ -52,7 +53,6 @@ export default async function ChequesPage({
   // Paginación
   const pagina = Math.max(1, Number(f.page) || 1);
   const inicio = (pagina - 1) * 25;
-  const qTexto = (f.q ?? "").trim().replace(/[,()%]/g, "");
 
   // Página de cheques (con conteo total) + suma de montos sobre TODO el filtro
   let qCheques = supabase
@@ -62,22 +62,8 @@ export default async function ChequesPage({
     .range(inicio, inicio + 24);
   let qMonto = supabase.from("cheques").select("monto");
 
-  const colFecha = ({ carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[f.tipoFecha ?? "pago"] ?? "fecha_pago";
-  const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
-  if (f.desde) { qCheques = qCheques.gte(colFecha, f.desde); qMonto = qMonto.gte(colFecha, f.desde); }
-  if (f.hasta) { qCheques = qCheques.lte(colFecha, vHasta(f.hasta)); qMonto = qMonto.lte(colFecha, vHasta(f.hasta)); }
-  if (f.cliente) { qCheques = qCheques.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
-  if (f.convenio) { qCheques = qCheques.eq("convenio_id", f.convenio); qMonto = qMonto.eq("convenio_id", f.convenio); }
-  if (f.estado) { qCheques = qCheques.eq("estado", f.estado); qMonto = qMonto.eq("estado", f.estado); }
-  if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qCheques = qCheques.gte("monto", Number(f.montoDesde)); qMonto = qMonto.gte("monto", Number(f.montoDesde)); }
-  if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qCheques = qCheques.lte("monto", Number(f.montoHasta)); qMonto = qMonto.lte("monto", Number(f.montoHasta)); }
-  if (f.tipo === "echeq" || f.tipo === "fisico") { qCheques = qCheques.eq("tipo", f.tipo); qMonto = qMonto.eq("tipo", f.tipo); }
-  if (f.plaza === "camara" || f.plaza === "interior") { qCheques = qCheques.eq("plaza", f.plaza); qMonto = qMonto.eq("plaza", f.plaza); }
-  if (qTexto) {
-    const filtro = `numero_cheque.ilike.%${qTexto}%,librador.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%`;
-    qCheques = qCheques.or(filtro);
-    qMonto = qMonto.or(filtro);
-  }
+  qCheques = aplicarFiltros(qCheques, f);
+  qMonto = aplicarFiltros(qMonto, f);
 
   const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza || f.convenio);
   const qsActual = new URLSearchParams(
@@ -238,7 +224,7 @@ export default async function ChequesPage({
           )}
         </form>
 
-        <AccionesLote esAdmin={esAdmin} />
+        <AccionesLote esAdmin={esAdmin} filtros={f} total={total} />
 
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[1000px] text-sm">

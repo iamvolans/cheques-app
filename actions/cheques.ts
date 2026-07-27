@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { carpetaDelDia, subirArchivo, borrarArchivo } from "@/lib/google-drive/drive";
+import { aplicarFiltros, type FiltrosCheques } from "@/lib/filtros-cheques";
 
 const esquemaCheque = z.object({
   tipo: z.enum(["fisico", "echeq"]),
@@ -385,4 +386,32 @@ export async function rechazarLote(p: {
   revalidatePath("/clientes");
   revalidatePath("/dashboard");
   return { error: null, ok: okCount, fallidos };
+}
+
+// ---------- IDs de TODO el filtro, no solo la pagina visible ----------
+export async function idsFiltrados(
+  f: FiltrosCheques
+): Promise<{ error: string | null; ids?: string[] }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesion vencida. Recarga la pagina." };
+
+  const PASO = 1000;
+  const TOPE = 20000;
+  const ids: string[] = [];
+
+  for (let desde = 0; desde < TOPE; desde += PASO) {
+    let q = supabase
+      .from("cheques")
+      .select("id")
+      .order("created_at", { ascending: false })
+      .range(desde, desde + PASO - 1);
+    q = aplicarFiltros(q, f);
+    const { data, error } = await q;
+    if (error) return { error: error.message };
+    const lote = data ?? [];
+    for (const r of lote) ids.push(r.id);
+    if (lote.length < PASO) break;
+  }
+  return { error: null, ids };
 }
