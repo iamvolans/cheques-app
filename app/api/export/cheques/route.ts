@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
   const plaza = p.get("plaza");
   const qTexto = (p.get("q") ?? "").trim().replace(/[,()%]/g, "");
   const convenio = p.get("convenio");
-  const tipoFecha = p.get("tipoFecha") ?? "cobro";
-  const colFecha = ({ cobro: "fecha_cobro", carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[tipoFecha] ?? "fecha_cobro";
+  const tipoFecha = p.get("tipoFecha") ?? "pago";
+  const colFecha = ({ carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[tipoFecha] ?? "fecha_pago";
   const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
 
   // Paginado interno: bloques de 1000 (límite de Supabase) hasta agotar — sin tope total

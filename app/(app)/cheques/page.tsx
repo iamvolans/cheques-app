@@ -62,7 +62,7 @@ export default async function ChequesPage({
     .range(inicio, inicio + 24);
   let qMonto = supabase.from("cheques").select("monto");
 
-  const colFecha = ({ cobro: "fecha_cobro", carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[f.tipoFecha ?? "cobro"] ?? "fecha_cobro";
+  const colFecha = ({ carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[f.tipoFecha ?? "pago"] ?? "fecha_pago";
   const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
   if (f.desde) { qCheques = qCheques.gte(colFecha, f.desde); qMonto = qMonto.gte(colFecha, f.desde); }
   if (f.hasta) { qCheques = qCheques.lte(colFecha, vHasta(f.hasta)); qMonto = qMonto.lte(colFecha, vHasta(f.hasta)); }
@@ -150,8 +150,7 @@ export default async function ChequesPage({
           </label>
           <label className={lblCls}>
             Fechas por
-            <select name="tipoFecha" defaultValue={f.tipoFecha ?? "cobro"} className={inputCls}>
-              <option value="cobro">Fecha cobro</option>
+            <select name="tipoFecha" defaultValue={f.tipoFecha ?? "pago"} className={inputCls}>
               <option value="carga">Fecha carga</option>
               <option value="deposito">Fecha depósito</option>
               <option value="acred">Fecha acreditación</option>
