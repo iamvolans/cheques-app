@@ -20,6 +20,8 @@ const esquemaCheque = z.object({
   convenio_id: z.string().uuid("Elegí un convenio"),
   cuenta_bancaria_id: z.string().uuid("Elegí la cuenta propia"),
   fecha_cobro: z.string().min(10, "Falta la fecha de pago del cheque"),
+  fecha_carga: z.string().optional(),
+  fecha_deposito: z.string().optional(),
   codigo_postal: z.coerce
     .number({ error: "El C.P. es obligatorio" })
     .int("C.P. inválido")
@@ -49,6 +51,11 @@ export async function crearCheque(
   const d = datos.data;
   if (d.tipo === "echeq" && !d.echeq_id) {
     return { error: "Los E-Cheqs requieren el ID único de E-Cheq." };
+  }
+
+  const enRango = (v?: string) => !v || (v >= "2000-01-01" && v <= "2100-01-01");
+  if (!enRango(d.fecha_cobro) || !enRango(d.fecha_carga) || !enRango(d.fecha_deposito)) {
+    return { error: "Hay una fecha fuera de rango (el año debe estar entre 2000 y 2100). Revisá lo tipeado." };
   }
 
   const supabase = await createClient();
@@ -121,6 +128,8 @@ export async function crearCheque(
       fecha_cobro: d.fecha_cobro,
       codigo_postal: d.codigo_postal,
       fecha_pago: d.fecha_cobro,
+      fecha_carga: d.fecha_carga || null,
+      fecha_deposito: d.fecha_deposito || null,
       echeq_id: d.tipo === "echeq" ? d.echeq_id : null,
       portador_banco: d.portador_banco || null,
       foto_frente_url,
@@ -147,6 +156,9 @@ export async function crearCheque(
   }
   if (insertado?.estado === "en_custodia") {
     avisos.push(`⏳ Diferido: quedó EN CUSTODIA hasta el ${insertado.fecha_cobro}.`);
+  }
+  if (insertado?.estado === "depositado") {
+    avisos.push("Cargado ya EN CLEARING con fecha de depósito " + d.fecha_deposito + ".");
   }
   if (insertado?.plaza === "interior") {
     avisos.push(`Plaza Interior: fee aplicado ${Number(insertado.fee_aplicado_pct).toFixed(2)}%.`);

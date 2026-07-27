@@ -79,6 +79,8 @@ export default function NuevoCheque({
   const [cp, setCp] = useState("");
   const [cuitLibrador, setCuitLibrador] = useState("");
   const [fecha, setFecha] = useState("");
+  const [fechaCarga, setFechaCarga] = useState(hoyISO());
+  const [fechaDep, setFechaDep] = useState("");
   const [estado, accion, pendiente] = useActionState(crearCheque, inicial);
   const [resetTick, setResetTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
@@ -88,6 +90,8 @@ export default function NuevoCheque({
       formRef.current?.reset();
       setCp("");
       setFecha("");
+      setFechaCarga(hoyISO());
+      setFechaDep("");
       setCuitLibrador("");
       setResetTick((t) => t + 1);
     }
@@ -107,6 +111,7 @@ export default function NuevoCheque({
   const cpNum = Number(cp);
   const plaza = cp && cpNum >= 1 && cpNum <= 9999 ? (cpNum <= 2000 ? "camara" : "interior") : null;
   const esDiferido = fecha !== "" && fecha > hoyISO();
+  const conflicto = esDiferido && fechaDep !== "";
 
   return (
     <form
@@ -114,6 +119,27 @@ export default function NuevoCheque({
       action={accion}
       className="grid w-full gap-x-4 gap-y-3 rounded-2xl border border-border bg-gradient-to-b from-card to-background p-5 shadow-lg shadow-foreground/5 sm:grid-cols-2 lg:grid-cols-3"
     >
+      <Campo etiqueta="Fecha de carga *">
+        <input name="fecha_carga" type="date" required min="2000-01-01" max={hoyISO()}
+          value={fechaCarga} onChange={(e) => setFechaCarga(e.target.value)} className={inputCls} />
+        <span className="text-[10px] normal-case tracking-normal text-muted-foreground/80">
+          Fecha en que se ingresa el cheque al sistema
+        </span>
+      </Campo>
+      <Campo etiqueta="Fecha de pago del cheque * (futura = diferido)">
+        <input name="fecha_cobro" type="date" required min="2000-01-01" max={maxDiferidoISO()}
+          value={fecha} onChange={(e) => setFecha(e.target.value)} className={inputCls} />
+        <span className="text-[10px] normal-case tracking-normal text-muted-foreground/80">
+          Fecha del cheque: si es futura queda en custodia
+        </span>
+      </Campo>
+      <Campo etiqueta="Fecha de depósito (opcional)">
+        <input name="fecha_deposito" type="date" min="2000-01-01" max={hoyISO()}
+          value={fechaDep} onChange={(e) => setFechaDep(e.target.value)} className={inputCls} />
+        <span className="text-[10px] normal-case tracking-normal text-muted-foreground/80">
+          Solo si ya se presentó en el banco: nace EN CLEARING
+        </span>
+      </Campo>
       <Campo etiqueta="Tipo de valor">
         <select name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value as "fisico" | "echeq")} className={inputCls}>
           <option value="fisico">Cheque físico</option>
@@ -123,18 +149,6 @@ export default function NuevoCheque({
       <Campo etiqueta="N° de cheque *">
         <input name="numero_cheque" placeholder="ej: 00012345" required className={inputCls} />
       </Campo>
-      <Campo etiqueta="Fecha de pago del cheque * (futura = diferido)">
-        <input
-          name="fecha_cobro"
-          type="date"
-          required
-          max={maxDiferidoISO()}
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
-          className={inputCls}
-        />
-      </Campo>
-
       <Campo etiqueta="Librador *">
         <input name="librador" placeholder="Razón social del emisor" required className={inputCls} />
       </Campo>
@@ -226,6 +240,16 @@ export default function NuevoCheque({
         </>
       )}
 
+      {conflicto && (
+        <p className="rounded-lg border border-danger/40 bg-danger-muted px-3 py-2 text-sm normal-case tracking-normal text-danger sm:col-span-2 lg:col-span-3">
+          No se puede poner fecha de depósito en un cheque diferido: la fecha de pago ({fecha}) todavía no llegó.
+        </p>
+      )}
+      {!conflicto && fechaDep !== "" && (
+        <p className="rounded-lg border border-info/40 bg-info-muted/60 px-3 py-2 text-sm normal-case tracking-normal text-info sm:col-span-2 lg:col-span-3">
+          Este cheque se va a cargar ya <strong>EN CLEARING</strong>, con fecha de depósito {fechaDep}.
+        </p>
+      )}
       {esDiferido && (
         <p className="rounded-lg border border-amber-900 bg-warning-muted/60 px-3 py-2 text-sm normal-case tracking-normal text-warning sm:col-span-2 lg:col-span-3">
           ⏳ Cheque diferido: quedará <strong>EN CUSTODIA</strong> y recién se podrá depositar el {fecha}.
@@ -246,7 +270,7 @@ export default function NuevoCheque({
       <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
         <button
           type="submit"
-          disabled={pendiente}
+          disabled={pendiente || conflicto}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-950/50 transition hover:bg-primary disabled:opacity-50"
         >
           {pendiente ? "Guardando…" : "Guardar cheque"}

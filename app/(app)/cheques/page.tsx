@@ -134,7 +134,7 @@ export default async function ChequesPage({
             <input
               name="q"
               defaultValue={f.q ?? ""}
-              placeholder="N° de cheque o CUIT del librador…"
+              placeholder="N° de cheque, librador, CUIT o banco…"
               className={inputCls}
             />
           </label>

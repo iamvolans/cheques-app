@@ -14,7 +14,7 @@ export type FiltrosCheques = {
 };
 
 const COLS_FECHA: Record<string, string> = {
-  carga: "created_at",
+  carga: "fecha_carga",
   deposito: "fecha_deposito",
   acred: "fecha_estimada_acred",
   pago: "fecha_pago",
