@@ -1,10 +1,9 @@
-import DepositoLote from "@/components/cheques/deposito-lote";
+import AccionesLote from "@/components/cheques/acciones-lote";
 import { etiquetaEstadoConFecha } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import NuevoCheque from "@/components/cheques/nuevo-cheque";
-import AccionesCheque from "@/components/cheques/acciones-cheque";
 import Paginador from "@/components/ui/paginador";
 import ExportarXls from "@/components/ui/exportar-xls";
 
@@ -105,7 +104,6 @@ export default async function ChequesPage({
   const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto), 0);
 
   const esAdmin = perfil?.rol === "administrador";
-  const hoy = new Date().toISOString().slice(0, 10);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
   const lblCls = "flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground";
@@ -237,7 +235,7 @@ export default async function ChequesPage({
           )}
         </form>
 
-        <DepositoLote />
+        <AccionesLote esAdmin={esAdmin} />
 
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[1000px] text-sm">
@@ -254,16 +252,13 @@ export default async function ChequesPage({
                 <th className="px-3 py-3 font-medium">Cobro</th>
                 <th className="px-3 py-3 font-medium">Acred. est.</th>
                 <th className="px-3 py-3 font-medium">Estado</th>
-                <th className="px-3 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-background">
               {(cheques ?? []).map((ch) => (
                 <tr key={ch.id} className="transition hover:bg-muted/40">
                   <td className="px-2 py-3">
-                    {(ch.estado === "aceptado" || (ch.estado === "en_custodia" && ch.fecha_cobro <= hoy)) && (
-                      <input type="checkbox" name="sel" value={ch.id} className="h-4 w-4 accent-emerald-600" />
-                    )}
+                    <input type="checkbox" name="sel" value={ch.id} className="h-4 w-4 accent-emerald-600" />
                   </td>
                   <td className="px-3 py-3 font-mono text-foreground/90">
                     <Link href={`/cheques/${ch.id}`} className="hover:text-primary hover:underline">{ch.numero_cheque}</Link>
@@ -306,20 +301,11 @@ export default async function ChequesPage({
                       {etiquetaEstadoConFecha(ch.estado, ch.fecha_cobro)}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
-                    <AccionesCheque
-                      id={ch.id}
-                      estado={ch.estado}
-                      esAdmin={esAdmin}
-                      disponible={ch.fecha_cobro <= hoy}
-                      multaBanco={Number((ch.cuentas_bancarias_empresa as unknown as { multa_rechazo_banco?: number } | null)?.multa_rechazo_banco ?? 0)}
-                    />
-                  </td>
                 </tr>
               ))}
               {(cheques ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={12} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-4 py-10 text-center text-muted-foreground">
                     {hayFiltros ? "Sin resultados para esos filtros." : "No hay cheques cargados todavía."}
                   </td>
                 </tr>

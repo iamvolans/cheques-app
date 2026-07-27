@@ -292,3 +292,97 @@ export async function gestionRechazo(p: {
   revalidatePath("/cheques");
   return { error: null };
 }
+
+
+// ---------- Acreditar en lote: pasa a "procesado" los seleccionados en Clearing ----------
+export async function acreditarLote(ids: string[]): Promise<{
+  error: string | null;
+  ok?: number;
+  fallidos?: { numero: string; motivo: string }[];
+}> {
+  if (!ids || ids.length === 0) return { error: "No seleccionaste ningún cheque." };
+  if (ids.length > 300) return { error: "Máximo 300 cheques por lote." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  const { data: chs } = await supabase
+    .from("cheques")
+    .select("id, numero_cheque, estado")
+    .in("id", ids);
+
+  let okCount = 0;
+  const fallidos: { numero: string; motivo: string }[] = [];
+  for (const ch of chs ?? []) {
+    if (ch.estado !== "depositado") {
+      fallidos.push({ numero: ch.numero_cheque, motivo: "estado " + ch.estado });
+      continue;
+    }
+    const { error } = await supabase
+      .from("cheques")
+      .update({ estado: "procesado" })
+      .eq("id", ch.id)
+      .eq("estado", "depositado");
+    if (error) fallidos.push({ numero: ch.numero_cheque, motivo: error.message });
+    else okCount++;
+  }
+  revalidatePath("/cheques");
+  revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: okCount, fallidos };
+}
+
+// ---------- Rechazar en lote (solo admin): multa/gasto/motivo comunes ----------
+export async function rechazarLote(p: {
+  ids: string[];
+  multa?: number;
+  gasto?: number | null;
+  motivo?: string;
+}): Promise<{
+  error: string | null;
+  ok?: number;
+  fallidos?: { numero: string; motivo: string }[];
+}> {
+  if (!p.ids || p.ids.length === 0) return { error: "No seleccionaste ningún cheque." };
+  if (p.ids.length > 300) return { error: "Máximo 300 cheques por lote." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
+  if (perfil?.rol !== "administrador") return { error: "Solo un Administrador puede rechazar cheques." };
+
+  const { data: chs } = await supabase
+    .from("cheques")
+    .select("id, numero_cheque, estado, cuentas_bancarias_empresa(multa_rechazo_banco)")
+    .in("id", p.ids);
+
+  let okCount = 0;
+  const fallidos: { numero: string; motivo: string }[] = [];
+  for (const ch of chs ?? []) {
+    if (ch.estado !== "depositado" && ch.estado !== "procesado") {
+      fallidos.push({ numero: ch.numero_cheque, motivo: "estado " + ch.estado });
+      continue;
+    }
+    const defCuenta = Number(
+      (ch.cuentas_bancarias_empresa as unknown as { multa_rechazo_banco?: number } | null)?.multa_rechazo_banco ?? 0
+    );
+    const { error } = await supabase
+      .from("cheques")
+      .update({
+        estado: "rechazado",
+        multa: p.multa ?? 0,
+        motivo_rechazo: p.motivo && p.motivo.trim() ? p.motivo.trim() : "Falta de fondos",
+        gasto_bancario: p.gasto != null ? p.gasto : defCuenta,
+      })
+      .eq("id", ch.id)
+      .eq("estado", ch.estado);
+    if (error) fallidos.push({ numero: ch.numero_cheque, motivo: error.message });
+    else okCount++;
+  }
+  revalidatePath("/cheques");
+  revalidatePath("/clientes");
+  revalidatePath("/dashboard");
+  return { error: null, ok: okCount, fallidos };
+}
