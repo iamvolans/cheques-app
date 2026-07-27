@@ -1,11 +1,12 @@
 import { etiquetaEstado } from "@/lib/estados";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { aplicarFiltros, type FiltrosCheques } from "@/lib/filtros-cheques";
 import * as XLSX from "xlsx";
 
 export const maxDuration = 60;
 
-const COLS = "numero_cheque, tipo, librador, cuit_librador, clientes(razon_social), plaza, codigo_postal, monto, fee_aplicado_pct, fee_calculado, estado, banco_emisor, fecha_cobro, fecha_estimada_acred, gasto_bancario, multa, motivo_rechazo, created_at";
+const COLS = "numero_cheque, tipo, librador, cuit_librador, clientes(razon_social), plaza, codigo_postal, monto, fee_aplicado_pct, fee_calculado, estado, banco_emisor, fecha_cobro, fecha_pago, fecha_deposito, fecha_estimada_acred, gasto_bancario, multa, motivo_rechazo, created_at";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -13,21 +14,23 @@ export async function GET(req: NextRequest) {
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
   const p = req.nextUrl.searchParams;
-  const desde = p.get("desde");
-  const hasta = p.get("hasta");
-  const cliente = p.get("cliente");
-  const estado = p.get("estado");
-  const montoDesde = p.get("montoDesde");
-  const montoHasta = p.get("montoHasta");
-  const tipo = p.get("tipo");
-  const plaza = p.get("plaza");
-  const qTexto = (p.get("q") ?? "").trim().replace(/[,()%]/g, "");
-  const convenio = p.get("convenio");
-  const tipoFecha = p.get("tipoFecha") ?? "pago";
-  const colFecha = ({ carga: "created_at", deposito: "fecha_deposito", acred: "fecha_estimada_acred", pago: "fecha_pago" } as Record<string, string>)[tipoFecha] ?? "fecha_pago";
-  const vHasta = (h: string) => (colFecha === "created_at" ? h + "T23:59:59" : h);
+  const val = (k: string) => p.get(k) ?? undefined;
 
-  // Paginado interno: bloques de 1000 (límite de Supabase) hasta agotar — sin tope total
+  const f: FiltrosCheques = {
+    desde: val("desde"),
+    hasta: val("hasta"),
+    cliente: val("cliente"),
+    estado: val("estado"),
+    q: val("q"),
+    tipoFecha: val("tipoFecha"),
+    convenio: val("convenio"),
+    montoDesde: val("montoDesde"),
+    montoHasta: val("montoHasta"),
+    tipo: val("tipo"),
+    plaza: val("plaza"),
+  };
+
+  // Paginado interno: bloques de 1000 (limite de Supabase) hasta agotar, sin tope total
   type Fila = Record<string, unknown>;
   const todas: Fila[] = [];
   const BLOQUE = 1000;
@@ -35,24 +38,13 @@ export async function GET(req: NextRequest) {
     let q = supabase
       .from("cheques")
       .select(COLS)
-      .order("fecha_cobro", { ascending: false })
+      .order("created_at", { ascending: false })
       .range(inicio, inicio + BLOQUE - 1);
-    if (desde) q = q.gte(colFecha, desde);
-    if (hasta) q = q.lte(colFecha, vHasta(hasta));
-    if (cliente) q = q.eq("cliente_id", cliente);
-    if (convenio) q = q.eq("convenio_id", convenio);
-    if (estado) q = q.eq("estado", estado);
-    if (montoDesde && !isNaN(Number(montoDesde))) q = q.gte("monto", Number(montoDesde));
-    if (montoHasta && !isNaN(Number(montoHasta))) q = q.lte("monto", Number(montoHasta));
-    if (tipo === "echeq" || tipo === "fisico") q = q.eq("tipo", tipo);
-    if (plaza === "camara" || plaza === "interior") q = q.eq("plaza", plaza);
-    if (qTexto) {
-      q = q.or(`numero_cheque.ilike.%${qTexto}%,librador.ilike.%${qTexto}%,cuit_librador.ilike.%${qTexto}%,banco_emisor.ilike.%${qTexto}%`);
-    }
+    q = aplicarFiltros(q, f);
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     todas.push(...(data ?? []));
-    if (!data || data.length < BLOQUE) break; // último bloque
+    if (!data || data.length < BLOQUE) break;
   }
 
   const filas = todas.map((c) => ({
@@ -69,6 +61,8 @@ export async function GET(req: NextRequest) {
     "Estado": etiquetaEstado(String(c.estado)),
     "Banco emisor": c.banco_emisor,
     "Fecha cobro": c.fecha_cobro,
+    "Fecha pago": c.fecha_pago ?? "",
+    "Fecha depósito": c.fecha_deposito ?? "",
     "Acred. estimada": c.fecha_estimada_acred ?? "",
     "Gasto bancario": Number(c.gasto_bancario ?? 0),
     "Multa": Number(c.multa ?? 0),
@@ -80,11 +74,11 @@ export async function GET(req: NextRequest) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Cheques");
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer;
-  const rango = `${desde ?? "inicio"}_a_${hasta ?? "hoy"}`;
+  const rango = (f.desde ?? "inicio") + "_a_" + (f.hasta ?? "hoy");
   return new NextResponse(new Uint8Array(buf), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="cheques_${rango}.xlsx"`,
+      "Content-Disposition": 'attachment; filename="cheques_' + rango + '.xlsx"',
       "Cache-Control": "no-store",
     },
   });

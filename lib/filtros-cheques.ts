@@ -47,7 +47,8 @@ export function aplicarFiltros<T>(query: T, f: FiltrosCheques): T {
   const t = textoBusqueda(f.q);
   if (t) {
     x = x.or(
-      "numero_cheque.ilike.%" + t + "%,librador.ilike.%" + t + "%,cuit_librador.ilike.%" + t + "%"
+      "numero_cheque.ilike.%" + t + "%,librador.ilike.%" + t +
+        "%,cuit_librador.ilike.%" + t + "%,banco_emisor.ilike.%" + t + "%"
     );
   }
   return x as T;
