@@ -1,15 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { obtenerReporte } from "@/lib/reportes";
+import { obtenerReporte, rangoPeriodo } from "@/lib/reportes";
 import BotonImprimir from "@/components/reportes/boton-imprimir";
 
 export default async function ReporteImpresoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; convenio?: string }>;
+  searchParams: Promise<{ mes?: string; desde?: string; hasta?: string; convenio?: string }>;
 }) {
   const f = await searchParams;
-  const mes = f.mes ?? new Date().toISOString().slice(0, 7);
+  const { desde, hasta } = rangoPeriodo(f);
   const supabase = await createClient();
 
   const {
@@ -20,7 +20,7 @@ export default async function ReporteImpresoPage({
     .from("perfiles").select("rol").eq("id", user.id).single();
   if (perfil?.rol !== "administrador") redirect("/dashboard");
 
-  const { filas, grupos } = await obtenerReporte(supabase, mes, f.convenio || undefined);
+  const { filas, grupos } = await obtenerReporte(supabase, desde, hasta, f.convenio || undefined);
   const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const tot = grupos.reduce(
     (a, g) => ({ neto: a.neto + g.neto, iva: a.iva + g.iva, total: a.total + g.total }),
@@ -36,7 +36,7 @@ export default async function ReporteImpresoPage({
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold">Reporte de facturación por convenio</h1>
-            <p className="text-sm text-zinc-600">Período: {mes} · IVA 21% sobre comisiones (fees)</p>
+            <p className="text-sm text-zinc-600">Período: {desde} → {hasta} · IVA 21% sobre comisiones (fees)</p>
             <p className="text-xs text-zinc-500">Incluye cheques procesados y rechazados resueltos en el período.</p>
           </div>
           <BotonImprimir />
