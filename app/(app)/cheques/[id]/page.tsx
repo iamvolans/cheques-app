@@ -61,7 +61,7 @@ export default async function DetalleChequePage({
   const [{ data: ch }, { data: listaConvenios }, { data: logs }, { data: miPerfil }, { data: listaClientes }, { data: listaBancos }] = await Promise.all([
     supabase
       .from("cheques")
-      .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias)")
+      .select("*, clientes(id, razon_social), convenios(razon_social), cuentas_bancarias_empresa(banco, alias), lotes(numero, fecha)")
       .eq("id", id)
       .single(),
     supabase.from("convenios").select("id, razon_social").order("razon_social"),
@@ -94,6 +94,8 @@ export default async function DetalleChequePage({
     ["Banco emisor", ch.banco_emisor],
     ["Convenio", ch.convenios?.razon_social ?? "—"],
     ["Fecha de pago", ch.fecha_pago ?? "—"],
+    ["Lote", ch.lotes ? "N° " + ch.lotes.numero + " · " + ch.lotes.fecha : "—"],
+    ["N° de foto", ch.foto_numero ? String(ch.foto_numero) : "—"],
     ["Fecha de carga", ch.fecha_carga ?? "—"],
     ["Alta en el sistema", new Date(ch.created_at).toLocaleString("es-AR")],
     ["Cuenta de ingreso", `${ch.cuentas_bancarias_empresa?.banco ?? "—"}${ch.cuentas_bancarias_empresa?.alias ? " · " + ch.cuentas_bancarias_empresa.alias : ""}`],

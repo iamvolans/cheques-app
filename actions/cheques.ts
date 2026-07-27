@@ -22,6 +22,9 @@ const esquemaCheque = z.object({
   fecha_cobro: z.string().min(10, "Falta la fecha de pago del cheque"),
   fecha_carga: z.string().optional(),
   fecha_deposito: z.string().optional(),
+  lote_id: z.string().optional(),
+  lote_numero: z.string().optional(),
+  foto_numero: z.string().optional(),
   codigo_postal: z.coerce
     .number({ error: "El C.P. es obligatorio" })
     .int("C.P. inválido")
@@ -31,7 +34,7 @@ const esquemaCheque = z.object({
   portador_banco: z.string().optional(),
 });
 
-export type EstadoCheque = { error: string | null; ok?: boolean; alerta?: string | null };
+export type EstadoCheque = { error: string | null; ok?: boolean; alerta?: string | null; foto?: number | null };
 
 const MAX_ARCHIVO = 8 * 1024 * 1024; // 8 MB
 
@@ -90,7 +93,10 @@ export async function crearCheque(
 
     try {
       const carpeta = await carpetaDelDia(cliente.razon_social);
-      const pref = `cheque_${d.numero_cheque}`;
+      const pad = (v?: string) => String(v ?? "").padStart(2, "0");
+      const pref = d.lote_id
+        ? "lote" + pad(d.lote_numero) + "_foto" + pad(d.foto_numero) + "_cheque_" + d.numero_cheque
+        : "cheque_" + d.numero_cheque;
       if (frente) {
         const r = await subirArchivo(frente.buffer, `${pref}_frente_${frente.nombre}`, frente.tipo, carpeta);
         subidos.push(r.id);
@@ -130,6 +136,8 @@ export async function crearCheque(
       fecha_pago: d.fecha_cobro,
       fecha_carga: d.fecha_carga || null,
       fecha_deposito: d.fecha_deposito || null,
+      lote_id: d.lote_id || null,
+      foto_numero: d.foto_numero ? Number(d.foto_numero) : null,
       echeq_id: d.tipo === "echeq" ? d.echeq_id : null,
       portador_banco: d.portador_banco || null,
       foto_frente_url,
@@ -138,7 +146,7 @@ export async function crearCheque(
       fee_aplicado_pct: 0,
       fee_calculado: 0,
     })
-    .select("alerta_lista_negra, estado, fecha_cobro, plaza, fee_aplicado_pct")
+    .select("alerta_lista_negra, estado, fecha_cobro, plaza, fee_aplicado_pct, foto_numero")
     .single();
 
   if (error) {
@@ -165,7 +173,12 @@ export async function crearCheque(
   }
 
   revalidatePath("/cheques");
-  return { error: null, ok: true, alerta: avisos.length ? avisos.join(" ") : null };
+  return {
+    error: null,
+    ok: true,
+    alerta: avisos.length ? avisos.join(" ") : null,
+    foto: insertado?.foto_numero ?? null,
+  };
 }
 
 const transicionesValidas: Record<string, string[]> = {

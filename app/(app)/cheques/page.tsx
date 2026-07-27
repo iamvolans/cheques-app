@@ -79,6 +79,7 @@ export default async function ChequesPage({
     { data: convenios },
     { data: cuentas },
     { data: bancos },
+    { data: loteAbierto },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qCheques,
@@ -87,7 +88,17 @@ export default async function ChequesPage({
     supabase.from("convenios").select("id, razon_social").eq("activo", true),
     supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
     supabase.from("bancos").select("nombre").eq("activo", true).order("orden"),
+    supabase.from("lotes").select("id, numero, cliente_id, fecha")
+      .eq("abierto_por", user.id).eq("estado", "abierto").maybeSingle(),
   ]);
+
+  let proximaFoto = 1;
+  if (loteAbierto) {
+    const { data: ult } = await supabase.from("cheques").select("foto_numero")
+      .eq("lote_id", loteAbierto.id).order("foto_numero", { ascending: false })
+      .limit(1).maybeSingle();
+    proximaFoto = Number(ult?.foto_numero ?? 0) + 1;
+  }
 
   const total = totalCheques ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
@@ -121,6 +132,8 @@ export default async function ChequesPage({
             convenios={(convenios ?? []).map((c) => ({ id: c.id, nombre: c.razon_social }))}
             cuentas={(cuentas ?? []).map((c) => ({ id: c.id, nombre: `${c.banco}${c.alias ? " · " + c.alias : ""}` }))}
             bancos={(bancos ?? []).map((b) => b.nombre)}
+            loteAbierto={loteAbierto ?? null}
+            proximaFoto={proximaFoto}
           />
         </div>
 

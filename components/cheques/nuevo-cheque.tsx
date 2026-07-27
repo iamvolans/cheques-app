@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearCheque, type EstadoCheque } from "@/actions/cheques";
+import { abrirLote, cerrarLote, type Lote } from "@/actions/lotes";
 import InputCuit from "@/components/ui/input-cuit";
 import InputMonto from "@/components/ui/input-monto";
 import InputBanco from "@/components/ui/input-banco";
@@ -68,11 +69,15 @@ export default function NuevoCheque({
   convenios,
   cuentas,
   bancos,
+  loteAbierto,
+  proximaFoto,
 }: {
   clientes: Opcion[];
   convenios: Opcion[];
   cuentas: Opcion[];
   bancos: string[];
+  loteAbierto?: Lote | null;
+  proximaFoto?: number;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState<"fisico" | "echeq">("fisico");
@@ -81,6 +86,11 @@ export default function NuevoCheque({
   const [fecha, setFecha] = useState("");
   const [fechaCarga, setFechaCarga] = useState(hoyISO());
   const [fechaDep, setFechaDep] = useState("");
+  const [lote, setLote] = useState<Lote | null>(loteAbierto ?? null);
+  const [clienteId, setClienteId] = useState(loteAbierto?.cliente_id ?? "");
+  const [fotoNum, setFotoNum] = useState(String(proximaFoto ?? 1));
+  const [loteErr, setLoteErr] = useState<string | null>(null);
+  const [loteOcupado, setLoteOcupado] = useState(false);
   const [estado, accion, pendiente] = useActionState(crearCheque, inicial);
   const [resetTick, setResetTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
@@ -94,6 +104,8 @@ export default function NuevoCheque({
       setFechaDep("");
       setCuitLibrador("");
       setResetTick((t) => t + 1);
+      if (lote) setFotoNum(String((estado.foto ?? 0) + 1));
+      else setClienteId("");
     }
   }, [estado]);
 
@@ -197,8 +209,15 @@ export default function NuevoCheque({
           <input name="portador_banco" placeholder="¿Quién lo lleva a depositar?" className={inputCls} />
         </Campo>
       )}
-      <Campo etiqueta="Cliente *">
-        <select name="cliente_id" required className={inputCls} defaultValue="">
+      <Campo etiqueta={lote ? "Cliente * (fijado por el lote)" : "Cliente *"}>
+        <input type="hidden" name="cliente_id" value={clienteId} />
+        <select
+          required
+          disabled={Boolean(lote)}
+          value={clienteId}
+          onChange={(e) => setClienteId(e.target.value)}
+          className={inputCls + (lote ? " opacity-70" : "")}
+        >
           <option value="" disabled>Elegir cliente…</option>
           {clientes.map((c) => (
             <option key={c.id} value={c.id}>{c.nombre}</option>
@@ -267,6 +286,65 @@ export default function NuevoCheque({
         </p>
       )}
 
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/60 p-2 sm:col-span-2 lg:col-span-3">
+        {!lote ? (
+          <button
+            type="button"
+            disabled={loteOcupado || clienteId === ""}
+            onClick={async () => {
+              setLoteErr(null); setLoteOcupado(true);
+              const r = await abrirLote(clienteId);
+              setLoteOcupado(false);
+              if (r.error) { setLoteErr(r.error); return; }
+              setLote(r.lote ?? null); setFotoNum("1");
+            }}
+            className="rounded-lg bg-blue-800 px-3 py-1.5 text-xs font-medium text-blue-100 transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            Abrir lote
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={loteOcupado}
+            onClick={async () => {
+              setLoteErr(null); setLoteOcupado(true);
+              const r = await cerrarLote(lote.id);
+              setLoteOcupado(false);
+              if (r.error) { setLoteErr(r.error); return; }
+              setLote(null); setFotoNum("1"); setClienteId("");
+            }}
+            className="rounded-lg bg-warning/25 px-3 py-1.5 text-xs font-medium text-warning transition hover:bg-warning/35 disabled:opacity-50"
+          >
+            Cerrar lote
+          </button>
+        )}
+        {lote && (
+          <>
+            <input type="hidden" name="lote_id" value={lote.id} />
+            <input type="hidden" name="lote_numero" value={String(lote.numero)} />
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Lote N° <strong className="font-mono text-foreground">{lote.numero}</strong> · {lote.fecha}
+            </span>
+            <label className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+              N° foto
+              <input
+                name="foto_numero"
+                type="number"
+                min="1"
+                value={fotoNum}
+                onChange={(e) => setFotoNum(e.target.value)}
+                className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
+              />
+            </label>
+          </>
+        )}
+        {!lote && (
+          <span className="text-[11px] normal-case tracking-normal text-muted-foreground">
+            Sin lote abierto: los cheques se cargan sueltos, sin numeración de foto.
+          </span>
+        )}
+        {loteErr && <span className="text-[11px] normal-case tracking-normal text-danger">{loteErr}</span>}
+      </div>
       <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
         <button
           type="submit"
