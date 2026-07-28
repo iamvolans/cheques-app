@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import BotonImprimir from "@/components/ui/boton-imprimir";
 import AnularRecibo from "@/components/recibos/anular-recibo";
+import FirmaRecibo from "@/components/recibos/firma-recibo";
 
 export const metadata = { title: "Recibo de devolución" };
 const ars = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
@@ -115,9 +116,34 @@ export default async function ReciboPage({
             <div className="border-t border-black pt-2">Entregó (firma y aclaración)</div>
           </div>
           <div>
-            <div className="border-t border-black pt-2">Recibió (firma, aclaración y DNI)</div>
+            {rec.firma_png && (
+              <div className="flex h-24 items-end justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={rec.firma_png} alt="Firma de quien recibe" className="max-h-24" />
+              </div>
+            )}
+            <div className="border-t border-black pt-2">
+              Recibió (firma, aclaración y DNI)
+              {rec.firma_aclaracion && (
+                <div className="mt-1 text-xs">
+                  {rec.firma_aclaracion} · DNI {rec.firma_dni}
+                  <br />
+                  <span className="text-neutral-600">
+                    Firmado el {new Date(rec.firma_at).toLocaleString("es-AR")}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {rec.estado === "emitido" && <FirmaRecibo reciboId={rec.id} />}
+
+        {rec.firma_hash && (
+          <p className="break-all text-[10px] text-neutral-500">
+            Huella SHA-256: {rec.firma_hash}
+          </p>
+        )}
 
         {esAdmin && rec.estado !== "anulado" && (
           <div className="print:hidden">

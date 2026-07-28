@@ -12,11 +12,13 @@ const PASOS = [
 
 export default function GestionRechazo({
   chequeId,
+  reciboId,
   notificado,
   recuperado,
   entregado,
 }: {
   chequeId: string;
+  reciboId: string | null;
   notificado: string | null;
   recuperado: string | null;
   entregado: string | null;
@@ -69,12 +71,12 @@ export default function GestionRechazo({
       </div>
       <div className="mt-3 flex items-center gap-3">
         <a
-          href={"/recibo-devolucion?ids=" + chequeId}
+          href={reciboId ? "/recibos/" + reciboId : "/cheques?estado=rechazado_sin_entregar"}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/60 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/20"
         >
-          <Printer size={13} /> Recibo de devolución
+          <Printer size={13} /> {reciboId ? "Ver recibo de devolución" : "Generar recibo desde el listado"}
         </a>
         {error && <p className="text-xs text-danger">{error}</p>}
       </div>

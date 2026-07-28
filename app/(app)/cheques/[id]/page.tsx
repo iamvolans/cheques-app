@@ -196,6 +196,7 @@ export default async function DetalleChequePage({
         {ch.estado === "rechazado" && !ch.recibo_id && ch.tipo === "fisico" && (
           <GestionRechazo
             chequeId={ch.id}
+            reciboId={ch.recibo_id ?? null}
             notificado={ch.rechazo_notificado_at ?? null}
             recuperado={ch.rechazo_recuperado_at ?? null}
             entregado={ch.rechazo_entregado_at ?? null}

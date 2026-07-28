@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { createHash } from "crypto";
 
 export async function crearRecibo(
   ids: string[]
@@ -65,5 +67,60 @@ export async function anularRecibo(
 
   revalidatePath("/cheques");
   revalidatePath("/recibos/" + reciboId);
+  return { error: null };
+}
+
+export async function firmarRecibo(p: {
+  reciboId: string;
+  png: string;
+  aclaracion: string;
+  dni: string;
+}): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión vencida. Recargá la página." };
+
+  if (!p.png.startsWith("data:image/png;base64,")) return { error: "Firma inválida." };
+  if (p.png.length > 300000) return { error: "La firma es demasiado pesada. Volvé a firmar más simple." };
+
+  const { data: rec } = await supabase
+    .from("recibos_devolucion")
+    .select("numero, cliente_id, total, cantidad, fecha")
+    .eq("id", p.reciboId)
+    .single();
+  if (!rec) return { error: "El recibo no existe." };
+
+  const { data: items } = await supabase
+    .from("recibos_devolucion_items")
+    .select("numero_cheque, cuit_librador, monto")
+    .eq("recibo_id", p.reciboId)
+    .order("numero_cheque");
+
+  // Huella del contenido firmado: si manana cambia algo, el hash no cierra
+  const hash = createHash("sha256")
+    .update(JSON.stringify({
+      recibo: rec.numero, cliente: rec.cliente_id, fecha: rec.fecha,
+      cantidad: rec.cantidad, total: rec.total, items: items ?? [],
+      aclaracion: p.aclaracion.trim(), dni: p.dni.replace(/\D/g, ""), png: p.png,
+    }))
+    .digest("hex");
+
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || null;
+  const ua = h.get("user-agent");
+
+  const { error } = await supabase.rpc("fn_firmar_recibo", {
+    p_recibo_id: p.reciboId,
+    p_png: p.png,
+    p_aclaracion: p.aclaracion,
+    p_dni: p.dni,
+    p_hash: hash,
+    p_ip: ip,
+    p_ua: ua,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/recibos/" + p.reciboId);
+  revalidatePath("/cheques");
   return { error: null };
 }
