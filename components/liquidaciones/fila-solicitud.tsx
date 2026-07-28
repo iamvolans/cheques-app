@@ -1,5 +1,6 @@
 "use client";
 
+import { hoyART } from "@/lib/fechas";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { procesarSolicitud, rechazarSolicitud, type EstadoProc } from "@/actions/liquidaciones";
 
@@ -22,7 +23,7 @@ export default function FilaSolicitud({ id }: { id: string }) {
       <form action={accion} className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="solicitud_id" value={id} />
         <input name="coelsa_id" placeholder="Coelsa ID *" required className={`${inp} w-36`} />
-        <input name="fecha" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required className={inp} />
+        <input name="fecha" type="date" defaultValue={hoyART()} required className={inp} />
         <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
           Comprobante
           <input

@@ -1,5 +1,6 @@
 "use client";
 
+import { hoyART, fechaART } from "@/lib/fechas";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearCheque, type EstadoCheque } from "@/actions/cheques";
 import { abrirLote, cerrarLote, type Lote } from "@/actions/lotes";
@@ -12,12 +13,12 @@ type Opcion = { id: string; nombre: string };
 const inicial: EstadoCheque = { error: null };
 
 function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
+  return hoyART();
 }
 function maxDiferidoISO() {
   const d = new Date();
   d.setDate(d.getDate() + 90);
-  return d.toISOString().slice(0, 10);
+  return fechaART(d);
 }
 
 // Comprime imágenes pesadas en el navegador antes de subirlas (límite de Vercel: ~4,5 MB por request)

@@ -1,3 +1,4 @@
+import { hoyART } from "@/lib/fechas";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { carpetaBackupMensual, subirArchivo } from "@/lib/google-drive/drive";
@@ -29,7 +30,7 @@ export async function GET(req: Request) {
   ]);
 
   const carpeta = await carpetaBackupMensual();
-  const sello = new Date().toISOString().slice(0, 10);
+  const sello = hoyART();
 
   const archivos = [
     { nombre: `cheques_${sello}.csv`, filas: (cheques ?? []) as Record<string, unknown>[] },

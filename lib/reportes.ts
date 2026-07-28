@@ -1,3 +1,4 @@
+import { mesART } from "@/lib/fechas";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type FilaReporte = {
@@ -25,7 +26,7 @@ export const IVA_PCT = 0.21;
 // Resuelve el periodo: acepta desde/hasta libres, o "mes" (links viejos), o default mes actual.
 export function rangoPeriodo(p: { mes?: string; desde?: string; hasta?: string }): { desde: string; hasta: string } {
   if (p.desde && p.hasta) return { desde: p.desde, hasta: p.hasta };
-  const mes = p.mes ?? new Date().toISOString().slice(0, 7);
+  const mes = p.mes ?? mesART();
   const [y, m] = mes.split("-").map(Number);
   return {
     desde: mes + "-01",

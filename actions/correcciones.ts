@@ -1,5 +1,6 @@
 "use server";
 
+import { hoyART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
@@ -610,7 +611,7 @@ export async function redepositarCheque(p: {
     .from("cheques")
     .update({
       estado: "depositado",
-      fecha_deposito: new Date().toISOString().slice(0, 10),
+      fecha_deposito: hoyART(),
       fecha_resolucion: null,
       multa: 0,
       motivo_rechazo: null,

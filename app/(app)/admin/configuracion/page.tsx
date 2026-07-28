@@ -1,3 +1,4 @@
+import { hoyART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export default async function ConfiguracionPage() {
     .from("perfiles").select("rol").eq("id", user.id).single();
   if (miPerfil?.rol !== "administrador") redirect("/dashboard");
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyART();
   const [{ data: listaNegra }, { data: convenios }, { data: cuentas }, { data: feriados }, { data: plaftParams }] =
     await Promise.all([
       supabase.from("lista_negra_libradores").select("*").order("created_at", { ascending: false }),

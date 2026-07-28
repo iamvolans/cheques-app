@@ -1,3 +1,4 @@
+import { hoyART } from "@/lib/fechas";
 import { etiquetaEstado } from "@/lib/estados";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -62,7 +63,7 @@ export default async function DashboardPage() {
   }
 
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyART();
 
   // ---- Financiero ----
   const gananciaNeta = (ganancias ?? []).reduce((a, g) => a + Number(g.ganancia_total ?? 0), 0);

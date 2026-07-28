@@ -1,9 +1,10 @@
+import { hoyART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export default async function AcreditacionesVencidas() {
   const supabase = await createClient();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyART();
 
   const { data } = await supabase
     .from("cheques")

@@ -1,3 +1,4 @@
+import { hoyART } from "@/lib/fechas";
 // Terminología oficial del sistema (etiquetas visibles).
 // Los valores internos de la base NO cambian; solo lo que ve el usuario.
 export const ETIQUETA_ESTADO: Record<string, string> = {
@@ -15,7 +16,7 @@ export function etiquetaEstado(estado: string): string {
 
 // Etiqueta derivada: un diferido cuya fecha ya llego se muestra "En cartera"
 export function etiquetaEstadoConFecha(estado: string, fechaCobro?: string | null): string {
-  if (estado === "en_custodia" && fechaCobro && fechaCobro <= new Date().toISOString().slice(0, 10)) {
+  if (estado === "en_custodia" && fechaCobro && fechaCobro <= hoyART()) {
     return "En cartera";
   }
   return etiquetaEstado(estado);

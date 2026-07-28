@@ -1,3 +1,4 @@
+import { hoyART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -41,16 +42,17 @@ export default async function ReportesPage({
 
   // Presets de periodo
   const iso = (dt: Date) => dt.toISOString().slice(0, 10);
-  const ahora = new Date();
-  const anio = ahora.getUTCFullYear();
-  const mesN = ahora.getUTCMonth();
+  const hoyStr = hoyART();
+  const anio = Number(hoyStr.slice(0, 4));
+  const mesN = Number(hoyStr.slice(5, 7)) - 1;
+  const diaN = Number(hoyStr.slice(8, 10));
   const finMesActual = iso(new Date(Date.UTC(anio, mesN + 1, 0)));
   const presets = [
     { l: "Este mes", d: iso(new Date(Date.UTC(anio, mesN, 1))), h: finMesActual },
     { l: "Mes anterior", d: iso(new Date(Date.UTC(anio, mesN - 1, 1))), h: iso(new Date(Date.UTC(anio, mesN, 0))) },
     { l: "1ra quincena", d: iso(new Date(Date.UTC(anio, mesN, 1))), h: iso(new Date(Date.UTC(anio, mesN, 15))) },
     { l: "2da quincena", d: iso(new Date(Date.UTC(anio, mesN, 16))), h: finMesActual },
-    { l: "Últimos 7 días", d: iso(new Date(ahora.getTime() - 6 * 24 * 3600 * 1000)), h: iso(ahora) },
+    { l: "Últimos 7 días", d: iso(new Date(Date.UTC(anio, mesN, diaN - 6))), h: hoyStr },
   ];
   const hrefPreset = (d: string, h: string) => {
     const p = new URLSearchParams({ desde: d, hasta: h });

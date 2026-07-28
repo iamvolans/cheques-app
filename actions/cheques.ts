@@ -1,5 +1,6 @@
 "use server";
 
+import { hoyART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -250,7 +251,7 @@ export async function depositarLote(ids: string[]): Promise<{
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión vencida. Recargá la página." };
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyART();
   const { data: chs } = await supabase
     .from("cheques")
     .select("id, numero_cheque, estado, fecha_cobro")
