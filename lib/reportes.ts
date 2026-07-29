@@ -1,11 +1,14 @@
-import { mesART } from "@/lib/fechas";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { mesART } from "@/lib/fechas";
 
 export type FilaReporte = {
   numero_cheque: string;
   librador: string;
   monto: number;
-  fee: number;
+  feeBruto: number;
+  costo: number;
+  multaBanco: number;
+  neto: number;
   estado: string;
   fecha: string;
   convenio: string;
@@ -16,6 +19,9 @@ export type GrupoConvenio = {
   convenio: string;
   cantidad: number;
   montoGestionado: number;
+  feeBruto: number;
+  costo: number;
+  multaBanco: number;
   neto: number;
   iva: number;
   total: number;
@@ -34,52 +40,64 @@ export function rangoPeriodo(p: { mes?: string; desde?: string; hasta?: string }
   };
 }
 
-// Cheques resueltos (procesados/rechazados) del periodo [desde, hasta] inclusive,
-// cortados por fecha_resolucion (cuando se devengo la comision), agrupados por convenio.
+// Lee de vw_facturacion_cheques, que ya trae el neto calculado por cheque.
+// Pagina de a 1000 (limite de Supabase): sin esto los periodos grandes se truncaban
+// en silencio y se facturaba de menos.
 export async function obtenerReporte(
   supabase: SupabaseClient,
   desde: string,
   hasta: string,
   convenioId?: string
 ): Promise<{ filas: FilaReporte[]; grupos: GrupoConvenio[] }> {
-  const [y, m, d] = hasta.split("-").map(Number);
-  const finExclusivo = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+  type Cruda = Record<string, unknown>;
+  const todas: Cruda[] = [];
+  const BLOQUE = 1000;
 
-  let q = supabase
-    .from("cheques")
-    .select(
-      "numero_cheque, librador, monto, fee_calculado, estado, fecha_resolucion, convenio_id, convenios(razon_social), clientes(razon_social)"
-    )
-    .in("estado", ["procesado", "rechazado"])
-    .gte("fecha_resolucion", desde)
-    .lt("fecha_resolucion", finExclusivo)
-    .order("fecha_resolucion");
-  if (convenioId) q = q.eq("convenio_id", convenioId);
+  for (let inicio = 0; ; inicio += BLOQUE) {
+    let q = supabase
+      .from("vw_facturacion_cheques")
+      .select("*")
+      .gte("fecha_facturacion", desde)
+      .lte("fecha_facturacion", hasta)
+      .order("fecha_facturacion")
+      .range(inicio, inicio + BLOQUE - 1);
+    if (convenioId) q = q.eq("convenio_id", convenioId);
 
-  const { data } = await q;
-  const rel = (x: unknown) => (x as { razon_social?: string } | null)?.razon_social ?? "—";
+    const { data, error } = await q;
+    if (error) break;
+    todas.push(...(data ?? []));
+    if (!data || data.length < BLOQUE) break;
+  }
 
-  const filas: FilaReporte[] = (data ?? []).map((c) => ({
-    numero_cheque: c.numero_cheque,
-    librador: c.librador,
-    monto: Number(c.monto),
-    fee: Number(c.fee_calculado),
-    estado: c.estado,
-    fecha: String(c.fecha_resolucion ?? "").slice(0, 10),
-    convenio: rel(c.convenios),
-    cliente: rel(c.clientes),
+  const filas: FilaReporte[] = todas.map((c) => ({
+    numero_cheque: String(c.numero_cheque ?? ""),
+    librador: String(c.librador ?? ""),
+    monto: Number(c.monto ?? 0),
+    feeBruto: Number(c.fee_bruto ?? 0),
+    costo: Number(c.costo_procesamiento ?? 0),
+    multaBanco: Number(c.multa_banco ?? 0),
+    neto: Number(c.neto ?? 0),
+    estado: String(c.estado ?? ""),
+    fecha: String(c.fecha_facturacion ?? "").slice(0, 10),
+    convenio: String(c.convenio ?? "—"),
+    cliente: String(c.cliente ?? "—"),
   }));
 
   const mapa = new Map<string, GrupoConvenio>();
   for (const fi of filas) {
     const g = mapa.get(fi.convenio) ?? {
-      convenio: fi.convenio, cantidad: 0, montoGestionado: 0, neto: 0, iva: 0, total: 0,
+      convenio: fi.convenio, cantidad: 0, montoGestionado: 0,
+      feeBruto: 0, costo: 0, multaBanco: 0, neto: 0, iva: 0, total: 0,
     };
     g.cantidad++;
     g.montoGestionado += fi.monto;
-    g.neto += fi.fee;
+    g.feeBruto += fi.feeBruto;
+    g.costo += fi.costo;
+    g.multaBanco += fi.multaBanco;
+    g.neto += fi.neto;
     mapa.set(fi.convenio, g);
   }
+
   const grupos = [...mapa.values()]
     .map((g) => ({ ...g, iva: g.neto * IVA_PCT, total: g.neto * (1 + IVA_PCT) }))
     .sort((a, b) => b.neto - a.neto);

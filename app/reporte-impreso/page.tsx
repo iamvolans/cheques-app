@@ -23,8 +23,16 @@ export default async function ReporteImpresoPage({
   const { filas, grupos } = await obtenerReporte(supabase, desde, hasta, f.convenio || undefined);
   const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const tot = grupos.reduce(
-    (a, g) => ({ neto: a.neto + g.neto, iva: a.iva + g.iva, total: a.total + g.total }),
-    { neto: 0, iva: 0, total: 0 }
+    (a, g) => ({
+      montoGestionado: a.montoGestionado + g.montoGestionado,
+      feeBruto: a.feeBruto + g.feeBruto,
+      costo: a.costo + g.costo,
+      multaBanco: a.multaBanco + g.multaBanco,
+      neto: a.neto + g.neto,
+      iva: a.iva + g.iva,
+      total: a.total + g.total,
+    }),
+    { montoGestionado: 0, feeBruto: 0, costo: 0, multaBanco: 0, neto: 0, iva: 0, total: 0 }
   );
 
   const th = "border border-zinc-300 bg-zinc-100 px-2 py-1 text-left text-xs font-semibold";
@@ -36,8 +44,12 @@ export default async function ReporteImpresoPage({
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold">Reporte de facturación por convenio</h1>
-            <p className="text-sm text-zinc-600">Período: {desde} → {hasta} · IVA 21% sobre comisiones (fees)</p>
-            <p className="text-xs text-zinc-500">Incluye cheques procesados y rechazados resueltos en el período.</p>
+            <p className="text-sm text-zinc-600">Período: {desde} → {hasta} · IVA 21% sobre el neto</p>
+            <p className="text-xs text-zinc-500">
+              Neto = fee cobrado − costo de procesamiento bancario − multa del banco (solo rechazados).
+              La multa al cliente es resarcimiento y no se factura. Acreditados imputados por fecha de
+              acreditación; rechazados por fecha de rechazo.
+            </p>
           </div>
           <BotonImprimir />
         </div>
@@ -48,9 +60,12 @@ export default async function ReporteImpresoPage({
               <th className={th}>Convenio</th>
               <th className={th}>Cheques</th>
               <th className={th}>Monto gestionado</th>
-              <th className={th}>Fee neto</th>
+              <th className={th}>Fee bruto</th>
+              <th className={th}>Costo proc.</th>
+              <th className={th}>Multa banco</th>
+              <th className={th}>Neto a facturar</th>
               <th className={th}>IVA 21%</th>
-              <th className={th}>Total a facturar</th>
+              <th className={th}>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -59,6 +74,9 @@ export default async function ReporteImpresoPage({
                 <td className={td}>{g.convenio}</td>
                 <td className={`${td} text-right`}>{g.cantidad}</td>
                 <td className={`${td} text-right`}>{fmt.format(g.montoGestionado)}</td>
+                <td className={`${td} text-right`}>{fmt.format(g.feeBruto)}</td>
+                <td className={`${td} text-right`}>-{fmt.format(g.costo)}</td>
+                <td className={`${td} text-right`}>{g.multaBanco > 0 ? "-" + fmt.format(g.multaBanco) : "—"}</td>
                 <td className={`${td} text-right`}>{fmt.format(g.neto)}</td>
                 <td className={`${td} text-right`}>{fmt.format(g.iva)}</td>
                 <td className={`${td} text-right font-semibold`}>{fmt.format(g.total)}</td>
@@ -67,7 +85,10 @@ export default async function ReporteImpresoPage({
             <tr className="font-bold">
               <td className={td}>TOTAL</td>
               <td className={`${td} text-right`}>{filas.length}</td>
-              <td className={td}></td>
+              <td className={`${td} text-right`}>{fmt.format(tot.montoGestionado)}</td>
+              <td className={`${td} text-right`}>{fmt.format(tot.feeBruto)}</td>
+              <td className={`${td} text-right`}>-{fmt.format(tot.costo)}</td>
+              <td className={`${td} text-right`}>-{fmt.format(tot.multaBanco)}</td>
               <td className={`${td} text-right`}>{fmt.format(tot.neto)}</td>
               <td className={`${td} text-right`}>{fmt.format(tot.iva)}</td>
               <td className={`${td} text-right`}>{fmt.format(tot.total)}</td>
@@ -84,7 +105,10 @@ export default async function ReporteImpresoPage({
               <th className={th}>N° cheque</th>
               <th className={th}>Librador</th>
               <th className={th}>Monto</th>
-              <th className={th}>Fee</th>
+              <th className={th}>Fee bruto</th>
+              <th className={th}>Costo proc.</th>
+              <th className={th}>Multa banco</th>
+              <th className={th}>Neto</th>
               <th className={th}>Estado</th>
             </tr>
           </thead>
@@ -97,7 +121,10 @@ export default async function ReporteImpresoPage({
                 <td className={td}>{fi.numero_cheque}</td>
                 <td className={td}>{fi.librador}</td>
                 <td className={`${td} text-right`}>{fmt.format(fi.monto)}</td>
-                <td className={`${td} text-right`}>{fmt.format(fi.fee)}</td>
+                <td className={`${td} text-right`}>{fmt.format(fi.feeBruto)}</td>
+                <td className={`${td} text-right`}>-{fmt.format(fi.costo)}</td>
+                <td className={`${td} text-right`}>{fi.multaBanco > 0 ? "-" + fmt.format(fi.multaBanco) : "—"}</td>
+                <td className={`${td} text-right`}>{fmt.format(fi.neto)}</td>
                 <td className={td}>{fi.estado}</td>
               </tr>
             ))}

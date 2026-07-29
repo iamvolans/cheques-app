@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerReporte, rangoPeriodo } from "@/lib/reportes";
 
+export const maxDuration = 60;
+
 export async function GET(req: Request) {
   const supabase = await createClient();
   const {
@@ -25,15 +27,22 @@ export async function GET(req: Request) {
 
   const lineas: string[] = [];
   lineas.push("Reporte de facturación por convenio;Período: " + desde + " a " + hasta);
+  lineas.push("Neto = fee - costo de procesamiento - multa del banco (rechazados). La multa al cliente no se factura.");
   lineas.push("");
-  lineas.push("Convenio;Cheques;Monto gestionado;Fee neto;IVA 21%;Total a facturar");
+  lineas.push("Convenio;Cheques;Monto gestionado;Fee bruto;Costo procesamiento;Multa banco;Neto a facturar;IVA 21%;Total");
   for (const g of grupos) {
-    lineas.push(g.convenio + ";" + g.cantidad + ";" + n(g.montoGestionado) + ";" + n(g.neto) + ";" + n(g.iva) + ";" + n(g.total));
+    lineas.push(
+      g.convenio + ";" + g.cantidad + ";" + n(g.montoGestionado) + ";" + n(g.feeBruto) + ";" +
+      n(g.costo) + ";" + n(g.multaBanco) + ";" + n(g.neto) + ";" + n(g.iva) + ";" + n(g.total)
+    );
   }
   lineas.push("");
-  lineas.push("Fecha;Convenio;Cliente;N° cheque;Librador;Monto;Fee;Estado");
+  lineas.push("Fecha;Convenio;Cliente;N° cheque;Librador;Monto;Fee bruto;Costo proc.;Multa banco;Neto;Estado");
   for (const fi of filas) {
-    lineas.push(fi.fecha + ";" + fi.convenio + ";" + fi.cliente + ";" + fi.numero_cheque + ";" + fi.librador + ";" + n(fi.monto) + ";" + n(fi.fee) + ";" + fi.estado);
+    lineas.push(
+      fi.fecha + ";" + fi.convenio + ";" + fi.cliente + ";" + fi.numero_cheque + ";" + fi.librador + ";" +
+      n(fi.monto) + ";" + n(fi.feeBruto) + ";" + n(fi.costo) + ";" + n(fi.multaBanco) + ";" + n(fi.neto) + ";" + fi.estado
+    );
   }
 
   return new NextResponse("\uFEFF" + lineas.join("\r\n"), {

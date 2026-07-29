@@ -36,8 +36,16 @@ export default async function ReportesPage({
   const qs = qsObj.toString();
 
   const tot = grupos.reduce(
-    (a, g) => ({ neto: a.neto + g.neto, iva: a.iva + g.iva, total: a.total + g.total }),
-    { neto: 0, iva: 0, total: 0 }
+    (a, g) => ({
+      montoGestionado: a.montoGestionado + g.montoGestionado,
+      feeBruto: a.feeBruto + g.feeBruto,
+      costo: a.costo + g.costo,
+      multaBanco: a.multaBanco + g.multaBanco,
+      neto: a.neto + g.neto,
+      iva: a.iva + g.iva,
+      total: a.total + g.total,
+    }),
+    { montoGestionado: 0, feeBruto: 0, costo: 0, multaBanco: 0, neto: 0, iva: 0, total: 0 }
   );
 
   // Presets de periodo
@@ -71,7 +79,7 @@ export default async function ReportesPage({
         <header className="border-b border-border pb-4">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Reportes de facturación</h1>
           <p className="text-sm text-muted-foreground">
-            Fees devengados por convenio (cheques acreditados y rechazados resueltos en el período) con IVA 21%.
+            Neto a facturar por convenio: fee cobrado menos el costo de procesamiento bancario y, en los rechazados, la multa del banco. La multa al cliente es resarcimiento y no se factura. Acreditados imputados por fecha de acreditación; rechazados por fecha de rechazo. IVA 21%.
             Período actual: <span className="font-mono text-foreground/90">{desde}</span> → <span className="font-mono text-foreground/90">{hasta}</span>
           </p>
         </header>
@@ -141,9 +149,12 @@ export default async function ReportesPage({
                 <th className={th}>Convenio</th>
                 <th className={th + " text-right"}>Cheques</th>
                 <th className={th + " text-right"}>Monto gestionado</th>
-                <th className={th + " text-right"}>Fee neto</th>
+                <th className={th + " text-right"}>Fee bruto</th>
+                <th className={th + " text-right"}>Costo proc.</th>
+                <th className={th + " text-right"}>Multa banco</th>
+                <th className={th + " text-right"}>Neto a facturar</th>
                 <th className={th + " text-right"}>IVA 21%</th>
-                <th className={th + " text-right"}>Total a facturar</th>
+                <th className={th + " text-right"}>Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-background">
@@ -152,7 +163,10 @@ export default async function ReportesPage({
                   <td className="px-4 py-3 text-foreground">{g.convenio}</td>
                   <td className={tdNum + " text-muted-foreground"}>{g.cantidad}</td>
                   <td className={tdNum + " text-foreground/90"}>{fmtARS.format(g.montoGestionado)}</td>
-                  <td className={tdNum + " text-foreground"}>{fmtARS.format(g.neto)}</td>
+                  <td className={tdNum + " text-foreground/90"}>{fmtARS.format(g.feeBruto)}</td>
+                  <td className={tdNum + " text-danger"}>-{fmtARS.format(g.costo)}</td>
+                  <td className={tdNum + " text-danger"}>{g.multaBanco > 0 ? "-" + fmtARS.format(g.multaBanco) : "—"}</td>
+                  <td className={tdNum + (g.neto < 0 ? " font-semibold text-danger" : " text-foreground")}>{fmtARS.format(g.neto)}</td>
                   <td className={tdNum + " text-muted-foreground"}>{fmtARS.format(g.iva)}</td>
                   <td className={tdNum + " font-semibold text-primary"}>{fmtARS.format(g.total)}</td>
                 </tr>
@@ -161,14 +175,17 @@ export default async function ReportesPage({
                 <tr className="bg-card/60 font-semibold">
                   <td className="px-4 py-3 text-foreground">TOTAL</td>
                   <td className={tdNum + " text-muted-foreground"}>{filas.length}</td>
-                  <td className={tdNum}></td>
+                  <td className={tdNum + " text-foreground/90"}>{fmtARS.format(tot.montoGestionado)}</td>
+                  <td className={tdNum + " text-foreground/90"}>{fmtARS.format(tot.feeBruto)}</td>
+                  <td className={tdNum + " text-danger"}>-{fmtARS.format(tot.costo)}</td>
+                  <td className={tdNum + " text-danger"}>-{fmtARS.format(tot.multaBanco)}</td>
                   <td className={tdNum + " text-foreground"}>{fmtARS.format(tot.neto)}</td>
                   <td className={tdNum + " text-foreground/90"}>{fmtARS.format(tot.iva)}</td>
                   <td className={tdNum + " text-primary"}>{fmtARS.format(tot.total)}</td>
                 </tr>
               )}
               {grupos.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Sin cheques resueltos en ese período.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Sin cheques resueltos en ese período.</td></tr>
               )}
             </tbody>
           </table>
@@ -184,7 +201,10 @@ export default async function ReportesPage({
                 <th className={th}>N°</th>
                 <th className={th}>Librador</th>
                 <th className={th + " text-right"}>Monto</th>
-                <th className={th + " text-right"}>Fee</th>
+                <th className={th + " text-right"}>Fee bruto</th>
+                <th className={th + " text-right"}>Costo proc.</th>
+                <th className={th + " text-right"}>Multa banco</th>
+                <th className={th + " text-right"}>Neto</th>
                 <th className={th}>Estado</th>
               </tr>
             </thead>
@@ -197,7 +217,10 @@ export default async function ReportesPage({
                   <td className="px-4 py-3 font-mono text-foreground/90">{fi.numero_cheque}</td>
                   <td className="px-4 py-3 text-foreground">{fi.librador}</td>
                   <td className={tdNum + " text-foreground"}>{fmtARS.format(fi.monto)}</td>
-                  <td className={tdNum + " text-foreground/90"}>{fmtARS.format(fi.fee)}</td>
+                  <td className={tdNum + " text-foreground/90"}>{fmtARS.format(fi.feeBruto)}</td>
+                  <td className={tdNum + " text-danger"}>-{fmtARS.format(fi.costo)}</td>
+                  <td className={tdNum + " text-danger"}>{fi.multaBanco > 0 ? "-" + fmtARS.format(fi.multaBanco) : "—"}</td>
+                  <td className={tdNum + (fi.neto < 0 ? " font-semibold text-danger" : " text-foreground")}>{fmtARS.format(fi.neto)}</td>
                   <td className="px-4 py-3 text-xs uppercase text-muted-foreground">{fi.estado}</td>
                 </tr>
               ))}
