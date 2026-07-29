@@ -11,7 +11,10 @@ const esquemaLiq = z
   .object({
     cliente_id: z.string().uuid(),
     coelsa_id: z.string().min(3, "Falta el Coelsa ID"),
-    fecha_transferencia: z.string().min(10, "Falta la fecha de transferencia"),
+    fecha_transferencia: z
+      .string()
+      .min(10, "Falta la fecha de transferencia")
+      .refine((v) => v >= "2000-01-01" && v <= "2100-01-01", "El año de la fecha de transferencia es inválido"),
     cvu_cbu_destino: z.preprocess(
       vacioANull,
       z
@@ -85,6 +88,7 @@ export async function liquidarDesdeSolicitud(p: {
   if (err) return { error: err };
   if (!p.coelsaId || p.coelsaId.length < 3) return { error: "Falta el Coelsa ID" };
   if (!p.fecha || p.fecha.length < 10) return { error: "Falta la fecha de transferencia" };
+  if (p.fecha < "2000-01-01" || p.fecha > "2100-01-01") return { error: "El año de la fecha de transferencia es inválido" };
 
   const supabase = await createClient();
   const { data: sol } = await supabase
@@ -158,6 +162,7 @@ export async function procesarSolicitud(
   if (!solicitudId) return { error: "Solicitud inválida" };
   if (coelsaId.length < 3) return { error: "Falta el Coelsa ID" };
   if (fecha.length < 10) return { error: "Falta la fecha de transferencia" };
+  if (fecha < "2000-01-01" || fecha > "2100-01-01") return { error: "El año de la fecha de transferencia es inválido" };
 
   const supabase = await createClient();
   const { data: sol } = await supabase

@@ -32,13 +32,13 @@ export default function ExportarXls({
       {conFechas && (
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
           Desde
-          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className={inp} />
+          <input type="date" min="2000-01-01" max="2100-01-01" value={desde} onChange={(e) => setDesde(e.target.value)} className={inp} />
         </label>
       )}
       {conFechas && (
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
           Hasta
-          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className={inp} />
+          <input type="date" min="2000-01-01" max="2100-01-01" value={hasta} onChange={(e) => setHasta(e.target.value)} className={inp} />
         </label>
       )}
       <button

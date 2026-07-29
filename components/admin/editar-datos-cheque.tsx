@@ -85,10 +85,10 @@ export default function EditarDatosCheque({
             <span className="text-[10px] normal-case text-muted-foreground/70">{f.cp && Number(f.cp) <= 2000 ? "Cámara" : f.cp ? "Interior" : ""}{f.cp ? " · recalcula el fee al guardar" : ""}</span>
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de cobro
-            <input type="date" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
+            <input type="date" min="2000-01-01" max="2100-01-01" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Acreditación estimada
-            <input type="date" value={f.fechaAcred} onChange={(e) => setF({ ...f, fechaAcred: e.target.value })} className={inp} />
+            <input type="date" min="2000-01-01" max="2100-01-01" value={f.fechaAcred} onChange={(e) => setF({ ...f, fechaAcred: e.target.value })} className={inp} />
           </label>
           <div className="flex items-end gap-2">
             <button

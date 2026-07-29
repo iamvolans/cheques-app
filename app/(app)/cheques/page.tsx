@@ -163,11 +163,11 @@ export default async function ChequesPage({
           </label>
           <label className={lblCls}>
             Desde
-            <input name="desde" type="date" defaultValue={f.desde ?? ""} className={inputCls} />
+            <input name="desde" type="date" min="2000-01-01" max="2100-01-01" defaultValue={f.desde ?? ""} className={inputCls} />
           </label>
           <label className={lblCls}>
             Hasta
-            <input name="hasta" type="date" defaultValue={f.hasta ?? ""} className={inputCls} />
+            <input name="hasta" type="date" min="2000-01-01" max="2100-01-01" defaultValue={f.hasta ?? ""} className={inputCls} />
           </label>
           <label className={lblCls}>
             Cliente

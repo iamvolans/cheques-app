@@ -1,5 +1,6 @@
 "use client";
 
+import { hoyART } from "@/lib/fechas";
 import { useActionState, useEffect, useState } from "react";
 import { liquidar, type EstadoLiq } from "@/actions/liquidaciones";
 import InputCuit from "@/components/ui/input-cuit";
@@ -61,7 +62,7 @@ export default function Liquidar({
     <form action={accion} className="grid w-80 gap-2 rounded-lg border border-border bg-card p-3 text-left">
       <input type="hidden" name="cliente_id" value={clienteId} />
       <input name="coelsa_id" placeholder="Coelsa ID *" required className={inputCls} />
-      <input name="fecha_transferencia" type="date" required className={inputCls} title="Fecha de transferencia" />
+      <input name="fecha_transferencia" type="date" required min="2000-01-01" max={hoyART()} className={inputCls} title="Fecha de transferencia" />
       <input name="cvu_cbu_destino" placeholder="CBU/CVU destino (22 dígitos)" className={inputCls} />
       <input name="alias_destino" placeholder="Alias destino" className={inputCls} />
       <p className="text-[10px] text-muted-foreground">CBU/CVU o Alias: cargá al menos uno (pueden ser los dos).</p>

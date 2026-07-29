@@ -102,11 +102,11 @@ export default async function ReportesPage({
           <form method="get" className="flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               Desde
-              <input name="desde" type="date" defaultValue={desde} required className={inputCls} />
+              <input name="desde" type="date" min="2000-01-01" max="2100-01-01" defaultValue={desde} required className={inputCls} />
             </label>
             <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               Hasta
-              <input name="hasta" type="date" defaultValue={hasta} required className={inputCls} />
+              <input name="hasta" type="date" min="2000-01-01" max="2100-01-01" defaultValue={hasta} required className={inputCls} />
             </label>
             <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               Convenio

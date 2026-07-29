@@ -23,11 +23,11 @@ export default function DescargarExtracto({ token }: { token: string }) {
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
           Desde
-          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className={inp} />
+          <input type="date" min="2000-01-01" max="2100-01-01" value={desde} onChange={(e) => setDesde(e.target.value)} className={inp} />
         </label>
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
           Hasta
-          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className={inp} />
+          <input type="date" min="2000-01-01" max="2100-01-01" value={hasta} onChange={(e) => setHasta(e.target.value)} className={inp} />
         </label>
         <a href={url()} className={btn}><Download size={13} /> Descargar XLS</a>
       </div>

@@ -23,7 +23,7 @@ export default function FilaSolicitud({ id }: { id: string }) {
       <form action={accion} className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="solicitud_id" value={id} />
         <input name="coelsa_id" placeholder="Coelsa ID *" required className={`${inp} w-36`} />
-        <input name="fecha" type="date" defaultValue={hoyART()} required className={inp} />
+        <input name="fecha" type="date" defaultValue={hoyART()} required min="2000-01-01" max={hoyART()} className={inp} />
         <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
           Comprobante
           <input

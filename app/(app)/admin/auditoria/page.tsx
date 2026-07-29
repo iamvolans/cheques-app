@@ -84,11 +84,11 @@ export default async function AuditoriaPage({
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
             Desde
-            <input name="desde" type="date" defaultValue={desde ?? ""} className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary" />
+            <input name="desde" type="date" min="2000-01-01" max="2100-01-01" defaultValue={desde ?? ""} className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary" />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
             Hasta
-            <input name="hasta" type="date" defaultValue={hasta ?? ""} className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary" />
+            <input name="hasta" type="date" min="2000-01-01" max="2100-01-01" defaultValue={hasta ?? ""} className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary" />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
             Acción
