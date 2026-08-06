@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import GestionRechazo from "@/components/cheques/gestion-rechazo";
 import ReasignarConvenio from "@/components/admin/reasignar-convenio";
 import { etiquetaEstadoConFecha, estadoVisual } from "@/lib/estados";
@@ -81,6 +82,10 @@ export default async function DetalleChequePage({
 
   const esAdmin = miPerfil?.rol === "administrador";
 
+  const { data: movsCheque } = await supabase
+    .from("movimientos_clientes").select("monto").eq("cheque_id", id);
+  const impactoSaldo = (movsCheque ?? []).reduce((a, m) => a + Number(m.monto), 0);
+
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const campos: [string, string][] = [
     ["Tipo", ch.tipo === "echeq" ? "E-Cheq" : "Cheque físico"],
@@ -101,9 +106,7 @@ export default async function DetalleChequePage({
     ["Lote", ch.lotes ? "N° " + ch.lotes.numero + " · " + ch.lotes.fecha : "—"],
     ["N° de foto", ch.foto_numero ? String(ch.foto_numero) : "—"],
     ["Fecha de carga", ch.fecha_carga ?? "—"],
-    ["Alta en el sistema", new Date(ch.created_at).toLocaleString("es-AR")],
     ["Cuenta de ingreso", `${ch.cuentas_bancarias_empresa?.banco ?? "—"}${ch.cuentas_bancarias_empresa?.alias ? " · " + ch.cuentas_bancarias_empresa.alias : ""}`],
-    ["Fecha de cobro", ch.fecha_cobro],
     ["Fecha de depósito", ch.fecha_deposito ?? "—"],
     ["Acreditación estimada", ch.fecha_estimada_acred ?? "—"],
     ["Portador al banco", ch.portador_banco ?? "—"],
@@ -160,7 +163,7 @@ export default async function DetalleChequePage({
             {(logs ?? []).map((l) => (
               <div key={l.id} className="flex gap-4 border-l-2 border-border py-2 pl-4 text-sm">
                 <span className="w-44 shrink-0 font-mono text-xs text-muted-foreground">
-                  {new Date(l.created_at).toLocaleString("es-AR")}
+                  {fechaHoraART(l.created_at)}
                 </span>
                 <span className="text-foreground">
                   {l.descripcion}
@@ -176,6 +179,8 @@ export default async function DetalleChequePage({
           <EditarDatosCheque
             chequeId={ch.id}
             numero={ch.numero_cheque}
+            tipo={ch.tipo}
+            echeqId={ch.echeq_id ?? null}
             librador={ch.librador}
             cuit={ch.cuit_librador}
             banco={ch.banco_emisor ?? ""}
@@ -218,8 +223,8 @@ export default async function DetalleChequePage({
         {esAdmin && (
           <CorregirEstado chequeId={ch.id} numero={ch.numero_cheque} estadoActual={ch.estado} />
         )}
-        {esAdmin && ["aceptado", "en_custodia"].includes(ch.estado) && (
-          <EliminarCheque chequeId={ch.id} numero={ch.numero_cheque} />
+        {esAdmin && (
+          <EliminarCheque chequeId={ch.id} numero={ch.numero_cheque} volver={volver} impacto={impactoSaldo} />
         )}
       </div>
     </main>

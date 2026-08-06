@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -51,7 +52,7 @@ export default async function ReciboPage({
 
         {rec.estado === "anulado" && (
           <div className="rounded border-2 border-red-600 bg-red-50 px-4 py-2 text-sm font-semibold uppercase text-red-700">
-            Recibo anulado el {new Date(rec.anulado_at).toLocaleString("es-AR")} · {rec.anulado_motivo}
+            Recibo anulado el {fechaHoraART(rec.anulado_at)} · {rec.anulado_motivo}
           </div>
         )}
 
@@ -129,7 +130,7 @@ export default async function ReciboPage({
                   {rec.firma_aclaracion} · DNI {rec.firma_dni}
                   <br />
                   <span className="text-neutral-600">
-                    Firmado el {new Date(rec.firma_at).toLocaleString("es-AR")}
+                    Firmado el {fechaHoraART(rec.firma_at)}
                   </span>
                 </div>
               )}

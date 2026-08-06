@@ -111,8 +111,8 @@ export default async function ConfiguracionPage() {
               { name: "alias", placeholder: "Alias" },
               { name: "cbu", placeholder: "CBU" },
               { name: "descripcion", placeholder: "Descripción" },
-              { name: "multa_rechazo_banco", placeholder: "Multa por rechazo ARS", type: "number" },
-              { name: "costo_bancario_pct", placeholder: "Costo procesamiento % (ej: 0.30)", type: "number" },
+              { name: "multa_rechazo_banco", placeholder: "Multa por rechazo NETA sin IVA", type: "number" },
+              { name: "costo_bancario_pct", placeholder: "Costo procesamiento % neto (ej: 0.35)", type: "number" },
             ]}
           />
           {(cuentas ?? []).map((c) => (

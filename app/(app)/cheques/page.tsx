@@ -254,7 +254,7 @@ export default async function ChequesPage({
                 <th className="px-3 py-3 font-medium">Cliente</th>
                 <th className="px-3 py-3 text-right font-medium">Monto</th>
                 <th className="px-3 py-3 text-right font-medium">Fee</th>
-                <th className="px-3 py-3 font-medium">Cobro</th>
+                <th className="px-3 py-3 font-medium">Pago</th>
                 <th className="px-3 py-3 font-medium">Acred. est.</th>
                 <th className="px-3 py-3 font-medium">Estado</th>
               </tr>

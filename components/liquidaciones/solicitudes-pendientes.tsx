@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import FilaSolicitud from "@/components/liquidaciones/fila-solicitud";
 import AlertaDestino from "@/components/liquidaciones/alerta-destino";
@@ -31,7 +32,7 @@ export default async function SolicitudesPendientes() {
               <p className="font-mono text-xs text-muted-foreground">
                 {s.cvu_cbu_destino ?? s.alias_destino}
                 {s.cuit_beneficiario && ` · CUIT ${s.cuit_beneficiario}`}
-                {s.nota && ` · "${s.nota}"`} · {new Date(s.created_at).toLocaleString("es-AR")}
+                {s.nota && ` · "${s.nota}"`} · {fechaHoraART(s.created_at)}
               </p>
               {s.cuit_beneficiario ? (
                 <div className="mt-2">

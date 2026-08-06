@@ -64,11 +64,29 @@ export async function eliminarCheque(input: {
     .from("cheques").select("*").eq("id", input.chequeId).single();
   if (!ch) return { error: "El cheque no existe." };
 
-  if (!["aceptado", "en_custodia"].includes(ch.estado)) {
+  // Un recibo firmado es un documento con firma: primero se anula
+  if (ch.recibo_id) {
+    const { data: rec } = await admin
+      .from("recibos_devolucion").select("numero, estado").eq("id", ch.recibo_id).single();
     return {
-      error: `Un cheque ${ch.estado} no se puede eliminar: ya impactó en los libros. La integridad contable es sagrada.`,
+      error: "El cheque está incluido en el recibo de devolución N° " + (rec?.numero ?? "?") +
+        ". Anulá ese recibo antes de eliminar el cheque.",
     };
   }
+
+  // Movimientos que este cheque genero: al borrarlo, el saldo del cliente se revierte
+  const { data: movs } = await admin
+    .from("movimientos_clientes")
+    .select("id, monto, tipo, descripcion")
+    .eq("cheque_id", ch.id);
+  const impacto = (movs ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  const detalleImpacto = (movs ?? []).length === 0
+    ? " Sin movimientos asociados: el saldo no cambia."
+    : " Se eliminaron " + (movs ?? []).length + " movimiento(s); el saldo del cliente varía en " +
+      (impacto >= 0 ? "-" : "+") + "$" + Math.abs(impacto).toFixed(2) + ".";
+
+  await admin.from("notificaciones_pendientes").delete().eq("cheque_id", ch.id);
+  await admin.from("movimientos_clientes").delete().eq("cheque_id", ch.id);
 
   // Borrar las fotos/PDF de Drive (si falla, no frena la eliminación)
   for (const url of [ch.foto_frente_url, ch.foto_dorso_url, ch.pdf_endoso_url]) {
@@ -85,8 +103,8 @@ export async function eliminarCheque(input: {
     accion: "DELETE",
     tabla: "cheques",
     registro_id: ch.id,
-    descripcion: `ELIMINACIÓN DEFINITIVA del cheque N° ${ch.numero_cheque} (${ch.librador}, $${ch.monto}) — verificada con segundo factor`,
-    valores_antes: ch,
+    descripcion: `ELIMINACIÓN DEFINITIVA del cheque N° ${ch.numero_cheque} (${ch.librador}, $${ch.monto}) — verificada con segundo factor.${detalleImpacto}`,
+    valores_antes: { ...ch, movimientos_eliminados: movs ?? [] },
     valores_despues: null,
   });
 
@@ -95,6 +113,7 @@ export async function eliminarCheque(input: {
 
   revalidatePath("/cheques");
   revalidatePath("/dashboard");
+  revalidatePath("/clientes");
   return { error: null, ok: true };
 }
 

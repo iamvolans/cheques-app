@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -137,7 +138,7 @@ export default async function AuditoriaPage({
               {(logs ?? []).map((l) => (
                 <tr key={l.id} className="align-top transition hover:bg-muted/40">
                   <td className="px-3 py-3 font-mono text-xs text-muted-foreground">
-                    {new Date(l.created_at).toLocaleString("es-AR")}
+                    {fechaHoraART(l.created_at)}
                   </td>
                   <td className="px-3 py-3 text-foreground/90">{l.usuario_email ?? "sistema"}</td>
                   <td className="px-3 py-3">

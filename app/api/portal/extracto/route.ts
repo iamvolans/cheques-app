@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { tieneSesionPortal } from "@/lib/portal/sesion";
@@ -87,7 +88,7 @@ export async function GET(req: NextRequest) {
       // La multa solo se le cobró al cliente en el débito por rechazo
       const multa = m.tipo === "debito_rechazo" && ch?.multa != null ? Number(ch.multa) : null;
       return {
-        "Fecha": new Date(m.created_at).toLocaleString("es-AR"),
+        "Fecha": fechaHoraART(m.created_at),
         "Tipo": ETIQUETA_TIPO[m.tipo] ?? m.tipo,
         "N° Cheque": ch?.numero_cheque ?? "",
         "Librador": ch?.librador ?? "",

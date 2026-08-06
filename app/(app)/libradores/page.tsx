@@ -1,3 +1,4 @@
+import { fechaCortaART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -99,7 +100,7 @@ export default async function LibradoresPage() {
                     </td>
                     <td className="px-3 py-3 font-mono text-muted-foreground">
                       {l.fecha_ultimo_rechazo
-                        ? new Date(l.fecha_ultimo_rechazo).toLocaleDateString("es-AR")
+                        ? fechaCortaART(l.fecha_ultimo_rechazo)
                         : "—"}
                     </td>
                     <td className="px-3 py-3 text-right font-mono text-muted-foreground">

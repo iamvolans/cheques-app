@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { obtenerReporte, rangoPeriodo } from "@/lib/reportes";
@@ -132,7 +133,7 @@ export default async function ReporteImpresoPage({
         </table>
 
         <p className="text-[10px] text-zinc-400">
-          Generado por Gestión de Cobranza · {new Date().toLocaleString("es-AR")}
+          Generado por Gestión de Cobranza · {fechaHoraART()}
         </p>
       </div>
     </main>

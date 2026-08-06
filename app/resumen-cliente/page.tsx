@@ -1,3 +1,4 @@
+import { fechaHoraART, fechaCortaART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import BotonImprimir from "@/components/reportes/boton-imprimir";
@@ -65,7 +66,7 @@ export default async function ResumenClientePage({
               <strong>{cliente.razon_social}</strong> · CUIT {cliente.cuit}
             </p>
             <p className="text-xs text-zinc-500">
-              Emitido el {new Date().toLocaleString("es-AR")} · Comisión acordada: {Number(cliente.fee_porcentaje).toFixed(2)}%
+              Emitido el {fechaHoraART()} · Comisión acordada: {Number(cliente.fee_porcentaje).toFixed(2)}%
             </p>
           </div>
           <BotonImprimir />
@@ -132,7 +133,7 @@ export default async function ResumenClientePage({
             <tbody>
               {(movimientos ?? []).map((m, i) => (
                 <tr key={i}>
-                  <td className={td}>{new Date(m.created_at).toLocaleDateString("es-AR")}</td>
+                  <td className={td}>{fechaCortaART(m.created_at)}</td>
                   <td className={td}>{m.descripcion}</td>
                   <td className={`${td} text-right font-mono`}>{fmt.format(Number(m.monto))}</td>
                 </tr>
@@ -157,7 +158,7 @@ export default async function ResumenClientePage({
             <tbody>
               {(liquidaciones ?? []).map((l, i) => (
                 <tr key={i}>
-                  <td className={td}>{new Date(l.created_at).toLocaleDateString("es-AR")}</td>
+                  <td className={td}>{fechaCortaART(l.created_at)}</td>
                   <td className={`${td} font-mono`}>{l.coelsa_id ?? "—"}</td>
                   <td className={`${td} text-right font-mono`}>{fmt.format(Number(l.monto))}</td>
                 </tr>

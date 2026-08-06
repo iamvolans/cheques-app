@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -159,7 +160,7 @@ export default async function PerfilClientePage({
                 {(movimientos ?? []).map((m) => (
                   <tr key={m.id} className="transition hover:bg-muted/40">
                     <td className="px-4 py-3 font-mono text-muted-foreground">
-                      {new Date(m.created_at).toLocaleString("es-AR")}
+                      {fechaHoraART(m.created_at)}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorMov[m.tipo] ?? ""}`}>
@@ -230,7 +231,7 @@ export default async function PerfilClientePage({
               {(historial ?? []).map((h: { created_at: string; usuario_email: string | null; accion: string; tabla: string; descripcion: string }, i: number) => (
                 <div key={i} className="flex gap-4 border-l-2 border-border py-2 pl-4 text-sm">
                   <span className="w-44 shrink-0 font-mono text-xs text-muted-foreground">
-                    {new Date(h.created_at).toLocaleString("es-AR")}
+                    {fechaHoraART(h.created_at)}
                   </span>
                   <span className="text-foreground">
                     {h.descripcion}

@@ -1,5 +1,6 @@
 "use client";
 
+import { fechaHoraART } from "@/lib/fechas";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
@@ -80,7 +81,7 @@ export default function Campana() {
                   <p className="text-sm text-foreground">{n.titulo}</p>
                   {n.detalle && <p className="text-xs text-muted-foreground">{n.detalle}</p>}
                   <p className="mt-0.5 text-[10px] text-muted-foreground/70">
-                    {new Date(n.created_at).toLocaleString("es-AR")}
+                    {fechaHoraART(n.created_at)}
                   </p>
                 </Link>
               ))}

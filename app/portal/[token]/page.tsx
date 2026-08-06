@@ -1,3 +1,4 @@
+import { fechaHoraART, fechaCortaART } from "@/lib/fechas";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import SolicitarLiquidacion from "@/components/portal/solicitar-liquidacion";
@@ -70,7 +71,7 @@ export default async function PortalClientePage({
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 font-mono text-sm font-bold text-zinc-950">GC</div>
           <div>
             <p className="text-sm font-semibold">{cliente.razon_social}</p>
-            <p className="text-xs text-zinc-500">CUIT {cliente.cuit} · Portal de cuenta · {new Date().toLocaleString("es-AR")}</p>
+            <p className="text-xs text-zinc-500">CUIT {cliente.cuit} · Portal de cuenta · {fechaHoraART()}</p>
           </div>
         </header>
 
@@ -107,7 +108,7 @@ export default async function PortalClientePage({
                 <div key={s.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                   <div className="min-w-0">
                     <p className="truncate text-zinc-100"><span className="font-mono">{fmt.format(Number(s.monto))}</span> → {s.beneficiario}</p>
-                    <p className="truncate text-xs text-zinc-500">{s.cvu_cbu_destino ?? s.alias_destino} · {new Date(s.created_at).toLocaleDateString("es-AR")}</p>
+                    <p className="truncate text-xs text-zinc-500">{s.cvu_cbu_destino ?? s.alias_destino} · {fechaCortaART(s.created_at)}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">Pendiente</span>
                 </div>
@@ -124,7 +125,7 @@ export default async function PortalClientePage({
                 <div key={s.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                   <div className="min-w-0">
                     <p className="truncate text-zinc-100"><span className="font-mono">{fmt.format(Number(s.monto))}</span> → {s.beneficiario}</p>
-                    <p className="truncate text-xs text-zinc-500">{s.cvu_cbu_destino ?? s.alias_destino} · {new Date(s.created_at).toLocaleDateString("es-AR")}</p>
+                    <p className="truncate text-xs text-zinc-500">{s.cvu_cbu_destino ?? s.alias_destino} · {fechaCortaART(s.created_at)}</p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">Realizada</span>
@@ -199,7 +200,7 @@ export default async function PortalClientePage({
               <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                 <div className="min-w-0">
                   <p className="truncate text-zinc-300">{m.descripcion}</p>
-                  <p className="text-xs text-zinc-600">{new Date(m.created_at).toLocaleDateString("es-AR")}</p>
+                  <p className="text-xs text-zinc-600">{fechaCortaART(m.created_at)}</p>
                 </div>
                 <span className={`shrink-0 font-mono ${Number(m.monto) >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmt.format(Number(m.monto))}</span>
               </div>

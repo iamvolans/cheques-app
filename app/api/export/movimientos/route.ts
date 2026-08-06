@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
@@ -75,7 +76,7 @@ export async function GET(req: NextRequest) {
       const fee = ch?.fee_calculado != null ? Number(ch.fee_calculado) : null;
       const multa = m.tipo === "debito_rechazo" && ch?.multa != null ? Number(ch.multa) : null;
       return {
-        "Fecha": new Date(m.created_at).toLocaleString("es-AR"),
+        "Fecha": fechaHoraART(m.created_at),
         "Tipo": ETIQUETA_TIPO[m.tipo] ?? m.tipo,
         "N° Cheque": ch?.numero_cheque ?? "",
         "Librador": ch?.librador ?? "",

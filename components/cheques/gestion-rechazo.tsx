@@ -1,4 +1,5 @@
 "use client";
+import { fechaHoraART } from "@/lib/fechas";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { gestionRechazo } from "@/actions/cheques";
@@ -53,7 +54,7 @@ export default function GestionRechazo({
               <div className="min-w-0 flex-1">
                 <p className={tituloCls}>{p.titulo}</p>
                 <p className="text-[11px] text-muted-foreground/80">
-                  {hecho ? new Date(fechas[p.k] as string).toLocaleString("es-AR") : p.desc}
+                  {hecho ? fechaHoraART(fechas[p.k] as string) : p.desc}
                 </p>
               </div>
               {!hecho && (

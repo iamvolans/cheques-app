@@ -1,5 +1,6 @@
 "use client";
 
+import { fechaCortaART } from "@/lib/fechas";
 import { useEffect, useState } from "react";
 import { consultarRiesgoLibrador, type RiesgoLibrador } from "@/actions/riesgo-librador";
 import { ShieldAlert, ShieldCheck, ShieldQuestion, Loader2 } from "lucide-react";
@@ -63,7 +64,7 @@ export default function AlertaRiesgoLibrador({ cuit }: { cuit: string }) {
   const t = tono[riesgo.banda] ?? tono.sin_historial;
 
   const fechaRech = riesgo.fecha_ultimo_rechazo
-    ? new Date(riesgo.fecha_ultimo_rechazo).toLocaleDateString("es-AR")
+    ? fechaCortaART(riesgo.fecha_ultimo_rechazo)
     : null;
 
   return (

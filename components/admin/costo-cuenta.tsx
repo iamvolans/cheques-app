@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useTransition } from "react";
 import { actualizarCostoCuenta } from "@/actions/configuracion";
 
@@ -6,9 +7,13 @@ export default function CostoCuenta({ id, costo }: { id: string; costo: number }
   const [valor, setValor] = useState(String(costo));
   const [pendiente, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
+
   return (
-    <span className="inline-flex items-center gap-1" title="Costo % que este banco nos cobra por procesar cada cheque (se descuenta de nuestra ganancia)">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Costo proc. %</span>
+    <span
+      className="inline-flex items-center gap-1"
+      title="Costo NETO en % que el banco cobra por procesar cada cheque, sin IVA. No se aplica a los E-Cheq."
+    >
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Costo proc. % neto</span>
       <input
         type="number"
         step="0.001"
@@ -18,6 +23,7 @@ export default function CostoCuenta({ id, costo }: { id: string; costo: number }
         onChange={(e) => setValor(e.target.value)}
         className="w-24 rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
       />
+      <span className="text-[10px] text-muted-foreground/80">no aplica a e-cheq</span>
       <button
         disabled={pendiente}
         onClick={() => {
@@ -32,7 +38,7 @@ export default function CostoCuenta({ id, costo }: { id: string; costo: number }
       >
         Guardar
       </button>
-      {msg && <span className={`text-xs ${msg === "✓" ? "text-primary" : "text-danger"}`}>{msg}</span>}
+      {msg && <span className={"text-xs " + (msg === "✓" ? "text-primary" : "text-danger")}>{msg}</span>}
     </span>
   );
 }

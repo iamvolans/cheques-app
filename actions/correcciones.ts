@@ -427,6 +427,8 @@ export async function reasignarCheque(p: {
 // ---------- Editar datos NO contables del cheque (no toca saldo) ----------
 export async function editarDatosCheque(p: {
   chequeId: string;
+  tipo: "fisico" | "echeq";
+  echeq_id: string | null;
   numero_cheque: string;
   librador: string;
   cuit_librador: string;
@@ -450,6 +452,11 @@ export async function editarDatosCheque(p: {
   if (!Number.isInteger(p.codigo_postal) || p.codigo_postal < 1 || p.codigo_postal > 9999) {
     return { error: "El C.P. es obligatorio y debe estar entre 1 y 9999." };
   }
+  const nuevoEcheqId = p.tipo === "echeq" ? (p.echeq_id ?? "").trim() : null;
+  if (p.tipo === "echeq" && !nuevoEcheqId) {
+    return { error: "Un E-Cheq necesita su ID único." };
+  }
+
   const nuevaPlaza = p.codigo_postal <= 2000 ? "camara" : "interior";
   const { data: cliFee } = await admin
     .from("clientes")
@@ -473,6 +480,8 @@ export async function editarDatosCheque(p: {
     fee_calculado: nuevoFee,
     fecha_cobro: p.fecha_cobro,
     fecha_estimada_acred: p.fecha_estimada_acred || null,
+    tipo: p.tipo,
+    echeq_id: nuevoEcheqId,
   };
   if (!update.librador) return { error: "El librador no puede quedar vacío." };
   if (!update.numero_cheque) return { error: "El número de cheque no puede quedar vacío." };
@@ -494,7 +503,7 @@ export async function editarDatosCheque(p: {
     usuario_id: auth.userId, usuario_email: auth.email, accion: "UPDATE",
     tabla: "cheques", registro_id: ch.id,
     descripcion: `Edición de datos no contables del cheque N° ${ch.numero_cheque} (librador/CUIT/banco/fechas)`,
-    valores_antes: { numero_cheque: ch.numero_cheque, librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, codigo_postal: ch.codigo_postal, plaza: ch.plaza, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred },
+    valores_antes: { numero_cheque: ch.numero_cheque, librador: ch.librador, cuit_librador: ch.cuit_librador, banco_emisor: ch.banco_emisor, codigo_postal: ch.codigo_postal, plaza: ch.plaza, fee_aplicado_pct: ch.fee_aplicado_pct, fee_calculado: ch.fee_calculado, fecha_cobro: ch.fecha_cobro, fecha_estimada_acred: ch.fecha_estimada_acred, tipo: ch.tipo, echeq_id: ch.echeq_id },
     valores_despues: update,
   });
 

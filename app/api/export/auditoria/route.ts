@@ -1,3 +1,4 @@
+import { fechaHoraART } from "@/lib/fechas";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
   }
 
   const filas = todas.map((l) => ({
-    "Cuándo": new Date(l.created_at as string).toLocaleString("es-AR"),
+    "Cuándo": fechaHoraART(l.created_at as string),
     "Usuario": l.usuario_email ?? "sistema",
     "Acción": l.accion,
     "Tabla": l.tabla,

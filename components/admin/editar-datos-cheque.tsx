@@ -16,6 +16,8 @@ function fmtCuit(raw: string) {
 export default function EditarDatosCheque({
   chequeId,
   numero,
+  tipo,
+  echeqId,
   librador,
   cuit,
   banco,
@@ -26,6 +28,8 @@ export default function EditarDatosCheque({
 }: {
   chequeId: string;
   numero: string;
+  tipo: "fisico" | "echeq";
+  echeqId: string | null;
   librador: string;
   cuit: string;
   banco: string;
@@ -37,6 +41,8 @@ export default function EditarDatosCheque({
   const [abierto, setAbierto] = useState(false);
   const [f, setF] = useState({
     numero: numero ?? "",
+    tipo: tipo ?? "fisico",
+    echeqId: echeqId ?? "",
     librador, cuit: fmtCuit(cuit ?? ""), banco: banco ?? "",
     cp: cp != null ? String(cp) : "",
     fechaCobro: fechaCobro ?? "", fechaAcred: fechaAcred ?? "",
@@ -56,7 +62,7 @@ export default function EditarDatosCheque({
           </span>
           <div>
             <p className="text-sm font-semibold text-foreground">Editar datos del cheque</p>
-            <p className="text-xs text-muted-foreground">Librador, CUIT, banco y fechas. No afecta el saldo. Queda en auditoría.</p>
+            <p className="text-xs text-muted-foreground">Tipo, librador, CUIT, banco y fechas. No afecta el saldo. Queda en auditoría.</p>
           </div>
         </div>
         {!abierto && (
@@ -68,6 +74,18 @@ export default function EditarDatosCheque({
 
       {abierto && (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Tipo de valor
+            <select value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value as "fisico" | "echeq" })} className={inp}>
+              <option value="fisico">Cheque físico</option>
+              <option value="echeq">E-Cheq</option>
+            </select>
+            <span className="text-[10px] normal-case text-muted-foreground/70">Los E-Cheq no pagan costo de procesamiento bancario</span>
+          </label>
+          {f.tipo === "echeq" && (
+            <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">ID único de E-Cheq
+              <input value={f.echeqId} onChange={(e) => setF({ ...f, echeqId: e.target.value })} className={inp} />
+            </label>
+          )}
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Librador
             <input value={f.librador} onChange={(e) => setF({ ...f, librador: e.target.value })} className={inp} />
           </label>
@@ -84,7 +102,7 @@ export default function EditarDatosCheque({
             <input type="number" min="1" max="9999" value={f.cp} onChange={(e) => setF({ ...f, cp: e.target.value })} className={inp} />
             <span className="text-[10px] normal-case text-muted-foreground/70">{f.cp && Number(f.cp) <= 2000 ? "Cámara" : f.cp ? "Interior" : ""}{f.cp ? " · recalcula el fee al guardar" : ""}</span>
           </label>
-          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de cobro
+          <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Fecha de pago
             <input type="date" min="2000-01-01" max="2100-01-01" value={f.fechaCobro} onChange={(e) => setF({ ...f, fechaCobro: e.target.value })} className={inp} />
           </label>
           <label className="flex flex-col gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">Acreditación estimada
@@ -98,6 +116,7 @@ export default function EditarDatosCheque({
                 startTransition(async () => {
                   const r = await editarDatosCheque({
                     chequeId, numero_cheque: f.numero,
+                    tipo: f.tipo, echeq_id: f.echeqId || null,
                     librador: f.librador, cuit_librador: f.cuit,
                     banco_emisor: f.banco, codigo_postal: Number(f.cp),
                     fecha_cobro: f.fechaCobro,
