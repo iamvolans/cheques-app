@@ -20,9 +20,10 @@ const colorEstado: Record<string, string> = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: ganancias }, { data: saldos }, { data: recientes }, { data: conc }, { data: proy }] =
+  const [{ data: ganancias }, { data: reintegros }, { data: saldos }, { data: recientes }, { data: conc }, { data: proy }] =
     await Promise.all([
       supabase.from("vw_ganancias").select("*"),
+      supabase.from("vw_reintegros_mes").select("*"),
       supabase.from("vw_saldos_clientes").select("saldo_disponible"),
       supabase
         .from("cheques")
@@ -66,7 +67,9 @@ export default async function DashboardPage() {
   const hoy = hoyART();
 
   // ---- Financiero ----
-  const gananciaNeta = (ganancias ?? []).reduce((a, g) => a + Number(g.ganancia_total ?? 0), 0);
+  const gananciaCheques = (ganancias ?? []).reduce((a, g) => a + Number(g.ganancia_total ?? 0), 0);
+  const totalReintegros = (reintegros ?? []).reduce((a, r) => a + Number(r.total_reintegros ?? 0), 0);
+  const gananciaNeta = gananciaCheques - totalReintegros;
   const pendiente = (saldos ?? []).reduce((a, s) => a + Math.max(0, Number(s.saldo_disponible ?? 0)), 0);
   const procesados = (estados ?? []).filter((c) => c.estado === "procesado");
   const volumenProcesado = procesados.reduce((a, c) => a + Number(c.monto), 0);
@@ -151,6 +154,8 @@ export default async function DashboardPage() {
   };
 
   const financiero = [
+    { titulo: "Ganancia de cheques", valor: fmtARS.format(gananciaCheques), Icon: TrendingUp, tono: "emerald" },
+    { titulo: "Reintegros de comisiones", valor: (totalReintegros > 0 ? "-" : "") + fmtARS.format(totalReintegros), Icon: TrendingUp, tono: "amber" },
     { titulo: "Ganancia neta", valor: fmtARS.format(gananciaNeta), Icon: TrendingUp, tono: "emerald" },
     { titulo: `Volumen acreditado · ${procesados.length} ok`, valor: fmtARS.format(volumenProcesado), Icon: CircleDollarSign, tono: "violet" },
     { titulo: "Pendiente a liquidar", valor: fmtARS.format(pendiente), Icon: Wallet, tono: "blue" },

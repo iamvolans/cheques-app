@@ -1,3 +1,4 @@
+import { etiquetaMovPortal } from "@/lib/movimientos";
 import { fechaHoraART, fechaCortaART } from "@/lib/fechas";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";

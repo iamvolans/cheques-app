@@ -11,6 +11,8 @@ import ReaplicarTarifa from "@/components/admin/reaplicar-tarifa";
 import ExportarXls from "@/components/ui/exportar-xls";
 import EditarCliente from "@/components/clientes/editar-cliente";
 import AjusteSaldo from "@/components/admin/ajuste-saldo";
+import { CLASE_MOV, etiquetaMov } from "@/lib/movimientos";
+import ReintegroComision from "@/components/clientes/reintegro-comision";
 import AnularMovimiento from "@/components/admin/anular-movimiento";
 
 const colorMov: Record<string, string> = {
@@ -128,7 +130,7 @@ export default async function PerfilClientePage({
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card/40 px-4 py-3">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Exportar extracto de cuenta</span>
             <ExportarXls endpoint={`/api/export/movimientos?cliente=${cliente.id}`} />
-            <div className="ml-auto"><AjusteSaldo clienteId={cliente.id} /></div>
+            <div className="ml-auto flex gap-2"><AjusteSaldo clienteId={cliente.id} /><ReintegroComision clienteId={cliente.id} cliente={cliente.razon_social} /></div>
           </div>
         )}
 
@@ -164,7 +166,7 @@ export default async function PerfilClientePage({
                     </td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${colorMov[m.tipo] ?? ""}`}>
-                        {m.tipo.replace("_", " ")}
+                        {etiquetaMov(m.tipo)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-foreground/90">{m.descripcion}</td>
