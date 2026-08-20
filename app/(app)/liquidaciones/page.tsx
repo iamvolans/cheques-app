@@ -58,21 +58,23 @@ export default async function LiquidacionesPage({
   const [{ data: perfil }, { data: liqs, count }, { data: sumaRpc }, { data: clientes }] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qLiqs,
-    supabase.rpc("fn_suma_liquidaciones", {
-      p_desde: f.desde ?? null,
-      p_hasta: f.hasta ?? null,
-      p_cliente: f.cliente ?? null,
-      p_monto_desde: f.montoDesde && !isNaN(Number(f.montoDesde)) ? Number(f.montoDesde) : null,
-      p_monto_hasta: f.montoHasta && !isNaN(Number(f.montoHasta)) ? Number(f.montoHasta) : null,
-      p_texto: qTexto || null,
-    }),
+    (() => {
+      const params: Record<string, unknown> = {};
+      if (f.desde) params.p_desde = f.desde;
+      if (f.hasta) params.p_hasta = f.hasta;
+      if (f.cliente) params.p_cliente = f.cliente;
+      if (f.montoDesde && !isNaN(Number(f.montoDesde))) params.p_monto_desde = Number(f.montoDesde);
+      if (f.montoHasta && !isNaN(Number(f.montoHasta))) params.p_monto_hasta = Number(f.montoHasta);
+      if (qTexto) params.p_texto = qTexto;
+      return supabase.rpc("fn_suma_liquidaciones", params);
+    })(),
     supabase.from("clientes").select("id, razon_social").order("razon_social"),
   ]);
   const esAdmin = perfil?.rol === "administrador";
 
   const total = count ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
-  const sumaMonto = Number(sumaRpc ?? 0);
+  const sumaMonto = typeof sumaRpc === "number" ? sumaRpc : Number(sumaRpc ?? 0);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const hayFiltros = Boolean(f.q || f.desde || f.hasta || f.cliente || f.montoDesde || f.montoHasta);
 
