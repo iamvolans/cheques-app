@@ -43,30 +43,36 @@ export default async function LiquidacionesPage({
     .select("*, clientes(razon_social)", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(inicio, inicio + 24);
-  let qMonto = supabase.from("liquidaciones").select("monto_liquidado");
 
-  if (f.desde) { qLiqs = qLiqs.gte("fecha_transferencia", f.desde); qMonto = qMonto.gte("fecha_transferencia", f.desde); }
-  if (f.hasta) { qLiqs = qLiqs.lte("fecha_transferencia", f.hasta); qMonto = qMonto.lte("fecha_transferencia", f.hasta); }
-  if (f.cliente) { qLiqs = qLiqs.eq("cliente_id", f.cliente); qMonto = qMonto.eq("cliente_id", f.cliente); }
-  if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qLiqs = qLiqs.gte("monto_liquidado", Number(f.montoDesde)); qMonto = qMonto.gte("monto_liquidado", Number(f.montoDesde)); }
-  if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qLiqs = qLiqs.lte("monto_liquidado", Number(f.montoHasta)); qMonto = qMonto.lte("monto_liquidado", Number(f.montoHasta)); }
+  if (f.desde) { qLiqs = qLiqs.gte("fecha_transferencia", f.desde); }
+  if (f.hasta) { qLiqs = qLiqs.lte("fecha_transferencia", f.hasta); }
+  if (f.cliente) { qLiqs = qLiqs.eq("cliente_id", f.cliente); }
+  if (f.montoDesde && !isNaN(Number(f.montoDesde))) { qLiqs = qLiqs.gte("monto_liquidado", Number(f.montoDesde)); }
+  if (f.montoHasta && !isNaN(Number(f.montoHasta))) { qLiqs = qLiqs.lte("monto_liquidado", Number(f.montoHasta)); }
   if (qTexto) {
     const filtro = `beneficiario.ilike.%${qTexto}%,cuit_beneficiario.ilike.%${qTexto}%,coelsa_id.ilike.%${qTexto}%`;
     qLiqs = qLiqs.or(filtro);
-    qMonto = qMonto.or(filtro);
+   
   }
 
-  const [{ data: perfil }, { data: liqs, count }, { data: montos }, { data: clientes }] = await Promise.all([
+  const [{ data: perfil }, { data: liqs, count }, { data: sumaRpc }, { data: clientes }] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qLiqs,
-    qMonto,
+    supabase.rpc("fn_suma_liquidaciones", {
+      p_desde: f.desde ?? null,
+      p_hasta: f.hasta ?? null,
+      p_cliente: f.cliente ?? null,
+      p_monto_desde: f.montoDesde && !isNaN(Number(f.montoDesde)) ? Number(f.montoDesde) : null,
+      p_monto_hasta: f.montoHasta && !isNaN(Number(f.montoHasta)) ? Number(f.montoHasta) : null,
+      p_texto: qTexto || null,
+    }),
     supabase.from("clientes").select("id, razon_social").order("razon_social"),
   ]);
   const esAdmin = perfil?.rol === "administrador";
 
   const total = count ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
-  const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto_liquidado), 0);
+  const sumaMonto = Number(sumaRpc ?? 0);
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const hayFiltros = Boolean(f.q || f.desde || f.hasta || f.cliente || f.montoDesde || f.montoHasta);
 
