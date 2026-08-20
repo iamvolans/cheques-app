@@ -155,6 +155,37 @@ export default async function PerfilClientePage({
 
         <section>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            Composición del saldo
+          </h2>
+          <div className="mb-8 max-w-md rounded-2xl border border-border bg-card/50 p-5 shadow-lg shadow-foreground/5">
+            {desgloseFilas.map((d) => {
+              const monto = Number(d.total);
+              const positivo = monto >= 0;
+              return (
+                <div key={d.tipo} className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="text-muted-foreground">{etiquetaMov(d.tipo)}</span>
+                  <span className={"font-mono tabular-nums " + (positivo ? "text-primary" : "text-danger")}>
+                    {positivo ? "+" : "-"}{fmtARS.format(Math.abs(monto))}
+                  </span>
+                </div>
+              );
+            })}
+            <div className="mt-2 flex items-center justify-between border-t border-border pt-3 text-sm font-semibold">
+              <span>Saldo</span>
+              <span className={"font-mono tabular-nums " + (Math.abs(sumaDesglose - saldo) < 0.01 ? "text-primary" : "text-danger")}>
+                {fmtARS.format(sumaDesglose)}
+              </span>
+            </div>
+            {Math.abs(sumaDesglose - saldo) >= 0.01 && (
+              <p className="mt-2 rounded border border-danger/40 bg-danger-muted px-2 py-1 text-xs text-danger">
+                El desglose ({fmtARS.format(sumaDesglose)}) no coincide con el saldo disponible ({fmtARS.format(saldo)}). Revisar movimientos.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             Movimientos de cuenta
           </h2>
           <div className="overflow-x-auto rounded-2xl border border-border shadow-lg shadow-foreground/5">
