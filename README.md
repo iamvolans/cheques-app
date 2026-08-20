@@ -128,3 +128,5 @@ docs/           Documentación de instalación y arquitectura
 ## Licencia
 
 Software propietario. Todos los derechos reservados. El uso requiere licencia comercial por instalación/cliente — ver [LICENSE](LICENSE). Contacto comercial: el titular del repositorio.
+
+<!-- entorno de desarrollo Mac configurado 2026-08-20 -->
