@@ -61,10 +61,8 @@ export default async function ChequesPage({
     .select("*, clientes(razon_social), cuentas_bancarias_empresa(multa_rechazo_banco)", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(inicio, inicio + 24);
-  let qMonto = supabase.from("cheques").select("monto");
 
   qCheques = aplicarFiltros(qCheques, f);
-  qMonto = aplicarFiltros(qMonto, f);
 
   const hayFiltros = Boolean(f.desde || f.hasta || f.cliente || f.estado || f.q || f.montoDesde || f.montoHasta || f.tipo || f.plaza || f.convenio);
   const qsActual = new URLSearchParams(
@@ -75,7 +73,6 @@ export default async function ChequesPage({
   const [
     { data: perfil },
     { data: cheques, count: totalCheques },
-    { data: montos },
     { data: clientes },
     { data: convenios },
     { data: cuentas },
@@ -84,7 +81,6 @@ export default async function ChequesPage({
   ] = await Promise.all([
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     qCheques,
-    qMonto,
     supabase.from("clientes").select("id, razon_social").eq("activo", true).order("razon_social"),
     supabase.from("convenios").select("id, razon_social").eq("activo", true),
     supabase.from("cuentas_bancarias_empresa").select("id, banco, alias").eq("activa", true),
@@ -103,7 +99,17 @@ export default async function ChequesPage({
 
   const total = totalCheques ?? 0;
   const totalPaginas = Math.max(1, Math.ceil(total / 25));
-  const sumaMonto = (montos ?? []).reduce((a, m) => a + Number(m.monto), 0);
+  // Suma de montos sobre TODO el filtro, paginando de a 1000 (Supabase trunca ahi).
+  // Reusa aplicarFiltros para que el total filtre identico a la lista.
+  let sumaMonto = 0;
+  for (let desde = 0; ; desde += 1000) {
+    let qs = supabase.from("cheques").select("monto").range(desde, desde + 999);
+    qs = aplicarFiltros(qs, f);
+    const { data: bloque } = await qs;
+    if (!bloque || bloque.length === 0) break;
+    sumaMonto += bloque.reduce((a, m) => a + Number(m.monto), 0);
+    if (bloque.length < 1000) break;
+  }
 
   const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
