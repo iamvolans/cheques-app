@@ -43,6 +43,7 @@ export default async function PerfilClientePage({
     { data: perfil },
     { data: cliente },
     { data: saldoRow },
+    { data: desglose },
     { data: ganancias },
     { data: kpi },
     { data: movimientos },
@@ -52,6 +53,7 @@ export default async function PerfilClientePage({
     supabase.from("perfiles").select("rol").eq("id", user.id).single(),
     supabase.from("clientes").select("*").eq("id", id).single(),
     supabase.from("vw_saldos_clientes").select("saldo_disponible").eq("cliente_id", id).single(),
+    supabase.rpc("fn_desglose_saldo", { p_cliente: id }),
     supabase.from("vw_ganancias").select("*").eq("cliente_id", id),
     supabase.from("vw_kpi_clientes").select("*").eq("cliente_id", id).single(),
     supabase
@@ -74,6 +76,14 @@ export default async function PerfilClientePage({
   const esAdmin = perfil?.rol === "administrador";
   const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
   const saldo = Number(saldoRow?.saldo_disponible ?? 0);
+
+  // Desglose del saldo por tipo de movimiento (suma sobre TODOS los movimientos, no la pagina).
+  // El total de estas lineas debe coincidir con el saldo: sirve de informe y de auto-verificacion.
+  const ordenDesglose = ["acreditacion", "debito_rechazo", "liquidacion", "ajuste_manual", "reintegro_comision"];
+  const desgloseFilas = (desglose as unknown as { tipo: string; total: number }[] | null ?? [])
+    .slice()
+    .sort((a, b) => ordenDesglose.indexOf(a.tipo) - ordenDesglose.indexOf(b.tipo));
+  const sumaDesglose = desgloseFilas.reduce((a, d) => a + Number(d.total), 0);
   const gananciaTotal = (ganancias ?? []).reduce(
     (acc, g) => acc + Number(g.ganancia_total ?? 0), 0);
 
